@@ -183,4 +183,14 @@ parameterized IAND IAND_OP 2 "integer version of AND operator; first parameter i
 typerule IAND_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule IAND ::cvc5::internal::theory::arith::IAndTypeRule
 
+operator T_ID 1 "identity"
+typerule T_ID "SimpleTypeRule<RReal, AReal>"
+
+#constant T_ID \
+#    class \
+#    Rational+ \
+#    ::cvc5::internal::RationalHashFunction \
+#    "util/rational.h" \
+#    "idendity"
+
 endtheory

@@ -536,6 +536,11 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(POW2),
   /**
+   * A dummy operator that behaves as identity.
+   * 
+   */
+  EVALUE(T_ID),
+  /**
    * Arithmetic subtraction, left associative.
    *
    * - Arity: ``n > 1``

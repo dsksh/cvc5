@@ -796,6 +796,11 @@ void Smt2State::setLogic(std::string name)
       addIndexedOperator(Kind::IAND, "iand");
       // pow2
       addOperator(Kind::POW2, "int.pow2");
+
+      // t.zero
+      defineVar("t.zero", d_solver->mkReal(0));
+      // t.id
+      addOperator(Kind::T_ID, "t.id");
     }
   }
 

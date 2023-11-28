@@ -198,6 +198,9 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     applyPass("foreign-theory-rewrite", ap);
   }
 
+  // ishii
+  applyPass("test-pp", ap);
+
   // Assertions MUST BE guaranteed to be rewritten by this point
   applyPass("rewrite", ap);
 
