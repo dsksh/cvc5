@@ -135,6 +135,20 @@ class Pow2TypeRule
 };
 
 /**
+ * Type rule for the T_ADD kind.
+ * Always returns realType.
+ */
+class TAddTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
+/**
  * Type rule for the IndexedRootPredicate operator.
  * Checks that the two arguments are booleanType and realType, always returns
  * booleanType.

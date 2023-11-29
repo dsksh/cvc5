@@ -53,6 +53,7 @@
 #include "util/finite_field_value.h"
 #include "util/floatingpoint.h"
 #include "util/iand.h"
+#include "util/t_add.h"
 #include "util/indexed_root_predicate.h"
 #include "util/real_algebraic_number.h"
 #include "util/regexp.h"
@@ -737,6 +738,11 @@ void Smt2Printer::toStream(std::ostream& out,
       stillNeedToPrintParams = false;
       break;
 
+    case kind::T_ADD:
+      out << "(_ t.add " << n.getOperator().getConst<TAdd>().d_arg << ") ";
+      stillNeedToPrintParams = false;
+      break;
+
     case kind::DIVISIBLE:
       toStream(out, n.getOperator(), toDepth, nullptr);
       out << ' ';
@@ -1082,6 +1088,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::IAND: return "iand";
     case kind::POW2: return "int.pow2";
     case kind::T_ID: return "t.id";
+    case kind::T_ADD: return "t.add";
     case kind::EXPONENTIAL: return "exp";
     case kind::SINE: return "sin";
     case kind::COSINE: return "cos";

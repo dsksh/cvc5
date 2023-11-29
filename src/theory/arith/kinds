@@ -183,14 +183,20 @@ parameterized IAND IAND_OP 2 "integer version of AND operator; first parameter i
 typerule IAND_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule IAND ::cvc5::internal::theory::arith::IAndTypeRule
 
+#
+
 operator T_ID 1 "identity"
 typerule T_ID "SimpleTypeRule<RReal, AReal>"
 
-#constant T_ID \
-#    class \
-#    Rational+ \
-#    ::cvc5::internal::RationalHashFunction \
-#    "util/rational.h" \
-#    "idendity"
+constant T_ADD_OP \
+  struct \
+  TAdd \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::TAdd >" \
+  "util/t_add.h" \
+  "a trial add operator; payload is an instance of the cvc5::internal::TAdd class"
+parameterized T_ADD T_ADD_OP 1 "addition with a parameter value; first parameter is an T_ADD_OP and second is a rational term"
+
+typerule T_ADD_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule T_ADD ::cvc5::internal::theory::arith::TAddTypeRule
 
 endtheory

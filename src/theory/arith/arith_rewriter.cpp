@@ -229,6 +229,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::IAND: return RewriteResponse(REWRITE_DONE, t);
       case kind::POW2: return RewriteResponse(REWRITE_DONE, t);
       case kind::T_ID: return RewriteResponse(REWRITE_DONE, t);
+      case kind::T_ADD: return RewriteResponse(REWRITE_DONE, t);
       case kind::EXPONENTIAL:
       case kind::SINE:
       case kind::COSINE:
@@ -279,6 +280,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::IAND: return postRewriteIAnd(t);
       case kind::POW2: return postRewritePow2(t);
       case kind::T_ID: return RewriteResponse(REWRITE_DONE, t);
+      case kind::T_ADD: return RewriteResponse(REWRITE_DONE, t);
       case kind::EXPONENTIAL:
       case kind::SINE:
       case kind::COSINE:

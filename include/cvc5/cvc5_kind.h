@@ -541,6 +541,11 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(T_ID),
   /**
+   * A trial add operator.
+   * 
+   */
+  EVALUE(T_ADD),
+  /**
    * Arithmetic subtraction, left associative.
    *
    * - Arity: ``n > 1``

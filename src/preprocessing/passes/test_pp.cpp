@@ -13,6 +13,7 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
+#include "util/t_add.h"
 
 namespace cvc5::internal {
 namespace preprocessing {
@@ -247,10 +248,21 @@ Node TestPp::translateWithChildren(
   switch (oldKind)
   {
     case kind::T_ID:
+    {
       Trace("test-pp") << "detect t.id: " << original.getNumChildren() << endl;
       Assert(original.getNumChildren() == 1);
       returnNode = translated_children[0];
       break;
+    }
+    case kind::T_ADD:
+    {
+      Trace("test-pp") << "detect t.add: " << original.getNumChildren() << endl;
+      Assert(original.getNumChildren() == 1);
+      Node x = d_nm->mkConstReal( original.getOperator().getConst<internal::TAdd>().d_arg );
+      Node y = translated_children[0];
+      returnNode = d_nm->mkNode(kind::ADD, x, y);
+      break;
+    }
 
     //case kind::FLOATINGPOINT_MULT:
     //{

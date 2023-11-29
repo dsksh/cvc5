@@ -79,6 +79,7 @@
 #include "util/finite_field_value.h"
 #include "util/floatingpoint.h"
 #include "util/iand.h"
+#include "util/t_add.h"
 #include "util/random.h"
 #include "util/regexp.h"
 #include "util/result.h"
@@ -148,6 +149,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::IAND, internal::Kind::IAND),
         KIND_ENUM(Kind::POW2, internal::Kind::POW2),
         KIND_ENUM(Kind::T_ID, internal::Kind::T_ID),
+        KIND_ENUM(Kind::T_ADD, internal::Kind::T_ADD),
         KIND_ENUM(Kind::SUB, internal::Kind::SUB),
         KIND_ENUM(Kind::NEG, internal::Kind::NEG),
         KIND_ENUM(Kind::DIVISION, internal::Kind::DIVISION),
@@ -525,6 +527,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::IAND, Kind::IAND},
         {internal::Kind::POW2, Kind::POW2},
         {internal::Kind::T_ID, Kind::T_ID},
+        {internal::Kind::T_ADD, Kind::T_ADD},
         {internal::Kind::SUB, Kind::SUB},
         {internal::Kind::NEG, Kind::NEG},
         {internal::Kind::DIVISION, Kind::DIVISION},
@@ -562,6 +565,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::TO_REAL, Kind::TO_REAL},
         {internal::Kind::PI, Kind::PI},
         {internal::Kind::IAND_OP, Kind::IAND},
+        {internal::Kind::T_ADD_OP, Kind::T_ADD},
         /* BV -------------------------------------------------------------- */
         {internal::Kind::CONST_BITVECTOR, Kind::CONST_BITVECTOR},
         {internal::Kind::BITVECTOR_CONCAT, Kind::BITVECTOR_CONCAT},
@@ -852,6 +856,7 @@ const static std::
 const static std::unordered_set<Kind> s_indexed_kinds(
     {Kind::DIVISIBLE,
      Kind::IAND,
+     Kind::T_ADD,
      Kind::BITVECTOR_REPEAT,
      Kind::BITVECTOR_ZERO_EXTEND,
      Kind::BITVECTOR_SIGN_EXTEND,
@@ -891,6 +896,7 @@ const static std::unordered_map<Kind, internal::Kind> s_op_kinds{
     {Kind::FLOATINGPOINT_TO_FP_FROM_UBV,
      internal::Kind::FLOATINGPOINT_TO_FP_FROM_UBV_OP},
     {Kind::IAND, internal::Kind::IAND_OP},
+    {Kind::T_ADD, internal::Kind::T_ADD_OP},
     {Kind::INT_TO_BITVECTOR, internal::Kind::INT_TO_BITVECTOR_OP},
     {Kind::REGEXP_REPEAT, internal::Kind::REGEXP_REPEAT_OP},
     {Kind::REGEXP_LOOP, internal::Kind::REGEXP_LOOP_OP},
@@ -2188,6 +2194,7 @@ size_t Op::getNumIndicesHelper() const
     case Kind::BITVECTOR_ROTATE_RIGHT: size = 1; break;
     case Kind::INT_TO_BITVECTOR: size = 1; break;
     case Kind::IAND: size = 1; break;
+    case Kind::T_ADD: size = 1; break;
     case Kind::FLOATINGPOINT_TO_UBV: size = 1; break;
     case Kind::FLOATINGPOINT_TO_SBV: size = 1; break;
     case Kind::REGEXP_REPEAT: size = 1; break;
@@ -2290,6 +2297,12 @@ Term Op::getIndexHelper(size_t index) const
     {
       t = Solver::mkRationalValHelper(
           d_nm, d_node->getConst<internal::IntAnd>().d_size, true);
+      break;
+    }
+    case Kind::T_ADD:
+    {
+      t = Solver::mkRationalValHelper(
+          d_nm, d_node->getConst<internal::TAdd>().d_arg, true);
       break;
     }
     case Kind::FLOATINGPOINT_TO_UBV:
@@ -6404,6 +6417,10 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
     case Kind::IAND:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::IntAnd(args[0]));
+      break;
+    case Kind::T_ADD:
+      CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      res = mkOpHelper(kind, internal::TAdd(args[0]));
       break;
     case Kind::INT_TO_BITVECTOR:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
