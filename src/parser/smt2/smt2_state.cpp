@@ -803,6 +803,8 @@ void Smt2State::setLogic(std::string name)
       addOperator(Kind::T_ID, "t.id");
       // t.add
       addIndexedOperator(Kind::T_ADD, "t.add");
+      // t.pow
+      addIndexedOperator(Kind::T_POW, "t.pow");
     }
   }
 

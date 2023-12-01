@@ -104,6 +104,14 @@ const char* toString(InferenceId i)
       return "ARITH_NL_POW2_MONOTONE_REFINE";
     case InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE:
       return "ARITH_NL_POW2_TRIVIAL_CASE_REFINE";
+    case InferenceId::ARITH_NL_T_POW_INIT_REFINE:
+      return "ARITH_NL_T_POW_INIT_REFINE";
+    case InferenceId::ARITH_NL_T_POW_VALUE_REFINE:
+      return "ARITH_NL_T_POW_VALUE_REFINE";
+    case InferenceId::ARITH_NL_T_POW_MONOTONE_REFINE:
+      return "ARITH_NL_T_POW_MONOTONE_REFINE";
+    case InferenceId::ARITH_NL_T_POW_TRIVIAL_CASE_REFINE:
+      return "ARITH_NL_T_POW_TRIVIAL_CASE_REFINE";
     case InferenceId::ARITH_NL_COVERING_CONFLICT: return "ARITH_NL_COVERING_CONFLICT";
     case InferenceId::ARITH_NL_COVERING_EXCLUDED_INTERVAL:
       return "ARITH_NL_COVERING_EXCLUDED_INTERVAL";

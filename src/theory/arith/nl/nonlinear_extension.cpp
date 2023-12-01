@@ -58,7 +58,8 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
       d_covSlv(d_env, d_im, d_model),
       d_icpSlv(d_env, d_im),
       d_iandSlv(env, d_im, d_model),
-      d_pow2Slv(env, d_im, d_model)
+      d_pow2Slv(env, d_im, d_model),
+      d_tPowSlv(env, d_im, d_model)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
   d_extTheory.addFunctionKind(kind::EXPONENTIAL);
@@ -66,6 +67,7 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
   d_extTheory.addFunctionKind(kind::PI);
   d_extTheory.addFunctionKind(kind::IAND);
   d_extTheory.addFunctionKind(kind::POW2);
+  d_extTheory.addFunctionKind(kind::T_POW);
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 
@@ -448,6 +450,11 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         break;
       case InferStep::POW2_FULL: d_pow2Slv.checkFullRefine(); break;
       case InferStep::POW2_INITIAL: d_pow2Slv.checkInitialRefine(); break;
+      case InferStep::T_POW_INIT:
+        d_tPowSlv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::T_POW_FULL: d_tPowSlv.checkFullRefine(); break;
+      case InferStep::T_POW_INITIAL: d_tPowSlv.checkInitialRefine(); break;
       case InferStep::ICP:
         d_icpSlv.reset(assertions);
         d_icpSlv.check();

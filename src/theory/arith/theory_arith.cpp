@@ -115,7 +115,7 @@ void TheoryArith::preRegisterTerm(TNode n)
   // note that we don't throw an exception for non-linear multiplication in
   // linear logics, since this is caught in the linear solver with a more
   // informative error message
-  if (isTransKind || k == IAND || k == POW2)
+  if (isTransKind || k == IAND || k == POW2 || k == T_POW)
   {
     if (d_nonlinearExtension == nullptr)
     {

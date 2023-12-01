@@ -54,6 +54,7 @@
 #include "util/floatingpoint.h"
 #include "util/iand.h"
 #include "util/t_add.h"
+#include "util/t_pow.h"
 #include "util/indexed_root_predicate.h"
 #include "util/real_algebraic_number.h"
 #include "util/regexp.h"
@@ -743,6 +744,11 @@ void Smt2Printer::toStream(std::ostream& out,
       stillNeedToPrintParams = false;
       break;
 
+    case kind::T_POW:
+      out << "(_ t.pow " << n.getOperator().getConst<TPow>().d_exp << ") ";
+      stillNeedToPrintParams = false;
+      break;
+
     case kind::DIVISIBLE:
       toStream(out, n.getOperator(), toDepth, nullptr);
       out << ' ';
@@ -1089,6 +1095,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::POW2: return "int.pow2";
     case kind::T_ID: return "t.id";
     case kind::T_ADD: return "t.add";
+    case kind::T_POW: return "t.pow";
     case kind::EXPONENTIAL: return "exp";
     case kind::SINE: return "sin";
     case kind::COSINE: return "cos";

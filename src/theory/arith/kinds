@@ -199,4 +199,16 @@ parameterized T_ADD T_ADD_OP 1 "addition with a parameter value; first parameter
 typerule T_ADD_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule T_ADD ::cvc5::internal::theory::arith::TAddTypeRule
 
+constant T_POW_OP \
+  struct \
+  TPow \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::TPow >" \
+  "util/t_pow.h" \
+  "a trial pow operator; payload is an instance of the cvc5::internal::TPow class"
+parameterized T_POW T_POW_OP 1 "addition with a parameter value; first parameter is an T_POW_OP and second is a rational term"
+
+typerule T_POW_OP "SimpleTypeRule<RBuiltinOperator>"
+#typerule T_POW ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule T_POW ::cvc5::internal::theory::arith::TPowTypeRule
+
 endtheory

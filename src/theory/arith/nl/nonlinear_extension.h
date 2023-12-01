@@ -37,6 +37,7 @@
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/strategy.h"
 #include "theory/arith/nl/transcendental/transcendental_solver.h"
+#include "theory/arith/nl/t_pow_solver.h"
 #include "theory/ext_theory.h"
 #include "theory/theory.h"
 #include "util/result.h"
@@ -255,6 +256,10 @@ class NonlinearExtension : EnvObj
    * constraints involving powers of 2.
    */
   Pow2Solver d_pow2Slv;
+
+  /** The t.pow solver
+   */
+  TPowSolver d_tPowSlv;
 
   /** The strategy for the nonlinear extension. */
   Strategy d_strategy;

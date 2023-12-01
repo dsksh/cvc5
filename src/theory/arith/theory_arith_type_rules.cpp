@@ -238,6 +238,30 @@ TypeNode TAddTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->realType();
 }
 
+TypeNode TPowTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->realType();
+}
+TypeNode TPowTypeRule::computeType(NodeManager* nodeManager,
+                                   TNode n,
+                                   bool check,
+                                   std::ostream* errOut)
+{
+  if (n.getKind() != kind::T_POW)
+  {
+    InternalError() << "T_POW typerule invoked for " << n << " instead of T_POW kind";
+  }
+  if (check)
+  {
+    TypeNode arg1 = n[0].getType(check);
+    if (!arg1.isReal())
+    {
+      throw TypeCheckingExceptionPrivate(n, "expecting real terms");
+    }
+  }
+  return nodeManager->realType();
+}
+
 TypeNode IndexedRootPredicateTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return nm->booleanType();

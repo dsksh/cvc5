@@ -508,6 +508,8 @@ libcvc5_add_sources(
   theory/arith/nl/transcendental/transcendental_solver.h
   theory/arith/nl/transcendental/transcendental_state.cpp
   theory/arith/nl/transcendental/transcendental_state.h
+  theory/arith/nl/t_pow_solver.cpp
+  theory/arith/nl/t_pow_solver.h
   theory/arith/operator_elim.cpp
   theory/arith/operator_elim.h
   theory/arith/pp_rewrite_eq.cpp

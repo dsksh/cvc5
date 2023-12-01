@@ -56,6 +56,13 @@ enum class InferStep
   /** An initial POW2 check */
   POW2_INITIAL,
 
+  /** Initialize the T_POW solver */
+  T_POW_INIT,
+  /** A full T_POW check */
+  T_POW_FULL,
+  /** An initial T_POW check */
+  T_POW_INITIAL,
+
   /** An ICP check */
 
   ICP,

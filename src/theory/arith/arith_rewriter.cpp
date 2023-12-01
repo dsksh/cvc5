@@ -38,6 +38,7 @@
 #include "util/divisible.h"
 #include "util/iand.h"
 #include "util/real_algebraic_number.h"
+#include "util/t_pow.h"
 
 using namespace cvc5::internal::kind;
 
@@ -230,6 +231,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::POW2: return RewriteResponse(REWRITE_DONE, t);
       case kind::T_ID: return RewriteResponse(REWRITE_DONE, t);
       case kind::T_ADD: return RewriteResponse(REWRITE_DONE, t);
+      case kind::T_POW: return RewriteResponse(REWRITE_DONE, t);
       case kind::EXPONENTIAL:
       case kind::SINE:
       case kind::COSINE:
@@ -281,6 +283,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::POW2: return postRewritePow2(t);
       case kind::T_ID: return RewriteResponse(REWRITE_DONE, t);
       case kind::T_ADD: return RewriteResponse(REWRITE_DONE, t);
+      //case kind::T_POW: return RewriteResponse(REWRITE_DONE, t);
+      case kind::T_POW: return postRewriteTPow(t);
       case kind::EXPONENTIAL:
       case kind::SINE:
       case kind::COSINE:
@@ -897,6 +901,28 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
     // (pow2 t) ---> (pow 2 t) and continue rewriting to eliminate pow
     Node two = rewriter::mkConst(Integer(2));
     Node ret = nm->mkNode(kind::POW, two, t[0]);
+    return RewriteResponse(REWRITE_AGAIN, ret);
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteTPow(TNode t)
+{
+  Assert(t.getKind() == kind::T_POW);
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, we eliminate
+  if (t[0].isConst())
+  {
+    // t.pow is only supported for reals
+    Assert(t[0].getType().isReal());
+    //Integer i = t[0].getConst<Rational>().getNumerator();
+    //if (i < 0)
+    //{
+    //  return RewriteResponse(REWRITE_DONE, rewriter::mkConst(Rational(0)));
+    //}
+    // ((_ t.pow e) t) ---> (pow t e) and continue rewriting to eliminate pow
+    Node exp = nm->mkConstReal( t.getOperator().getConst<TPow>().d_exp );
+    Node ret = nm->mkNode(kind::POW, t[0], exp);
     return RewriteResponse(REWRITE_AGAIN, ret);
   }
   return RewriteResponse(REWRITE_DONE, t);

@@ -546,6 +546,11 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(T_ADD),
   /**
+   * A trial pow operator.
+   * 
+   */
+  EVALUE(T_POW),
+  /**
    * Arithmetic subtraction, left associative.
    *
    * - Arity: ``n > 1``

@@ -163,6 +163,15 @@ enum class InferenceId
   ARITH_NL_POW2_MONOTONE_REFINE,
   // trivial refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_TRIVIAL_CASE_REFINE,
+  //-------------------- nonlinear t.pow solver
+  // initial refinements (TPowSolver::checkInitialRefine)
+  ARITH_NL_T_POW_INIT_REFINE,
+  // value refinements (TPowSolver::checkFullRefine)
+  ARITH_NL_T_POW_VALUE_REFINE,
+  // monotonicity refinements (TPowSolver::checkFullRefine)
+  ARITH_NL_T_POW_MONOTONE_REFINE,
+  // trivial refinements (TPowSolver::checkFullRefine)
+  ARITH_NL_T_POW_TRIVIAL_CASE_REFINE,
   //-------------------- nonlinear coverings solver
   // conflict / infeasible subset obtained from coverings
   ARITH_NL_COVERING_CONFLICT,

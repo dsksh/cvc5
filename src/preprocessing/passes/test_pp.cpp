@@ -14,6 +14,7 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 #include "util/t_add.h"
+#include "util/t_pow.h"
 
 namespace cvc5::internal {
 namespace preprocessing {
@@ -263,6 +264,12 @@ Node TestPp::translateWithChildren(
       returnNode = d_nm->mkNode(kind::ADD, x, y);
       break;
     }
+    case kind::T_POW:
+    {
+      Trace("test-pp") << "detect t.pow: " << original.getNumChildren() << endl;
+      returnNode = original;
+      break;
+    }
 
     //case kind::FLOATINGPOINT_MULT:
     //{
@@ -303,11 +310,11 @@ Node TestPp::translateWithChildren(
     //      divNode);
     //  break;
     //}
-    case kind::EQUAL:
-    {
-      returnNode = d_nm->mkNode(kind::EQUAL, translated_children);
-      break;
-    }
+    //case kind::EQUAL:
+    //{
+    //  returnNode = d_nm->mkNode(kind::EQUAL, translated_children);
+    //  break;
+    //}
     default:
     {
       // first, verify that we haven't missed
