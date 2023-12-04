@@ -214,6 +214,31 @@ TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
+TypeNode RfpRoundTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->realType();
+}
+TypeNode RfpRoundTypeRule::computeType(NodeManager* nodeManager,
+                                       TNode n,
+                                       bool check,
+                                       std::ostream* errOut)
+{
+  if (n.getKind() != kind::RFP_ROUND)
+  {
+    InternalError() << "RFP_ROUND typerule invoked for " << n << " instead of RFP_ROUND kind";
+  }
+  if (check)
+  {
+    TypeNode arg1 = n[0].getType(check);
+    TypeNode arg2 = n[1].getType(check);
+    if (!arg1.isInteger())
+      throw TypeCheckingExceptionPrivate(n, "expecting an integer (irm) term");
+    if (!arg2.isReal())
+      throw TypeCheckingExceptionPrivate(n, "expecting a real term");
+  }
+  return nodeManager->integerType();
+}
+
 TypeNode IndexedRootPredicateTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return nm->booleanType();

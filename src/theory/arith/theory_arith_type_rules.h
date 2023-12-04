@@ -134,6 +134,48 @@ class Pow2TypeRule
                               std::ostream* errOut);
 };
 
+///**
+// * Type rule for the MAX3 operator.
+// * Always returns realType.
+// */
+//class Max3TypeRule
+//{
+// public:
+//  static TypeNode preComputeType(NodeManager* nm, TNode n);
+//  static TypeNode computeType(NodeManager* nodeManager,
+//                              TNode n,
+//                              bool check,
+//                              std::ostream* errOut);
+//};
+
+///**
+// * Type rule for the Ilog2 operator.
+// * Always returns integerType.
+// */
+//class Ilog2TypeRule
+//{
+// public:
+//  static TypeNode preComputeType(NodeManager* nm, TNode n);
+//  static TypeNode computeType(NodeManager* nodeManager,
+//                              TNode n,
+//                              bool check,
+//                              std::ostream* errOut);
+//};
+
+/**
+ * Type rule for the RfpRound operator.
+ * Always returns realType.
+ */
+class RfpRoundTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
 /**
  * Type rule for the IndexedRootPredicate operator.
  * Checks that the two arguments are booleanType and realType, always returns

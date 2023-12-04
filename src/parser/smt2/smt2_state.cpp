@@ -20,6 +20,7 @@
 #include "base/output.h"
 #include "parser/commands.h"
 #include "util/floatingpoint_size.h"
+#include "util/int_roundingmode.h"
 
 namespace cvc5 {
 namespace parser {
@@ -796,6 +797,21 @@ void Smt2State::setLogic(std::string name)
       addIndexedOperator(Kind::IAND, "iand");
       // pow2
       addOperator(Kind::POW2, "int.pow2");
+
+      // rounding modes
+      defineVar("irm.ne", d_solver->mkInteger(internal::IntRoundingMode::NE));
+      defineVar("irm.na", d_solver->mkInteger(internal::IntRoundingMode::NA));
+      defineVar("irm.tp", d_solver->mkInteger(internal::IntRoundingMode::TP));
+      defineVar("irm.tn", d_solver->mkInteger(internal::IntRoundingMode::TN));
+      defineVar("irm.tz", d_solver->mkInteger(internal::IntRoundingMode::TZ));
+
+      // max3
+      addOperator(Kind::MAX3, "real.max3");
+      // ilog2
+      addOperator(Kind::ILOG2, "real.ilog2");
+
+      // real version of FP round 
+      addIndexedOperator(Kind::RFP_ROUND, "rfp.round");
     }
   }
 

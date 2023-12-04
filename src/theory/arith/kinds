@@ -28,6 +28,9 @@ parameterized DIVISIBLE DIVISIBLE_OP 1 "divisibility-by-k predicate; first param
 operator POW 2 "arithmetic power"
 operator POW2 1 "arithmetic power of 2"
 
+operator MAX3 3 "max among 3 reals"
+operator ILOG2 1 "integer-valued logarithm of base 2 for reals"
+
 operator EXPONENTIAL 1 "exponential"
 operator SINE 1 "sine"
 operator COSINE 1 "consine"
@@ -161,6 +164,8 @@ typerule ARCCOSECANT "SimpleTypeRule<RReal, ARealOrInteger>"
 typerule ARCSECANT "SimpleTypeRule<RReal, ARealOrInteger>"
 typerule ARCCOTANGENT "SimpleTypeRule<RReal, ARealOrInteger>"
 typerule POW2 "SimpleTypeRule<RInteger, AInteger>"
+typerule MAX3 "SimpleTypeRule<RReal, AReal, AReal, AReal>"
+typerule ILOG2 "SimpleTypeRule<RInteger, AReal>"
 
 typerule SQRT "SimpleTypeRule<RReal, ARealOrInteger>"
 
@@ -182,5 +187,21 @@ parameterized IAND IAND_OP 2 "integer version of AND operator; first parameter i
 
 typerule IAND_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule IAND ::cvc5::internal::theory::arith::IAndTypeRule
+
+# Real version of the FP rounding operator, which is parameterized by 
+# the precision.
+# ((_ rfp.round eb sb) irm v) is equivalent to:
+# ((_ to_fp eb sb) rm v) 
+# for all reals v.
+constant RFP_ROUND_OP \
+  struct \
+  RfpRound \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpRound >" \
+  "util/rfp_round.h" \
+  "real version of FP rounding operator; payload is an instance of the cvc5::internal::RfpRound class"
+parameterized RFP_ROUND RFP_ROUND_OP 2 "real version of FP rounding operator; first parameter is an IAND_OP, second is a rounding mode, and third is a real term"
+
+typerule RFP_ROUND_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_ROUND ::cvc5::internal::theory::arith::RfpRoundTypeRule
 
 endtheory

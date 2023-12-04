@@ -536,6 +536,18 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(POW2),
   /**
+   * 3-argument max for reals.
+   */
+  EVALUE(MAX3),
+  /**
+   * Integer log of base 2 for reals.
+   */
+  EVALUE(ILOG2),
+  /**
+   * Real version of FP rounding operator.
+   */
+  EVALUE(RFP_ROUND),
+  /**
    * Arithmetic subtraction, left associative.
    *
    * - Arity: ``n > 1``

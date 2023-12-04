@@ -228,6 +228,9 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::NONLINEAR_MULT: return preRewriteMult(t);
       case kind::IAND: return RewriteResponse(REWRITE_DONE, t);
       case kind::POW2: return RewriteResponse(REWRITE_DONE, t);
+      case kind::MAX3: return RewriteResponse(REWRITE_DONE, t);
+      case kind::ILOG2: return RewriteResponse(REWRITE_DONE, t);
+      case kind::RFP_ROUND: return RewriteResponse(REWRITE_DONE, t);
       case kind::EXPONENTIAL:
       case kind::SINE:
       case kind::COSINE:
@@ -277,6 +280,9 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::NONLINEAR_MULT: return postRewriteMult(t);
       case kind::IAND: return postRewriteIAnd(t);
       case kind::POW2: return postRewritePow2(t);
+      case kind::MAX3: return postRewriteMax3(t);
+      case kind::ILOG2: return postRewriteIlog2(t);
+      case kind::RFP_ROUND: return postRewriteRfpRound(t);
       case kind::EXPONENTIAL:
       case kind::SINE:
       case kind::COSINE:
@@ -895,6 +901,99 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
     Node ret = nm->mkNode(kind::POW, two, t[0]);
     return RewriteResponse(REWRITE_AGAIN, ret);
   }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteMax3(TNode t)
+{
+  Assert(t.getKind() == kind::MAX3);
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, we eliminate
+  if (t[0].isConst() && t[1].isConst() && t[2].isConst())
+  {
+    // max3 is only supported for reals
+    Assert(t[0].getType().isReal());
+    Assert(t[1].getType().isReal());
+    Assert(t[2].getType().isReal());
+    Rational r1 = t[0].getConst<Rational>();
+    Rational r2 = t[1].getConst<Rational>();
+    Rational r3 = t[2].getConst<Rational>();
+    if (r1 > r2)
+    {
+      if (r1 > r3)
+        return RewriteResponse(REWRITE_DONE, t[0]);
+      else if (r2 > r3)
+        return RewriteResponse(REWRITE_DONE, t[1]);
+      else
+        return RewriteResponse(REWRITE_DONE, t[2]);
+    }
+    else if (r2 > r3)
+      return RewriteResponse(REWRITE_DONE, t[1]);
+    else
+      return RewriteResponse(REWRITE_DONE, t[2]);
+  }
+
+  Node t1t2 = nm->mkNode(GT, t[0], t[1]);
+  Node t1t3 = nm->mkNode(GT, t[0], t[2]);
+  Node t2t3 = nm->mkNode(GT, t[1], t[2]);
+  Node t2max = nm->mkNode(ITE, t2t3, t[1], t[2]);
+  Node t1max = nm->mkNode(ITE, t1t3, t[0], t2max);
+  Node ret = nm->mkNode(ITE, t1t2, t1max, t2max);
+  return RewriteResponse(REWRITE_DONE, ret);
+}
+
+RewriteResponse ArithRewriter::postRewriteIlog2(TNode t)
+{
+  Trace("ilog2-rewrite") << "Rewrite ILOG2 " << t << " == ";
+  Assert(t.getKind() == kind::ILOG2);
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, we eliminate
+  if (t[0].isConst())
+  {
+    // ilog2 is only supported for reals
+    Assert(t[0].getType().isReal());
+    Rational r = t[0].getConst<Rational>();
+    if (r <= Rational(0))
+    {
+      // Todo improve the exception thrown
+      std::stringstream ss;
+      ss << "The domain of ILOG2 must be greater than zero.";
+      ss << "Exception occurred in:" << std::endl;
+      ss << "  " << t;
+      throw LogicException(ss.str());
+    }
+
+    if (r.isOne())
+    {
+      Node ret = rewriter::mkConst(Integer(0));
+      Trace("ilog2-rewrite") << ret << std::endl;
+      return RewriteResponse(REWRITE_DONE, ret);
+    }
+
+    int64_t sn = r.getNumerator().length();
+    int64_t sd = r.getDenominator().length();
+    Trace("ilog2-rewrite") << sn << " - " << sd << " == ";
+    Node ret = nm->mkConstInt(sn - sd);
+    Trace("ilog2-rewrite") << ret << std::endl;
+    return RewriteResponse(REWRITE_DONE, ret);
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpRound(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_ROUND);
+  //NodeManager* nm = NodeManager::currentNM();
+  //// if constant, can be eliminated
+  //if (t[1].isConst())
+  //{
+  //  // ilog2 is only supported for reals
+  //  Assert(t[0].getType().isReal());
+  //  Rational r = t[0].getConst<Rational>();
+  //  //if (r.getDenominator().isOne())
+  //}
+
   return RewriteResponse(REWRITE_DONE, t);
 }
 

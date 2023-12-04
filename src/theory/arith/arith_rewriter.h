@@ -94,6 +94,12 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse postRewriteIAnd(TNode t);
   /** postRewrite POW2 */
   static RewriteResponse postRewritePow2(TNode t);
+  /** postRewrite MAX3 */
+  static RewriteResponse postRewriteMax3(TNode t);
+  /** postRewrite ILOG2 */
+  static RewriteResponse postRewriteIlog2(TNode t);
+  /** postRewrite RFP_ROUND */
+  static RewriteResponse postRewriteRfpRound(TNode t);
 
   /** preRewrite transcendental functions */
   static RewriteResponse preRewriteTranscendental(TNode t);
