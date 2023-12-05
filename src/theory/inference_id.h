@@ -163,6 +163,11 @@ enum class InferenceId
   ARITH_NL_POW2_MONOTONE_REFINE,
   // trivial refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_TRIVIAL_CASE_REFINE,
+  //-------------------- rfp.round solver
+  // initial refinements (RfpRoundSolver::checkInitialRefine)
+  ARITH_NL_RFP_ROUND_INIT_REFINE,
+  // value refinements (RfpRoundSolver::checkFullRefine)
+  ARITH_NL_RFP_ROUND_VALUE_REFINE,
   //-------------------- nonlinear coverings solver
   // conflict / infeasible subset obtained from coverings
   ARITH_NL_COVERING_CONFLICT,

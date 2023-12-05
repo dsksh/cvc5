@@ -110,6 +110,8 @@ class Integer
   /** Return this*(2^pow). */
   Integer multiplyByPow2(uint32_t pow) const;
 
+  static Integer pow2(uint32_t pow);
+
   /** Set the ith bit of the current Integer to 'value'.  */
   void setBit(uint32_t i, bool value);
 

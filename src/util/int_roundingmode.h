@@ -27,11 +27,11 @@ namespace cvc5::internal {
 
 struct IntRoundingMode
 {
-  static const int NE = 0;
-  static const int NA = 1;
-  static const int TP = 2;
-  static const int TN = 3;
-  static const int TZ = 4;
+  static const uint8_t NE = 0;
+  static const uint8_t NA = 1;
+  static const uint8_t TP = 2;
+  static const uint8_t TN = 3;
+  static const uint8_t TZ = 4;
 };
 
 }  // namespace cvc5::internal

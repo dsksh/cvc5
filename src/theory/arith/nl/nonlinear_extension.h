@@ -256,6 +256,13 @@ class NonlinearExtension : EnvObj
    */
   Pow2Solver d_pow2Slv;
 
+  /** The rfp.round solver
+   *
+   * This is the subsolver responsible for running the procedure for
+   * constraints involving real-valued FP rounding operators.
+   */
+  Pow2Solver d_rfpRoundSlv;
+
   /** The strategy for the nonlinear extension. */
   Strategy d_strategy;
 }; /* class NonlinearExtension */

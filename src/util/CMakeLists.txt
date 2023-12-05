@@ -48,12 +48,15 @@ libcvc5_add_sources(
   iand.h
   index.cpp
   index.h
+  int_roundingmode.h
   ostream_util.cpp
   ostream_util.h
   poly_util.cpp
   poly_util.h
   random.cpp
   random.h
+  real_floatingpoint.cpp
+  real_floatingpoint.h
   resource_manager.cpp
   resource_manager.h
   result.cpp

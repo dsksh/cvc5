@@ -199,7 +199,7 @@ constant RFP_ROUND_OP \
   "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpRound >" \
   "util/rfp_round.h" \
   "real version of FP rounding operator; payload is an instance of the cvc5::internal::RfpRound class"
-parameterized RFP_ROUND RFP_ROUND_OP 2 "real version of FP rounding operator; first parameter is an IAND_OP, second is a rounding mode, and third is a real term"
+parameterized RFP_ROUND RFP_ROUND_OP 2 "real version of FP rounding operator; first parameter is an RFP_ROUND_OP, second is a rounding mode, and third is a real term"
 
 typerule RFP_ROUND_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule RFP_ROUND ::cvc5::internal::theory::arith::RfpRoundTypeRule

@@ -56,6 +56,7 @@
 #include "util/indexed_root_predicate.h"
 #include "util/real_algebraic_number.h"
 #include "util/regexp.h"
+#include "util/rfp_round.h"
 #include "util/smt2_quote_string.h"
 #include "util/string.h"
 #include "util/uninterpreted_sort_value.h"
@@ -734,6 +735,13 @@ void Smt2Printer::toStream(std::ostream& out,
     // arith theory
     case kind::IAND:
       out << "(_ iand " << n.getOperator().getConst<IntAnd>().d_size << ") ";
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_ROUND:
+      out << "(_ rfp.round " 
+        << n.getOperator().getConst<RfpRound>().d_eb << " "
+        << n.getOperator().getConst<RfpRound>().d_sb << ") ";
       stillNeedToPrintParams = false;
       break;
 

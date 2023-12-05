@@ -84,6 +84,32 @@ int Rational::absCmp(const Rational& q) const{
 }
 
 
+Rational Rational::pow2Lower() const
+{
+  size_t l2_num = getNumerator().length();
+  size_t l2_den = getDenominator().length();
+  Rational res;
+  if (l2_num == l2_den){
+    Assert(sgn() != 0);
+    if (abs() >= 1)
+      res = 1; 
+    else
+      res = Rational(1,2);
+  }else if (l2_num > l2_den){
+    size_t e = l2_num - l2_den - 1;
+    mpq_class v;
+    mpq_mul_2exp(v.get_mpq_t(), mpq_class(1).get_mpq_t(), e);
+    for (res = v; res * 2 < abs(); res *= 2) {}
+  }else{ // l2_num < l2_den
+    size_t e = l2_den - l2_num + 1;
+    mpq_class v;
+    mpq_div_2exp(v.get_mpq_t(), mpq_class(1).get_mpq_t(), e);
+    for (res = v; res * 2 < abs(); res *= 2) {}
+  }
+  return res;
+}
+
+
 /** Return an exact rational for a double d. */
 std::optional<Rational> Rational::fromDouble(double d)
 {

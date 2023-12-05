@@ -167,6 +167,13 @@ Integer Integer::multiplyByPow2(uint32_t pow) const
   return Integer(result);
 }
 
+Integer Integer::pow2(uint32_t pow)
+{
+  mpz_class result;
+  mpz_mul_2exp(result.get_mpz_t(), mpz_class(1).get_mpz_t(), pow);
+  return Integer(result);
+}
+
 void Integer::setBit(uint32_t i, bool value)
 {
   if (value)

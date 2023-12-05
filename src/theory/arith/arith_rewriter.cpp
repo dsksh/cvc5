@@ -38,6 +38,8 @@
 #include "util/divisible.h"
 #include "util/iand.h"
 #include "util/real_algebraic_number.h"
+#include "util/rfp_round.h"
+#include "util/real_floatingpoint.h"
 
 using namespace cvc5::internal::kind;
 
@@ -984,15 +986,21 @@ RewriteResponse ArithRewriter::postRewriteIlog2(TNode t)
 RewriteResponse ArithRewriter::postRewriteRfpRound(TNode t)
 {
   Assert(t.getKind() == kind::RFP_ROUND);
-  //NodeManager* nm = NodeManager::currentNM();
-  //// if constant, can be eliminated
-  //if (t[1].isConst())
-  //{
-  //  // ilog2 is only supported for reals
-  //  Assert(t[0].getType().isReal());
-  //  Rational r = t[0].getConst<Rational>();
-  //  //if (r.getDenominator().isOne())
-  //}
+  uint32_t eb = t.getOperator().getConst<RfpRound>().d_eb;
+  uint32_t sb = t.getOperator().getConst<RfpRound>().d_sb;
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst() && t[1].isConst())
+  {
+    // rfp.round is only supported for integer rms and real values
+    Assert(t[0].getType().isInteger());
+    Assert(t[1].getType().isReal());
+    Integer rm = t[0].getConst<Rational>().getNumerator();
+    Rational v = t[1].getConst<Rational>();
+    Rational rounded = RealFloatingPoint::round(eb, sb, rm.getUnsignedInt(), v);
+    Node ret = nm->mkConstReal(rounded);
+    return RewriteResponse(REWRITE_DONE, ret);
+  }
 
   return RewriteResponse(REWRITE_DONE, t);
 }

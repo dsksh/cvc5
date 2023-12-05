@@ -82,6 +82,7 @@
 #include "util/random.h"
 #include "util/regexp.h"
 #include "util/result.h"
+#include "util/rfp_round.h"
 #include "util/roundingmode.h"
 #include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
@@ -566,6 +567,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::TO_REAL, Kind::TO_REAL},
         {internal::Kind::PI, Kind::PI},
         {internal::Kind::IAND_OP, Kind::IAND},
+        {internal::Kind::RFP_ROUND_OP, Kind::RFP_ROUND},
         /* BV -------------------------------------------------------------- */
         {internal::Kind::CONST_BITVECTOR, Kind::CONST_BITVECTOR},
         {internal::Kind::BITVECTOR_CONCAT, Kind::BITVECTOR_CONCAT},
@@ -856,6 +858,7 @@ const static std::
 const static std::unordered_set<Kind> s_indexed_kinds(
     {Kind::DIVISIBLE,
      Kind::IAND,
+     Kind::RFP_ROUND,
      Kind::BITVECTOR_REPEAT,
      Kind::BITVECTOR_ZERO_EXTEND,
      Kind::BITVECTOR_SIGN_EXTEND,
@@ -895,6 +898,7 @@ const static std::unordered_map<Kind, internal::Kind> s_op_kinds{
     {Kind::FLOATINGPOINT_TO_FP_FROM_UBV,
      internal::Kind::FLOATINGPOINT_TO_FP_FROM_UBV_OP},
     {Kind::IAND, internal::Kind::IAND_OP},
+    {Kind::RFP_ROUND, internal::Kind::RFP_ROUND_OP},
     {Kind::INT_TO_BITVECTOR, internal::Kind::INT_TO_BITVECTOR_OP},
     {Kind::REGEXP_REPEAT, internal::Kind::REGEXP_REPEAT_OP},
     {Kind::REGEXP_LOOP, internal::Kind::REGEXP_LOOP_OP},
@@ -2192,6 +2196,7 @@ size_t Op::getNumIndicesHelper() const
     case Kind::BITVECTOR_ROTATE_RIGHT: size = 1; break;
     case Kind::INT_TO_BITVECTOR: size = 1; break;
     case Kind::IAND: size = 1; break;
+    case Kind::RFP_ROUND: size = 2; break;
     case Kind::FLOATINGPOINT_TO_UBV: size = 1; break;
     case Kind::FLOATINGPOINT_TO_SBV: size = 1; break;
     case Kind::REGEXP_REPEAT: size = 1; break;
@@ -2294,6 +2299,12 @@ Term Op::getIndexHelper(size_t index) const
     {
       t = Solver::mkRationalValHelper(
           d_nm, d_node->getConst<internal::IntAnd>().d_size, true);
+      break;
+    }
+    case Kind::RFP_ROUND:
+    {
+      t = Solver::mkRationalValHelper(
+          d_nm, d_node->getConst<internal::RfpRound>().hash(), true);
       break;
     }
     case Kind::FLOATINGPOINT_TO_UBV:
@@ -6408,6 +6419,10 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
     case Kind::IAND:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::IntAnd(args[0]));
+      break;
+    case Kind::RFP_ROUND:
+      CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      res = mkOpHelper(kind, internal::RfpRound(args[0], args[1]));
       break;
     case Kind::INT_TO_BITVECTOR:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);

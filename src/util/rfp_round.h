@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Yoni Zohar
+ *   Daisuke Ishii
  *
  * This file is part of the cvc5 project.
  *
@@ -30,7 +30,8 @@ struct RfpRound
   uint32_t d_eb;
   uint32_t d_sb;
   RfpRound(uint32_t eb, uint32_t sb) : d_eb(eb), d_sb(sb) {}
-  operator uint32_t() const { return d_eb * 19 + d_sb; }
+  uint32_t hash() const { return d_eb * 19 + d_sb; }
+  operator uint32_t() const { return hash(); }
 }; /* struct RfpRound */
 
 /* -----------------------------------------------------------------------

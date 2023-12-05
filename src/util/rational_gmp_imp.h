@@ -312,6 +312,9 @@ class Rational
   /** Equivalent to calling (this->abs()).cmp(b.abs()) */
   int absCmp(const Rational& q) const;
 
+  /** Power of radix 2 rounded downward. */
+  Rational pow2Lower() const;
+
  private:
   /**
    * Stores the value of the rational is stored in a C++ GMP rational class.

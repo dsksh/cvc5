@@ -236,7 +236,7 @@ TypeNode RfpRoundTypeRule::computeType(NodeManager* nodeManager,
     if (!arg2.isReal())
       throw TypeCheckingExceptionPrivate(n, "expecting a real term");
   }
-  return nodeManager->integerType();
+  return nodeManager->realType();
 }
 
 TypeNode IndexedRootPredicateTypeRule::preComputeType(NodeManager* nm, TNode n)
