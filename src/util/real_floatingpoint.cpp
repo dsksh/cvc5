@@ -16,6 +16,7 @@
 #include <math.h>
 
 #include <limits>
+#include <unordered_map>
 
 #include "base/check.h"
 #include "base/output.h"
@@ -26,7 +27,77 @@
 
 namespace cvc5::internal {
 
+namespace RealFloatingPoint {
+
 /* -------------------------------------------------------------------------- */
+
+uint32_t hash(uint32_t eb, uint32_t sb)
+{
+  return 19*eb + sb;
+}
+
+Integer maxValue(uint32_t eb, uint32_t sb)
+{
+  static std::unordered_map<uint32_t, Integer> cache;
+
+  uint32_t h = hash(eb, sb);
+  if (!cache.count(h)){
+    uint64_t emax = maxExponent(eb).getUnsigned64();
+    cache[h] = (Integer::pow2(sb)-1) * Integer::pow2(emax-sb+1);
+  }
+  return cache[h];
+}
+
+Rational plusZero(uint32_t eb, uint32_t sb)
+{
+  return Rational(0);
+}
+Rational minusZero(uint32_t eb, uint32_t sb)
+{
+  static std::unordered_map<uint32_t, Rational> cache;
+
+  uint32_t h = hash(eb, sb);
+  if (!cache.count(h)){
+    uint64_t emax = maxExponent(eb).getUnsigned64();
+    Integer d = Integer::pow2(emax+sb);
+    cache[h] = -Rational(d).inverse();
+  }
+  return cache[h];
+}
+
+bool isNormal(uint32_t eb, uint32_t sb, const Rational& arg)
+{
+  return false;
+}
+
+bool isSubnormal(uint32_t eb, uint32_t sb, const Rational& arg)
+{
+  return false;
+}
+
+bool isZero(uint32_t eb, uint32_t sb, const Rational& arg)
+{
+  return (arg == minusZero(eb, sb)) || (arg == plusZero(eb, sb));
+}
+
+bool inRange(uint32_t eb, uint32_t sb, const Rational& arg)
+{
+  return Rational(-maxValue(eb,sb)) <= arg && arg <= Rational(maxValue(eb,sb));
+}
+
+bool isFinite(uint32_t eb, uint32_t sb, const Rational& arg)
+{
+  // TODO: isSubnormal
+  return inRange(eb, sb, arg);
+}
+
+bool noOverflow(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg)
+{
+  // TODO
+  return true;
+}
+
+//
 
 Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const Rational& value)
 {
@@ -127,13 +198,19 @@ Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const R
   return r;
 }
 
-Rational RealFloatingPoint::round(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& value)
+/** Round to real representation of FP numbers.
+ */
+Rational round(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& value)
 {
   return roundInternal(false, eb, sb, rm, value);
 }
-Integer RealFloatingPoint::roundToInteger(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& value)
+/** Round to integer.
+ */
+Integer roundToInteger(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& value)
 {
   return roundInternal(true, eb, sb, rm, value).getNumerator();
 }
+
+}  // namespace RealFloatingPoint
 
 }  // namespace cvc5::internal

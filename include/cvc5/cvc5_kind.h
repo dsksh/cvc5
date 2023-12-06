@@ -548,6 +548,10 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(RFP_ROUND),
   /**
+   * Real version of fp.add.
+   */
+  EVALUE(RFP_ADD),
+  /**
    * Arithmetic subtraction, left associative.
    *
    * - Arity: ``n > 1``

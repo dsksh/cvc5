@@ -35,31 +35,47 @@ class FloatingPointLiteral;
 
 class FloatingPoint;
 
-class RealFloatingPoint
+namespace RealFloatingPoint {
+
+/**
+ * Get the maximum value of exponent.
+ */
+static Integer maxExponent(uint32_t size)
 {
- public:
-  /**
-   * Get the maximum value of exponent.
-   */
-  static Integer maxExponent(uint32_t& size)
-  {
-    return Integer((2<<(size-2)) - 1);
-  }
-  /**
-   * Get the minimum value of exponent.
-   */
-  static Integer minExponent(uint32_t& size)
-  {
-    return Integer(Integer(2) - maxExponent(size));
-  }
+  return Integer((2<<(size-2)) - 1);
+}
+/**
+ * Get the minimum value of exponent.
+ */
+static Integer minExponent(uint32_t size)
+{
+  return Integer(Integer(2) - maxExponent(size));
+}
 
-  /**
-   * Rounding operator.
-   */
-  static Rational round(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& value);
-  static Integer roundToInteger(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& value);
+/**
+ * Get the maximum normal value.
+ */
+Integer maxValue(uint32_t eb, uint32_t sb);
 
-}; /* class RealFloatingPoint */
+bool isNormal(uint32_t eb, uint32_t sb, const Rational& arg);
+bool isSubnormal(uint32_t eb, uint32_t sb, const Rational& arg);
+bool isZero(uint32_t eb, uint32_t sb, const Rational& arg);
+bool inRange(uint32_t eb, uint32_t sb, const Rational& arg);
+bool isFinite(uint32_t eb, uint32_t sb, const Rational& arg);
+bool noOverflow(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg);
+
+/**
+ * Rounding operator.
+ */
+Rational round(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg);
+Integer roundToInteger(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg);
+
+///**
+// * Addition.
+// */
+//Rational add(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg1, const Rational& arg2);
+
+}  // namespace RealFloatingPoint
 
 }  // namespace cvc5::internal
 

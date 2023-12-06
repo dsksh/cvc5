@@ -100,6 +100,8 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse postRewriteIlog2(TNode t);
   /** postRewrite RFP_ROUND */
   static RewriteResponse postRewriteRfpRound(TNode t);
+  /** postRewrite RFP_ADD */
+  static RewriteResponse postRewriteRfpAdd(TNode t);
 
   /** preRewrite transcendental functions */
   static RewriteResponse preRewriteTranscendental(TNode t);

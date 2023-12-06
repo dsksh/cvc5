@@ -63,6 +63,10 @@ enum class InferStep
   /** An initial RFP_ROUND check */
   RFP_ROUND_INITIAL,
 
+  RFP_ADD_INIT,
+  RFP_ADD_FULL,
+  RFP_ADD_INITIAL,
+
   /** An ICP check */
 
   ICP,

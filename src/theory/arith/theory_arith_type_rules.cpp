@@ -214,25 +214,53 @@ TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode RfpRoundTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode RfpUnOpTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return nm->realType();
 }
-TypeNode RfpRoundTypeRule::computeType(NodeManager* nodeManager,
+TypeNode RfpUnOpTypeRule::computeType(NodeManager* nodeManager,
+                                      TNode n,
+                                      bool check,
+                                      std::ostream* errOut)
+{
+  if (n.getKind() != kind::RFP_ROUND)
+  {
+    InternalError() << "RFP_UN_OP typerule invoked for " << n << " instead of RFP_UN_OP kind";
+  }
+  if (check)
+  {
+    TypeNode rm = n[0].getType(check);
+    TypeNode arg1 = n[1].getType(check);
+    if (!rm.isInteger())
+      throw TypeCheckingExceptionPrivate(n, "expecting an integer (irm) term");
+    if (!arg1.isReal())
+      throw TypeCheckingExceptionPrivate(n, "expecting a real term");
+  }
+  return nodeManager->realType();
+}
+
+TypeNode RfpBinOpTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->realType();
+}
+TypeNode RfpBinOpTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
                                        bool check,
                                        std::ostream* errOut)
 {
-  if (n.getKind() != kind::RFP_ROUND)
+  if (n.getKind() != kind::RFP_ADD)
   {
-    InternalError() << "RFP_ROUND typerule invoked for " << n << " instead of RFP_ROUND kind";
+    InternalError() << "RFP_BIN_OP typerule invoked for " << n << " instead of RFP_BIN_OP kind";
   }
   if (check)
   {
-    TypeNode arg1 = n[0].getType(check);
-    TypeNode arg2 = n[1].getType(check);
-    if (!arg1.isInteger())
+    TypeNode rm = n[0].getType(check);
+    TypeNode arg1 = n[1].getType(check);
+    TypeNode arg2 = n[2].getType(check);
+    if (!rm.isInteger())
       throw TypeCheckingExceptionPrivate(n, "expecting an integer (irm) term");
+    if (!arg1.isReal())
+      throw TypeCheckingExceptionPrivate(n, "expecting a real term");
     if (!arg2.isReal())
       throw TypeCheckingExceptionPrivate(n, "expecting a real term");
   }

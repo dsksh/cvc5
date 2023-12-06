@@ -166,8 +166,17 @@ enum class InferenceId
   //-------------------- rfp.round solver
   // initial refinements (RfpRoundSolver::checkInitialRefine)
   ARITH_NL_RFP_ROUND_INIT_REFINE,
+  // monotonicity refinements (RfpRoundSolver::checkFullRefine)
+  ARITH_NL_RFP_ROUND_MONOTONE_REFINE,
+  // interval refinements (RfpRoundSolver::checkFullRefine)
+  ARITH_NL_RFP_ROUND_INTERVAL_REFINE,
   // value refinements (RfpRoundSolver::checkFullRefine)
   ARITH_NL_RFP_ROUND_VALUE_REFINE,
+  //-------------------- rfp.add solver
+  // initial refinements (RfpAddSolver::checkInitialRefine)
+  ARITH_NL_RFP_ADD_INIT_REFINE,
+  // value refinements (RfpAddSolver::checkFullRefine)
+  ARITH_NL_RFP_ADD_VALUE_REFINE,
   //-------------------- nonlinear coverings solver
   // conflict / infeasible subset obtained from coverings
   ARITH_NL_COVERING_CONFLICT,

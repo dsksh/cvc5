@@ -10,11 +10,11 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Solver for real-valued FP rounding operators.
+ * Solver for rfp.add operators.
  */
 
-#ifndef CVC5__THEORY__ARITH__NL__RFP_ROUND_SOLVER_H
-#define CVC5__THEORY__ARITH__NL__RFP_ROUND_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__NL__RFP_ADD_SOLVER_H
+#define CVC5__THEORY__ARITH__NL__RFP_ADD_SOLVER_H
 
 #include <map>
 #include <vector>
@@ -34,16 +34,15 @@ namespace nl {
 
 class NlModel;
 
-/** Real-valued FP round solver class
- *
+/** Real-valued fp.add solver class
  */
-class RfpRoundSolver : protected EnvObj
+class RfpAddSolver : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  RfpRoundSolver(Env& env, InferenceManager& im, NlModel& model);
-  ~RfpRoundSolver();
+  RfpAddSolver(Env& env, InferenceManager& im, NlModel& model);
+  ~RfpAddSolver();
 
   /** init last call
    *
@@ -58,8 +57,6 @@ class RfpRoundSolver : protected EnvObj
                     const std::vector<Node>& xts);
   //-------------------------------------------- lemma schemas
   /** check initial refine
-   *
-   * Returns a set of valid theory lemmas, based on simple facts about RFP_ROUND.
    *
    * This should be a heuristic incomplete check that only introduces a
    * small number of new terms in the lemmas it returns.
@@ -84,23 +81,21 @@ class RfpRoundSolver : protected EnvObj
   Node d_zero;
   Node d_one;
 
-  /** RFP_ROUND terms that have been given initial refinement lemmas */
+  /** Terms that have been given initial refinement lemmas */
   NodeSet d_initRefine;
-  /** all RFP_ROUND terms */
+  /** all terms */
   std::map<unsigned, std::vector<Node> > d_terms;
 
-  /**
-   * Value-based refinement lemma for t of the form ((_ rfp.round eb sb) rm arg). Returns:
-   *   rm = M(rm) ^ arg = M(arg) =>
-   *     ((_ rfp.round eb sb) rm arg) = rewrite(((_ rfp.round eb sb) M(rm) M(arg)))
+  /** Value-based refinement lemma for t.
+   * 
    */
   Node valueBasedLemma(Node i);
 
-}; /* class RfpRoundSolver */
+}; /* class RfpAddSolver */
 
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__ARITH__RFP_ROUND_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__RFP_ADD_SOLVER_H */

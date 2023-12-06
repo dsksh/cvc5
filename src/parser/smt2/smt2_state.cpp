@@ -812,6 +812,9 @@ void Smt2State::setLogic(std::string name)
 
       // real version of FP round 
       addIndexedOperator(Kind::RFP_ROUND, "rfp.round");
+
+      // real version of fp.add
+      addIndexedOperator(Kind::RFP_ADD, "rfp.add");
     }
   }
 

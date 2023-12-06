@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The real version of the FP rounding operator.
+ * The real version of the fp.add operator.
  */
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__RFP_ROUND_H
-#define CVC5__RFP_ROUND_H
+#ifndef CVC5__RFP_ADD_H
+#define CVC5__RFP_ADD_H
 
 #include <iosfwd>
 
@@ -24,25 +24,25 @@
 
 namespace cvc5::internal {
 
-struct RfpRound
+struct RfpAdd
 {
   uint32_t d_eb;
   uint32_t d_sb;
-  RfpRound(uint32_t eb, uint32_t sb) : d_eb(eb), d_sb(sb) {}
+  RfpAdd(uint32_t eb, uint32_t sb) : d_eb(eb), d_sb(sb) {}
   uint32_t hash() const { return d_eb * 19 + d_sb; }
   operator uint32_t() const { return hash(); }
-}; /* struct RfpRound */
+}; /* struct RfpAdd */
 
 /* -----------------------------------------------------------------------
  * Output stream
  * ----------------------------------------------------------------------- */
 
-inline std::ostream& operator<<(std::ostream& os, const RfpRound& t);
-inline std::ostream& operator<<(std::ostream& os, const RfpRound& t)
+inline std::ostream& operator<<(std::ostream& os, const RfpAdd& t);
+inline std::ostream& operator<<(std::ostream& os, const RfpAdd& t)
 {
-  return os << "(_ rfp.round " << t.d_eb << " " << t.d_sb << ")";
+  return os << "(_ rfp.add " << t.d_eb << " " << t.d_sb << ")";
 }
 
 }  // namespace cvc5::internal
 
-#endif /* CVC5__RFP_ROUND_H */
+#endif /* CVC5__RFP_ADD_H */

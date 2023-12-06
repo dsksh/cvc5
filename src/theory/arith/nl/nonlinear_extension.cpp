@@ -59,7 +59,8 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
       d_icpSlv(d_env, d_im),
       d_iandSlv(env, d_im, d_model),
       d_pow2Slv(env, d_im, d_model),
-      d_rfpRoundSlv(env, d_im, d_model)
+      d_rfpRoundSlv(env, d_im, d_model),
+      d_rfpAddSlv(env, d_im, d_model)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
   d_extTheory.addFunctionKind(kind::EXPONENTIAL);
@@ -68,6 +69,7 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
   d_extTheory.addFunctionKind(kind::IAND);
   d_extTheory.addFunctionKind(kind::POW2);
   d_extTheory.addFunctionKind(kind::RFP_ROUND);
+  d_extTheory.addFunctionKind(kind::RFP_ADD);
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 
@@ -453,7 +455,15 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::RFP_ROUND_INIT:
         d_rfpRoundSlv.initLastCall(assertions, false_asserts, xts);
         break;
-      case InferStep::RFP_ROUND_FULL: d_rfpRoundSlv.checkFullRefine(); break;
+      case InferStep::RFP_ROUND_FULL: 
+        d_rfpRoundSlv.checkFullRefine(); 
+        break;
+      case InferStep::RFP_ADD_INIT:
+        d_rfpAddSlv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::RFP_ADD_FULL: 
+        d_rfpAddSlv.checkFullRefine(); 
+        break;
       case InferStep::ICP:
         d_icpSlv.reset(assertions);
         d_icpSlv.check();
