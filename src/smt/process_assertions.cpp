@@ -198,6 +198,11 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     applyPass("foreign-theory-rewrite", ap);
   }
 
+  if (options().smt.fpToReal)
+  {
+    applyPass("fp-to-real", ap);
+  }
+
   // Assertions MUST BE guaranteed to be rewritten by this point
   applyPass("rewrite", ap);
 

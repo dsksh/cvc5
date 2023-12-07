@@ -506,6 +506,9 @@ class NodeManager
   /** Create a node with three children. */
   Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3);
 
+  /** Create a node with four children. */
+  Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3, TNode child4);
+
   /** Create a node with an arbitrary number of children. */
   template <bool ref_count>
   Node mkNode(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
@@ -554,6 +557,9 @@ class NodeManager
 
   /** Create a node with three children by operator. */
   Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3);
+
+  /** Create a node with four children by operator. */
+  Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3, TNode child4);
 
   /** Create a node by applying an operator to the children. */
   template <bool ref_count>
@@ -1099,6 +1105,13 @@ inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
   return nb.constructNode();
 }
 
+inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
+                                TNode child3, TNode child4) {
+  NodeBuilder nb(this, kind);
+  nb << child1 << child2 << child3 << child4;
+  return nb.constructNode();
+}
+
 // N-ary version
 template <bool ref_count>
 inline Node NodeManager::mkNode(Kind kind,
@@ -1171,6 +1184,16 @@ inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
     nb << opNode;
   }
   nb << child1 << child2 << child3;
+  return nb.constructNode();
+}
+
+inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
+                                TNode child3, TNode child4) {
+  NodeBuilder nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
+  nb << child1 << child2 << child3 << child4;
   return nb.constructNode();
 }
 

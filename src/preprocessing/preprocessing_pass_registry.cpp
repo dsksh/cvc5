@@ -34,6 +34,7 @@
 #include "preprocessing/passes/bv_to_int.h"
 #include "preprocessing/passes/extended_rewriter_pass.h"
 #include "preprocessing/passes/foreign_theory_rewrite.h"
+#include "preprocessing/passes/fp_to_real.h"
 #include "preprocessing/passes/fun_def_fmf.h"
 #include "preprocessing/passes/global_negate.h"
 #include "preprocessing/passes/ho_elim.h"
@@ -154,6 +155,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("fun-def-fmf", callCtor<FunDefFmf>);
   registerPassInfo("static-rewrite", callCtor<StaticRewrite>);
   registerPassInfo("strings-eager-pp", callCtor<StringsEagerPp>);
+  registerPassInfo("fp-to-real", callCtor<FPToReal>);
 }
 
 }  // namespace preprocessing

@@ -22,6 +22,7 @@
 
 #include "base/exception.h"
 //#include "util/integer.h"
+#include "util/roundingmode.h"
 
 namespace cvc5::internal {
 
@@ -32,6 +33,21 @@ struct IntRoundingMode
   static const uint8_t TP = 2;
   static const uint8_t TN = 3;
   static const uint8_t TZ = 4;
+
+  static uint8_t convert(const RoundingMode& rm)
+  {
+    if (rm == RoundingMode::ROUND_NEAREST_TIES_TO_EVEN)
+      return 0;
+    else if (rm == RoundingMode::ROUND_NEAREST_TIES_TO_AWAY)
+      return 1;
+    else if (rm == RoundingMode::ROUND_TOWARD_POSITIVE)
+      return 2;
+    else if (rm == RoundingMode::ROUND_TOWARD_NEGATIVE)
+      return 3;
+    else if (rm == RoundingMode::ROUND_TOWARD_ZERO)
+      return 4;
+    Assert(false);
+  }
 };
 
 }  // namespace cvc5::internal
