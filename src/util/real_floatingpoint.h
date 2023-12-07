@@ -37,30 +37,35 @@ class FloatingPoint;
 
 namespace RealFloatingPoint {
 
-/**
- * Get the maximum value of exponent.
+/** Get the maximum value of exponent.
  */
 static Integer maxExponent(uint32_t size)
 {
   return Integer((2<<(size-2)) - 1);
 }
-/**
- * Get the minimum value of exponent.
+/** Get the minimum value of exponent.
  */
 static Integer minExponent(uint32_t size)
 {
   return Integer(Integer(2) - maxExponent(size));
 }
 
-/**
- * Get the maximum normal value.
+/** Get the maximum normal value.
  */
 Integer maxValue(uint32_t eb, uint32_t sb);
+
+/** Get the negative zero.
+ */
+Rational minusZero(uint32_t eb, uint32_t sb);
+
+/** Get the possitive zero.
+ */
+Rational plusZero(uint32_t eb, uint32_t sb);
 
 bool isNormal(uint32_t eb, uint32_t sb, const Rational& arg);
 bool isSubnormal(uint32_t eb, uint32_t sb, const Rational& arg);
 bool isZero(uint32_t eb, uint32_t sb, const Rational& arg);
-bool inRange(uint32_t eb, uint32_t sb, const Rational& arg);
+//bool inRange(uint32_t eb, uint32_t sb, const Rational& arg);
 bool isFinite(uint32_t eb, uint32_t sb, const Rational& arg);
 bool noOverflow(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg);
 

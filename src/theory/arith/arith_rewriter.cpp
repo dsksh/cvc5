@@ -1030,7 +1030,9 @@ RewriteResponse ArithRewriter::postRewriteRfpAdd(TNode t)
     // finite case
     if (RFP::isFinite(eb, sb, x) && !RFP::isZero(eb, sb, x) &&
         RFP::isFinite(eb, sb, y) && !RFP::isZero(eb, sb, y) &&
-        RFP::noOverflow(eb, sb, rm, x + y))
+        // TODO RFP::noOverflow(eb, sb, rm, x + y)
+        RFP::isFinite(eb, sb, x + y)
+        )
     {
       Node op = nm->mkConst(RfpRound(eb, sb));
       Node sum = nm->mkNode(kind::ADD, t[1], t[2]);
@@ -1047,7 +1049,24 @@ RewriteResponse ArithRewriter::postRewriteRfpAdd(TNode t)
     {
       return RewriteResponse(REWRITE_DONE, t[1]);
     }
-    // TODO: sum of -0/+0
+    if (RFP::isZero(eb, sb, x) && RFP::isZero(eb, sb, y) && x == y)
+    {
+      return RewriteResponse(REWRITE_DONE, t[0]);
+    }
+    if (x == RFP::plusZero(eb,sb) && y == RFP::minusZero(eb,sb))
+    {
+      if (rm == IntRoundingMode::TN)
+        return RewriteResponse(REWRITE_DONE, t[1]);
+      else
+        return RewriteResponse(REWRITE_DONE, t[0]);
+    }
+    if (x == RFP::minusZero(eb,sb) && y == RFP::plusZero(eb,sb))
+    {
+      if (rm == IntRoundingMode::TN)
+        return RewriteResponse(REWRITE_DONE, t[0]);
+      else
+        return RewriteResponse(REWRITE_DONE, t[1]);
+    }
 
     // TODO: special cases
   }

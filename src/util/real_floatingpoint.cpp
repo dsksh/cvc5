@@ -48,31 +48,56 @@ Integer maxValue(uint32_t eb, uint32_t sb)
   return cache[h];
 }
 
-Rational plusZero(uint32_t eb, uint32_t sb)
-{
-  return Rational(0);
-}
-Rational minusZero(uint32_t eb, uint32_t sb)
+/** Return the smallest positive normal number.
+ */
+Rational minNormal(uint32_t eb, uint32_t sb)
 {
   static std::unordered_map<uint32_t, Rational> cache;
 
   uint32_t h = hash(eb, sb);
   if (!cache.count(h)){
-    uint64_t emax = maxExponent(eb).getUnsigned64();
-    Integer d = Integer::pow2(emax+sb);
-    cache[h] = -Rational(d).inverse();
+    uint64_t eminNeg = (-minExponent(eb)).getUnsigned64();
+    Integer d = Integer::pow2(eminNeg);
+    cache[h] = Rational(d).inverse();
   }
   return cache[h];
 }
 
+/** Return the smallest positive subnormal number.
+ */
+Rational minSubnormal(uint32_t eb, uint32_t sb)
+{
+  static std::unordered_map<uint32_t, Rational> cache;
+
+  uint32_t h = hash(eb, sb);
+  if (!cache.count(h)){
+    uint64_t eminNeg = (-minExponent(eb)).getUnsigned64();
+    Integer d = Integer::pow2(eminNeg+sb-1);
+    cache[h] = Rational(d).inverse();
+  }
+  return cache[h];
+}
+
+Rational plusZero(uint32_t eb, uint32_t sb)
+{
+  return Rational(0);
+}
+
+Rational minusZero(uint32_t eb, uint32_t sb)
+{
+  // compute the half of the smallest subnormal positive number
+  // (and then make it negative).
+  return -minSubnormal(eb,sb) / 2;
+}
+
 bool isNormal(uint32_t eb, uint32_t sb, const Rational& arg)
 {
-  return false;
+  return isFinite(eb, sb, arg) && arg.abs() >= minNormal(eb,sb);
 }
 
 bool isSubnormal(uint32_t eb, uint32_t sb, const Rational& arg)
 {
-  return false;
+  return minSubnormal(eb,sb) <= arg.abs() && arg.abs() < minNormal(eb,sb);
 }
 
 bool isZero(uint32_t eb, uint32_t sb, const Rational& arg)
@@ -80,21 +105,20 @@ bool isZero(uint32_t eb, uint32_t sb, const Rational& arg)
   return (arg == minusZero(eb, sb)) || (arg == plusZero(eb, sb));
 }
 
-bool inRange(uint32_t eb, uint32_t sb, const Rational& arg)
-{
-  return Rational(-maxValue(eb,sb)) <= arg && arg <= Rational(maxValue(eb,sb));
-}
+//bool inRange(uint32_t eb, uint32_t sb, const Rational& arg)
+//{
+//  return Rational(-maxValue(eb,sb)) <= arg && arg <= Rational(maxValue(eb,sb));
+//}
 
 bool isFinite(uint32_t eb, uint32_t sb, const Rational& arg)
 {
-  // TODO: isSubnormal
-  return inRange(eb, sb, arg);
+  return Rational(-maxValue(eb,sb)) <= arg && arg <= Rational(maxValue(eb,sb));
 }
 
 bool noOverflow(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg)
 {
   // TODO
-  return true;
+  return false;
 }
 
 //
