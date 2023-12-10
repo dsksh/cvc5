@@ -303,5 +303,10 @@ typerule FLOATINGPOINT_COMPONENT_SIGNIFICAND   ::cvc5::internal::theory::fp::Flo
 operator ROUNDINGMODE_BITBLAST 1 "The bit-vector for a non-deterministic rounding mode"
 typerule ROUNDINGMODE_BITBLAST    ::cvc5::internal::theory::fp::RoundingModeBitBlast
 
+operator IRM_TO_INT 1 "Convert rounding modes to integers"
+typerule IRM_TO_INT   "SimpleTypeRule<RInteger, ARoundingMode>"
+
+operator IRM_TO_RM 1 "Convert integers to rounding modes"
+typerule IRM_TO_RM   "SimpleTypeRule<RRoundingMode, AInteger>"
 
 endtheory

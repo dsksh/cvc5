@@ -23,8 +23,12 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 #include "util/rfp_add.h"
+#include "util/int_roundingmode.h"
+#include "util/real_floatingpoint.h"
 
 using namespace cvc5::internal::kind;
+
+namespace RFP = cvc5::internal::RealFloatingPoint;
 
 namespace cvc5::internal {
 namespace theory {
@@ -72,7 +76,7 @@ void RfpAddSolver::initLastCall(const std::vector<Node>& assertions,
 void RfpAddSolver::checkInitialRefine()
 {
   Trace("rfp-add-check") << "RfpAddSolver::checkInitialRefine" << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  //NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const unsigned, std::vector<Node> >& is : d_terms)
   {
     // the reference bitwidth
@@ -97,6 +101,58 @@ void RfpAddSolver::checkInitialRefine()
   }
 }
 
+Node mkIsFinite(uint32_t eb, uint32_t sb, Node x)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node lb = nm->mkNode(LEQ, nm->mkConstReal(-Rational(RFP::maxValue(eb,sb))), x);
+  Node ub = nm->mkNode(LEQ, x, nm->mkConstReal(-Rational(RFP::maxValue(eb,sb))));
+  return nm->mkNode(AND, lb, ub);
+}
+
+Node mkIsInfinite(uint32_t eb, uint32_t sb, Node x)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node is_ninf = nm->mkNode(EQUAL, x, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+  Node is_pinf = nm->mkNode(EQUAL, x, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+  return nm->mkNode(OR, is_ninf, is_pinf);
+}
+
+Node mkIsPositive(uint32_t eb, uint32_t sb, Node x)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node is_finite = mkIsFinite(eb,sb, x);
+  Node is_infinite = mkIsInfinite(eb,sb, x);
+  Node fin_or_inf = nm->mkNode(OR, is_finite, is_infinite);
+  Node positive = nm->mkNode(GT, x, nm->mkConstReal(Rational(0)));
+  return nm->mkNode(AND, fin_or_inf, positive);
+}
+
+Node mkIsNegative(uint32_t eb, uint32_t sb, Node x)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node is_finite = mkIsFinite(eb,sb, x);
+  Node is_infinite = mkIsInfinite(eb,sb, x);
+  Node fin_or_inf = nm->mkNode(OR, is_finite, is_infinite);
+  Node negative = nm->mkNode(LT, x, nm->mkConstReal(Rational(0)));
+  return nm->mkNode(AND, fin_or_inf, negative);
+}
+
+Node mkSameSign(uint32_t eb, uint32_t sb, Node x, Node y)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node positive = nm->mkNode(AND, mkIsPositive(eb,sb, x), mkIsPositive(eb,sb, y));
+  Node negative = nm->mkNode(AND, mkIsNegative(eb,sb, x), mkIsNegative(eb,sb, y));
+  return nm->mkNode(OR, positive, negative);
+}
+
+Node mkDiffSign(uint32_t eb, uint32_t sb, Node x, Node y)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node pos_neg = nm->mkNode(AND, mkIsPositive(eb,sb, x), mkIsNegative(eb,sb, y));
+  Node neg_pos = nm->mkNode(AND, mkIsNegative(eb,sb, x), mkIsPositive(eb,sb, y));
+  return nm->mkNode(OR, pos_neg, neg_pos);
+}
+
 void RfpAddSolver::checkFullRefine()
 {
   Trace("rfp-add-check") << "RfpAddSolver::checkFullRefine";
@@ -108,6 +164,10 @@ void RfpAddSolver::checkFullRefine()
     //unsigned k = ts.first;
     for (const Node& node : ts.second)
     {
+      Node op = node.getOperator();
+      uint32_t eb = op.getConst<RfpAdd>().d_eb;
+      uint32_t sb = op.getConst<RfpAdd>().d_sb;
+
       Node valAdd = d_model.computeAbstractModelValue(node);
       Node valAddC = d_model.computeConcreteModelValue(node);
 
@@ -115,6 +175,7 @@ void RfpAddSolver::checkFullRefine()
       Node valX = d_model.computeConcreteModelValue(node[1]);
       Node valY = d_model.computeConcreteModelValue(node[2]);
 
+      node.getOperator();
       Integer rm = valRm.getConst<Rational>().getNumerator();
       Rational x = valX.getConst<Rational>();
       Rational y = valY.getConst<Rational>();
@@ -131,6 +192,37 @@ void RfpAddSolver::checkFullRefine()
       {
         Trace("rfp-add-check") << "...already correct" << std::endl;
         continue;
+      }
+
+      if (RFP::isFinite(eb,sb, add) && (!RFP::isFinite(eb,sb, x) || !RFP::isFinite(eb,sb, y)))
+      {
+        Node assumption = mkIsFinite(eb,sb, node);
+        Node is_finite_x = mkIsFinite(eb,sb, node[1]);
+        Node is_finite_y = mkIsFinite(eb,sb, node[2]);
+        Node conclution = nm->mkNode(AND, is_finite_x, is_finite_y);
+        Node lem = nm->mkNode(IMPLIES, assumption, conclution);
+        Trace("rfp-add-lemma") << "RfpAddSolver::Lemma: " << lem << " ; AUX_REFINE"
+                               << std::endl;
+        d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ADD_AUX_REFINE);
+      }
+
+      if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
+          ((x >= 0 && y < 0) || (x < 0 && y >= 0)) && x + y == 0)
+      {
+        std::vector<Node> conj;
+        conj.push_back(mkIsFinite(eb,sb, node[1]));
+        conj.push_back(mkIsFinite(eb,sb, node[2]));
+        conj.push_back(mkDiffSign(eb,sb, node[1], node[2]));
+        conj.push_back(node.eqNode(d_zero));
+        Node assumption = nm->mkAnd(conj);
+        Node rtn = node[0].eqNode(nm->mkConstInt(IntRoundingMode::TN));
+        Node conclusion = nm->mkNode(ITE, rtn, 
+                                     mkIsNegative(eb,sb, node), 
+                                     mkIsPositive(eb,sb, node));
+        Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+        Trace("rfp-add-lemma") << "RfpAddSolver::Lemma: " << lem << " ; AUX_REFINE"
+                               << std::endl;
+        d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ADD_AUX_REFINE);
       }
 
       // this is the most naive model-based schema based on model values

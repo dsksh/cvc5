@@ -59,6 +59,12 @@ struct RRegExp
   static TypeNode mkType(NodeManager* nm) { return nm->regExpType(); }
 };
 
+/** Type check returns the rounding mode sort */
+struct RRoundingMode
+{
+  static TypeNode mkType(NodeManager* nm) { return nm->roundingModeType(); }
+};
+
 /** Type check returns the string sort */
 struct RString
 {
@@ -132,6 +138,17 @@ struct ARegExp
     return t.isRegExp() || t.isFullyAbstract();
   }
   constexpr static const char* typeName = "regexp";
+};
+
+/** Argument is a rounding mode */
+struct ARoundingMode
+{
+  static bool checkArg(TNode n, size_t arg)
+  {
+    TypeNode t = n[arg].getTypeOrNull();
+    return t.isRoundingMode() || t.isFullyAbstract();
+  }
+  constexpr static const char* typeName = "rounding mode";
 };
 
 /** Argument is a string */

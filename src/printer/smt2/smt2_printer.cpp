@@ -1099,6 +1099,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::POW2: return "int.pow2";
     case kind::MAX3: return "real.max3";
     case kind::ILOG2: return "real.ilog2";
+    case kind::IRM_TO_INT: return "irm.to_int";
+    case kind::IRM_TO_RM: return "irm.to_rm";
     case kind::RFP_ROUND: return "rfp.round";
     case kind::RFP_ADD: return "rfp.add";
     case kind::EXPONENTIAL: return "exp";

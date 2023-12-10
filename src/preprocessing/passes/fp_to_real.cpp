@@ -1,3 +1,18 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Daisuke Ishii
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The implementation of FPToReal.
+ */
+
 #include "preprocessing/passes/fp_to_real.h"
 
 #include <cmath>
@@ -435,19 +450,19 @@ Node FPToReal::castToType(Node n, TypeNode tn)
     Assert(tn.isReal());
     return d_nm->mkNode(kind::FLOATINGPOINT_TO_REAL, n);
   }
-  // TODO
-  Assert(false);
-  //else if (n.getType().isInteger())
-  //{
-  //  // Casting integers to RMs.
-  //  Assert(tn.isRoundingMode());
-  //}
-  //else
-  //{
-  //  // Casting RMs to integers.
-  //  Assert(n.getType().isRoundingMode());
-  //  Assert(tn.isInteger());
-  //}
+  else if (n.getType().isInteger())
+  {
+    // Casting integers to RMs.
+    Assert(tn.isRoundingMode());
+    return d_nm->mkNode(kind::IRM_TO_RM, n);
+  }
+  else
+  {
+    // Casting RMs to integers.
+    Assert(n.getType().isRoundingMode());
+    Assert(tn.isInteger());
+    return d_nm->mkNode(kind::IRM_TO_INT, n);
+  }
 }
 
 Node FPToReal::reconstructNode(Node originalNode,

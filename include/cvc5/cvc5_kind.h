@@ -544,6 +544,14 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(ILOG2),
   /**
+   * Convert rounding modes to integers.
+   */
+  EVALUE(IRM_TO_INT),
+  /**
+   * Convert integers to rounding modes.
+   */
+  EVALUE(IRM_TO_RM),
+  /**
    * Real version of FP rounding operator.
    */
   EVALUE(RFP_ROUND),

@@ -114,6 +114,8 @@ const char* toString(InferenceId i)
       return "ARITH_NL_RFP_ROUND_VALUE_REFINE";
     case InferenceId::ARITH_NL_RFP_ADD_INIT_REFINE:
       return "ARITH_NL_RFP_ADD_INIT_REFINE";
+    case InferenceId::ARITH_NL_RFP_ADD_AUX_REFINE:
+      return "ARITH_NL_RFP_ADD_AUX_REFINE";
     case InferenceId::ARITH_NL_RFP_ADD_VALUE_REFINE:
       return "ARITH_NL_RFP_ADD_VALUE_REFINE";
     case InferenceId::ARITH_NL_COVERING_CONFLICT: return "ARITH_NL_COVERING_CONFLICT";

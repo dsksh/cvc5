@@ -805,6 +805,9 @@ void Smt2State::setLogic(std::string name)
       defineVar("irm.tn", d_solver->mkInteger(internal::IntRoundingMode::TN));
       defineVar("irm.tz", d_solver->mkInteger(internal::IntRoundingMode::TZ));
 
+      addOperator(Kind::IRM_TO_INT, "irm.to_int");
+      addOperator(Kind::IRM_TO_RM, "irm.to_rm");
+
       // max3
       addOperator(Kind::MAX3, "real.max3");
       // ilog2

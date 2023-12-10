@@ -175,6 +175,8 @@ enum class InferenceId
   //-------------------- rfp.add solver
   // initial refinements (RfpAddSolver::checkInitialRefine)
   ARITH_NL_RFP_ADD_INIT_REFINE,
+  // additional refinements (RfpAddSolver::checkFullRefine)
+  ARITH_NL_RFP_ADD_AUX_REFINE,
   // value refinements (RfpAddSolver::checkFullRefine)
   ARITH_NL_RFP_ADD_VALUE_REFINE,
   //-------------------- nonlinear coverings solver

@@ -98,6 +98,8 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse postRewriteMax3(TNode t);
   /** postRewrite ILOG2 */
   static RewriteResponse postRewriteIlog2(TNode t);
+  /** postRewrite IRM */
+  static RewriteResponse postRewriteIrm(TNode t, bool to_int);
   /** postRewrite RFP_ROUND */
   static RewriteResponse postRewriteRfpRound(TNode t);
   /** postRewrite RFP_ADD */

@@ -40,11 +40,9 @@
 #include "util/real_algebraic_number.h"
 #include "util/rfp_add.h"
 #include "util/rfp_round.h"
-#include "util/real_floatingpoint.h"
+#include "util/roundingmode.h"
 
 using namespace cvc5::internal::kind;
-
-namespace RFP = cvc5::internal::RealFloatingPoint;
 
 namespace cvc5::internal {
 namespace theory {
@@ -235,6 +233,8 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::POW2: return RewriteResponse(REWRITE_DONE, t);
       case kind::MAX3: return RewriteResponse(REWRITE_DONE, t);
       case kind::ILOG2: return RewriteResponse(REWRITE_DONE, t);
+      case kind::IRM_TO_INT: return RewriteResponse(REWRITE_DONE, t);
+      case kind::IRM_TO_RM: return RewriteResponse(REWRITE_DONE, t);
       case kind::RFP_ROUND: return RewriteResponse(REWRITE_DONE, t);
       case kind::RFP_ADD: return RewriteResponse(REWRITE_DONE, t);
       case kind::EXPONENTIAL:
@@ -288,6 +288,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::POW2: return postRewritePow2(t);
       case kind::MAX3: return postRewriteMax3(t);
       case kind::ILOG2: return postRewriteIlog2(t);
+      case kind::IRM_TO_INT: return postRewriteIrm(t, true);
+      case kind::IRM_TO_RM: return postRewriteIrm(t, false);
       case kind::RFP_ROUND: return postRewriteRfpRound(t);
       case kind::RFP_ADD: return postRewriteRfpAdd(t);
       case kind::EXPONENTIAL:
@@ -988,87 +990,51 @@ RewriteResponse ArithRewriter::postRewriteIlog2(TNode t)
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-RewriteResponse ArithRewriter::postRewriteRfpRound(TNode t)
+RewriteResponse ArithRewriter::postRewriteIrm(TNode t, bool to_int)
 {
-  Assert(t.getKind() == kind::RFP_ROUND);
-  uint32_t eb = t.getOperator().getConst<RfpRound>().d_eb;
-  uint32_t sb = t.getOperator().getConst<RfpRound>().d_sb;
+  Trace("irm-rewrite") << "Rewrite " << t << " == ";
+  Assert(t.getKind() == kind::IRM_TO_INT || 
+         t.getKind() == kind::IRM_TO_RM);
   NodeManager* nm = NodeManager::currentNM();
-  // if constant, can be eliminated
-  if (t[0].isConst() && t[1].isConst())
+  // if constant, we eliminate
+  if (to_int && t[0].isConst())
   {
-    // rfp.round is only supported for integer rms and real values
-    Assert(t[0].getType().isInteger());
-    Assert(t[1].getType().isReal());
-    Integer rm = t[0].getConst<Rational>().getNumerator();
-    Rational v = t[1].getConst<Rational>();
-    Rational rounded = RealFloatingPoint::round(eb, sb, rm.getUnsignedInt(), v);
-    Node ret = nm->mkConstReal(rounded);
+    Assert(t[0].getType().isRoundingMode());
+    RoundingMode rm = t[0].getConst<RoundingMode>();
+    Node ret;
+    if (rm == RoundingMode::ROUND_NEAREST_TIES_TO_EVEN)
+      ret = nm->mkConstInt(0);
+    else if (rm == RoundingMode::ROUND_NEAREST_TIES_TO_AWAY)
+      ret = nm->mkConstInt(1);
+    else if (rm == RoundingMode::ROUND_TOWARD_POSITIVE)
+      ret = nm->mkConstInt(2);
+    else if (rm == RoundingMode::ROUND_TOWARD_NEGATIVE)
+      ret = nm->mkConstInt(3);
+    else if (rm == RoundingMode::ROUND_TOWARD_ZERO)
+      ret = nm->mkConstInt(4);
+    else
+      Assert(false);
     return RewriteResponse(REWRITE_DONE, ret);
   }
 
-  return RewriteResponse(REWRITE_DONE, t);
-}
-
-RewriteResponse ArithRewriter::postRewriteRfpAdd(TNode t)
-{
-  Assert(t.getKind() == kind::RFP_ADD);
-  uint32_t eb = t.getOperator().getConst<RfpRound>().d_eb;
-  uint32_t sb = t.getOperator().getConst<RfpRound>().d_sb;
-  NodeManager* nm = NodeManager::currentNM();
-  // if constant, can be eliminated
-  if (t[0].isConst() && t[1].isConst() && t[2].isConst())
+  if (!to_int && t[0].isConst())
   {
-    // rfp.round is only supported for integer rms and real values
     Assert(t[0].getType().isInteger());
-    Assert(t[1].getType().isReal());
-    Assert(t[2].getType().isReal());
-    uint8_t rm = t[0].getConst<Rational>().getNumerator().getUnsignedInt();
-    Rational x = t[1].getConst<Rational>();
-    Rational y = t[2].getConst<Rational>();
-
-    // finite case
-    if (RFP::isFinite(eb, sb, x) && !RFP::isZero(eb, sb, x) &&
-        RFP::isFinite(eb, sb, y) && !RFP::isZero(eb, sb, y) &&
-        // TODO RFP::noOverflow(eb, sb, rm, x + y)
-        RFP::isFinite(eb, sb, x + y)
-        )
-    {
-      Node op = nm->mkConst(RfpRound(eb, sb));
-      Node sum = nm->mkNode(kind::ADD, t[1], t[2]);
-      Node ret = nm->mkNode(RFP_ROUND, op, t[0], sum);
-      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
-    }
-
-    // zero cases
-    if (RFP::isZero(eb, sb, x) && RFP::isFinite(eb, sb, y) && !RFP::isZero(eb, sb, y))
-    {
-      return RewriteResponse(REWRITE_DONE, t[2]);
-    }
-    if (RFP::isFinite(eb, sb, x) && !RFP::isZero(eb, sb, x) && RFP::isZero(eb, sb, y))
-    {
-      return RewriteResponse(REWRITE_DONE, t[1]);
-    }
-    if (RFP::isZero(eb, sb, x) && RFP::isZero(eb, sb, y) && x == y)
-    {
-      return RewriteResponse(REWRITE_DONE, t[0]);
-    }
-    if (x == RFP::plusZero(eb,sb) && y == RFP::minusZero(eb,sb))
-    {
-      if (rm == IntRoundingMode::TN)
-        return RewriteResponse(REWRITE_DONE, t[1]);
-      else
-        return RewriteResponse(REWRITE_DONE, t[0]);
-    }
-    if (x == RFP::minusZero(eb,sb) && y == RFP::plusZero(eb,sb))
-    {
-      if (rm == IntRoundingMode::TN)
-        return RewriteResponse(REWRITE_DONE, t[0]);
-      else
-        return RewriteResponse(REWRITE_DONE, t[1]);
-    }
-
-    // TODO: special cases
+    Integer i = t[0].getConst<Rational>().getNumerator();
+    Node ret;
+    if (i == 0)
+      ret = nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
+    else if (i == 1)
+      ret = nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY);
+    else if (i == 2)
+      ret = nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE);
+    else if (i == 3)
+      ret = nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE);
+    else if (i == 4)
+      ret = nm->mkConst(RoundingMode::ROUND_TOWARD_ZERO);
+    else
+      Assert(false);
+    return RewriteResponse(REWRITE_DONE, ret);
   }
 
   return RewriteResponse(REWRITE_DONE, t);

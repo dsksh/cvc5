@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The integer representation of FP rounding modes.
+ * The implementation of the utilities for real encoding of floating-point values.
  */
 
 #include <math.h>
@@ -33,7 +33,7 @@ namespace RealFloatingPoint {
 
 uint32_t hash(uint32_t eb, uint32_t sb)
 {
-  return 19*eb + sb;
+  return 7*eb + sb;
 }
 
 Integer maxValue(uint32_t eb, uint32_t sb)
@@ -78,16 +78,41 @@ Rational minSubnormal(uint32_t eb, uint32_t sb)
   return cache[h];
 }
 
-Rational plusZero(uint32_t eb, uint32_t sb)
-{
-  return Rational(0);
-}
-
+/** Get the negative zero.
+ */
 Rational minusZero(uint32_t eb, uint32_t sb)
 {
   // compute the half of the smallest subnormal positive number
   // (and then make it negative).
   return -minSubnormal(eb,sb) / 2;
+}
+
+/** Get the possitive zero.
+ */
+Rational plusZero(uint32_t eb, uint32_t sb)
+{
+  return Rational(0);
+}
+
+/** Get the negative infinity.
+ */
+Rational minusInfinity(uint32_t eb, uint32_t sb)
+{
+  return -maxValue(eb,sb) - 2;
+}
+
+/** Get the possitive infinity.
+ */
+Rational plusInfinity(uint32_t eb, uint32_t sb)
+{
+  return maxValue(eb,sb) + 1;
+}
+
+/** Get the NaN.
+ */
+Rational notANumber(uint32_t eb, uint32_t sb)
+{
+  return -maxValue(eb,sb) - 1;
 }
 
 bool isNormal(uint32_t eb, uint32_t sb, const Rational& arg)
@@ -113,6 +138,11 @@ bool isZero(uint32_t eb, uint32_t sb, const Rational& arg)
 bool isFinite(uint32_t eb, uint32_t sb, const Rational& arg)
 {
   return Rational(-maxValue(eb,sb)) <= arg && arg <= Rational(maxValue(eb,sb));
+}
+
+bool isInfinite(uint32_t eb, uint32_t sb, const Rational& arg)
+{
+  return arg <= minusInfinity(eb,sb) || plusInfinity(eb,sb) <= arg;
 }
 
 bool noOverflow(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg)
