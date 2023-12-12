@@ -552,6 +552,14 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(IRM_TO_RM),
   /**
+   * Convert RFP reals to FloatingPoint values.
+   */
+  EVALUE(RFP_TO_FP),
+  /**
+   * Convert FloatingPoint values to RFP reals.
+   */
+  EVALUE(RFP_TO_REAL),
+  /**
    * Real version of FP rounding operator.
    */
   EVALUE(RFP_ROUND),

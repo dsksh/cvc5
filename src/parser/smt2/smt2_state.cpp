@@ -813,6 +813,10 @@ void Smt2State::setLogic(std::string name)
       // ilog2
       addOperator(Kind::ILOG2, "real.ilog2");
 
+      // conversion between RFP and FP values
+      addOperator(Kind::RFP_TO_FP, "rfp.to_fp");
+      addOperator(Kind::RFP_TO_REAL, "rfp.to_real");
+
       // real version of FP round 
       addIndexedOperator(Kind::RFP_ROUND, "rfp.round");
 

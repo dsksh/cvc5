@@ -31,6 +31,7 @@
 #include "theory/arith/rewriter/ordering.h"
 #include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/theory.h"
+#include "util/floatingpoint.h"
 #include "util/rfp_add.h"
 #include "util/rfp_round.h"
 #include "util/real_floatingpoint.h"
@@ -42,6 +43,44 @@ namespace RFP = cvc5::internal::RealFloatingPoint;
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
+
+RewriteResponse ArithRewriter::postRewriteRfpToFP(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_TO_FP);
+  uint32_t eb = t.getOperator().getConst<RfpToFP>().getSize().exponentWidth();
+  uint32_t sb = t.getOperator().getConst<RfpToFP>().getSize().significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst())
+  {
+    // rfp.to_fp is only supported for real values
+    Assert(t[0].getType().isReal());
+    Rational v = t[0].getConst<Rational>();
+    Node ret = nm->mkConst(RFP::convertToFP(eb,sb, v));
+    return RewriteResponse(REWRITE_DONE, ret);
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpToReal(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_TO_REAL);
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst())
+  {
+    // rfp.to_real is only supported for floating-point numbers
+    Assert(t[0].getType().isFloatingPoint());
+    uint32_t eb = t[0].getType().getFloatingPointExponentSize();
+    uint32_t sb = t[0].getType().getFloatingPointSignificandSize();
+    FloatingPoint v = t[0].getConst<FloatingPoint>();
+    Node ret = nm->mkConstReal(RFP::convertFPToReal(v));
+    return RewriteResponse(REWRITE_DONE, ret);
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
 
 RewriteResponse ArithRewriter::postRewriteRfpRound(TNode t)
 {
@@ -106,21 +145,21 @@ RewriteResponse ArithRewriter::postRewriteRfpAdd(TNode t)
     }
     if (RFP::isZero(eb, sb, x) && RFP::isZero(eb, sb, y) && x == y)
     {
-      return RewriteResponse(REWRITE_DONE, t[0]);
+      return RewriteResponse(REWRITE_DONE, t[1]);
     }
     if (x == RFP::plusZero(eb,sb) && y == RFP::minusZero(eb,sb))
     {
       if (rm == IntRoundingMode::TN)
-        return RewriteResponse(REWRITE_DONE, t[1]);
+        return RewriteResponse(REWRITE_DONE, t[2]);
       else
-        return RewriteResponse(REWRITE_DONE, t[0]);
+        return RewriteResponse(REWRITE_DONE, t[1]);
     }
     if (x == RFP::minusZero(eb,sb) && y == RFP::plusZero(eb,sb))
     {
       if (rm == IntRoundingMode::TN)
-        return RewriteResponse(REWRITE_DONE, t[0]);
-      else
         return RewriteResponse(REWRITE_DONE, t[1]);
+      else
+        return RewriteResponse(REWRITE_DONE, t[2]);
     }
 
     // special cases

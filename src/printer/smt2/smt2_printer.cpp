@@ -739,6 +739,13 @@ void Smt2Printer::toStream(std::ostream& out,
       stillNeedToPrintParams = false;
       break;
 
+    case kind::RFP_TO_FP:
+      out << "(_ rfp.to_fp " 
+        << n.getOperator().getConst<RfpRound>().d_eb << " "
+        << n.getOperator().getConst<RfpRound>().d_sb << ") ";
+      stillNeedToPrintParams = false;
+      break;
+
     case kind::RFP_ROUND:
       out << "(_ rfp.round " 
         << n.getOperator().getConst<RfpRound>().d_eb << " "
@@ -1099,6 +1106,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::POW2: return "int.pow2";
     case kind::MAX3: return "real.max3";
     case kind::ILOG2: return "real.ilog2";
+    case kind::RFP_TO_FP: return "rfp.to_fp";
+    case kind::RFP_TO_REAL: return "rfp.to_real";
     case kind::IRM_TO_INT: return "irm.to_int";
     case kind::IRM_TO_RM: return "irm.to_rm";
     case kind::RFP_ROUND: return "rfp.round";

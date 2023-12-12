@@ -88,12 +88,77 @@ bool noOverflow(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg);
 Rational round(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg);
 Integer roundToInteger(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg);
 
+/**
+ * Convert a FloatingPoint value to the corresponding real representation.
+ */
+Rational convertFPToReal(const FloatingPoint& arg);
+/** 
+ * Convert a real representation to a FloatingPoint value.
+ */
+FloatingPoint convertToFP(uint32_t eb, uint32_t sb, const Rational& arg);
+
 ///**
 // * Addition.
 // */
 //Rational add(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg1, const Rational& arg2);
 
 }  // namespace RealFloatingPoint
+
+/**
+ * The parameter type for the conversions to RFP values.
+ */
+class RfpConvertSort
+{
+ public:
+  /** Constructors. */
+  RfpConvertSort(uint32_t _e, uint32_t _s) : d_fp_size(_e, _s) {}
+  RfpConvertSort(const FloatingPointSize& fps) : d_fp_size(fps) {}
+
+  /** Operator overload for comparison of conversion sorts. */
+  bool operator==(const RfpConvertSort& t) const
+  {
+    return d_fp_size == t.d_fp_size;
+  }
+
+  operator size_t() const { 
+    FloatingPointSizeHashFunction f;
+    return f(d_fp_size);
+  }
+
+  /** Return the size of this RFP convert sort. */
+  FloatingPointSize getSize() const { return d_fp_size; }
+
+ private:
+  /** The floating-point size of this sort. */
+  FloatingPointSize d_fp_size;
+};
+
+///** Hash function for conversion sorts. */
+//template <uint32_t key>
+//struct RfpConvertSortHashFunction
+//{
+//  inline size_t operator()(const RfpConvertSort& rfpcs) const
+//  {
+//    FloatingPointSizeHashFunction f;
+//    return f(rfpcs.getSize()) ^ (0x00005300 | (key << 24));
+//  }
+//}; /* struct RfpConvertSortHashFunction */
+
+class RfpToFP : public RfpConvertSort
+{
+ public:
+  /** Constructors. */
+  RfpToFP(uint32_t _e, uint32_t _s) : RfpConvertSort(_e, _s) {}
+  RfpToFP(const FloatingPointSize& fps) : RfpConvertSort(fps) {}
+};
+
+/** Output stream operator overloading for RFP conversion sorts. */
+inline std::ostream& operator<<(std::ostream& os, const RfpConvertSort& t);
+inline std::ostream& operator<<(std::ostream& os, const RfpConvertSort& t)
+{
+  return os << "(_ rfp.to_fp " << t.getSize().exponentWidth() 
+            << t.getSize().significandWidth() << ")";
+}
 
 }  // namespace cvc5::internal
 

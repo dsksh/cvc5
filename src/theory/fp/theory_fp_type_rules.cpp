@@ -21,6 +21,7 @@
 #include "util/cardinality.h"
 #include "util/floatingpoint.h"
 #include "util/roundingmode.h"
+#include "util/real_floatingpoint.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -1042,6 +1043,41 @@ TypeNode RoundingModeBitBlast::computeType(NodeManager* nodeManager,
 Cardinality CardinalityComputer::computeCardinality(TypeNode type)
 {
   return fp::utils::getCardinality(type);
+}
+
+TypeNode RfpToFPTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  RfpToFP info =
+      n.getOperator().getConst<RfpToFP>();
+  return nm->mkFloatingPointType(info.getSize());
+}
+TypeNode RfpToFPTypeRule::computeType(NodeManager* nodeManager,
+                                      TNode n,
+                                      bool check,
+                                      std::ostream* errOut)
+{
+  Trace("RfpToFPTypeRule");
+  AlwaysAssert(n.getNumChildren() == 1);
+
+  RfpToFP info = n.getOperator().getConst<RfpToFP>();
+
+  if (check)
+  {
+    TypeNode operandType = n[0].getTypeOrNull();
+
+    if (!(operandType.isReal()))
+    {
+      if (errOut)
+      {
+        (*errOut) << "conversion to floating-point from "
+                     "real used with sort other than "
+                     "real";
+      }
+      return TypeNode::null();
+    }
+  }
+
+  return nodeManager->mkFloatingPointType(info.getSize());
 }
 
 }  // namespace fp

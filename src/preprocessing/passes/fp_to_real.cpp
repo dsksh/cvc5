@@ -29,6 +29,7 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 #include "util/floatingpoint.h"
+#include "util/real_floatingpoint.h"
 #include "util/int_roundingmode.h"
 #include "util/rfp_add.h"
 
@@ -38,6 +39,8 @@ namespace passes {
 
 using namespace std;
 using namespace cvc5::internal::theory;
+
+namespace RFP = cvc5::internal::RealFloatingPoint;
 
 FPToReal::FPToReal(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "fp-to-real"), 
@@ -401,7 +404,8 @@ Node FPToReal::translateNoChildren(Node original,
     {
       // Floating-point constants are transformed into their real value.
       FloatingPoint constant(original.getConst<FloatingPoint>());
-      Rational r = constant.convertToRationalTotal(Rational(0));
+      //Rational r = constant.convertToRationalTotal(Rational(0));
+      Rational r = RFP::convertFPToReal(constant);
       translation = d_nm->mkConstReal(r);
     }
     else if (original.getKind() == kind::CONST_ROUNDINGMODE)
@@ -440,15 +444,14 @@ Node FPToReal::castToType(Node n, TypeNode tn)
   {
     // Casting reals to FP numbers.
     Assert(tn.isFloatingPoint());
-    Node rm = d_nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE);
-    Node op = d_nm->mkConst(FloatingPointToFPReal(tn.getConst<FloatingPointSize>()));
-    return d_nm->mkNode(kind::FLOATINGPOINT_TO_FP_FROM_REAL, op, rm, n);
+    Node op = d_nm->mkConst(RfpToFP(tn.getConst<FloatingPointSize>()));
+    return d_nm->mkNode(kind::RFP_TO_FP, op, n);
   }
   else if (n.getType().isFloatingPoint())
   {
     // Casting FP numbers to reals.
     Assert(tn.isReal());
-    return d_nm->mkNode(kind::FLOATINGPOINT_TO_REAL, n);
+    return d_nm->mkNode(kind::RFP_TO_REAL, n);
   }
   else if (n.getType().isInteger())
   {

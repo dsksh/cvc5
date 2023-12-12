@@ -265,6 +265,59 @@ Integer roundToInteger(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& val
   return roundInternal(true, eb, sb, rm, value).getNumerator();
 }
 
+/** Convert a FloatingPoint value to the corresponding real representation.
+ */
+Rational convertFPToReal(const FloatingPoint& arg)
+{
+  uint32_t eb = arg.getSize().exponentWidth();
+  uint32_t sb = arg.getSize().significandWidth();
+
+  if (arg.isZero())
+  {
+    if (arg.isNegative())
+      return minusZero(eb,sb);
+    else
+      return plusZero(eb,sb);
+  }
+  else if (arg.isInfinite())
+  {
+    if (arg.isNegative())
+      return minusInfinity(eb,sb);
+    else
+      return plusInfinity(eb,sb);
+  }
+  else if (arg.isNaN())
+  {
+      return notANumber(eb,sb);
+  }
+
+  // delegate to the standard implementation
+  return arg.convertToRationalTotal(0);
+}
+
+/** Convert a real representation to a FloatingPoint value.
+ */
+FloatingPoint convertToFP(uint32_t eb, uint32_t sb, const Rational& arg)
+{
+  FloatingPointSize size(eb, sb);
+
+  if (isZero(eb,sb, arg))
+  {
+    return FloatingPoint::makeZero(size, arg < 0);
+  }
+  else if (isInfinite(eb,sb, arg))
+  {
+    return FloatingPoint::makeInf(size, arg < 0);
+  }
+  else if (arg == notANumber(eb,sb))
+  {
+    return FloatingPoint::makeNaN(size);
+  }
+
+  // Construct a finite floating-point number.
+  return FloatingPoint(size, RoundingMode::ROUND_NEAREST_TIES_TO_EVEN, arg);
+}
+
 }  // namespace RealFloatingPoint
 
 }  // namespace cvc5::internal
