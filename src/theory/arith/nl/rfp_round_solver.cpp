@@ -22,7 +22,7 @@
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
-#include "util/rfp_round.h"
+#include "util/real_floatingpoint.h"
 
 using namespace cvc5::internal::kind;
 

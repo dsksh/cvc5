@@ -194,10 +194,10 @@ typerule IAND ::cvc5::internal::theory::arith::IAndTypeRule
 # ((_ to_fp eb sb) rm v) 
 # for all reals v.
 constant RFP_ROUND_OP \
-  struct \
+  class \
   RfpRound \
   "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpRound >" \
-  "util/rfp_round.h" \
+  "util/real_floatingpoint.h" \
   "real version of FP rounding operator; payload is an instance of the cvc5::internal::RfpRound class"
 parameterized RFP_ROUND RFP_ROUND_OP 2 "real version of FP rounding operator; first parameter is an RFP_ROUND_OP, second is a rounding mode, and third is a real term"
 
@@ -206,10 +206,10 @@ typerule RFP_ROUND ::cvc5::internal::theory::arith::RfpUnOpTypeRule
 
 # Real version of fp.add.
 constant RFP_ADD_OP \
-  struct \
+  class \
   RfpAdd \
   "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpAdd >" \
-  "util/rfp_add.h" \
+  "util/real_floatingpoint.h" \
   "real version of fp.add"
 parameterized RFP_ADD RFP_ADD_OP 3 "real version of fp.add; first parameter is an RFP_ADD_OP, second is a rounding mode, and third and fourth are real terms"
 

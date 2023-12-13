@@ -55,9 +55,8 @@
 #include "util/iand.h"
 #include "util/indexed_root_predicate.h"
 #include "util/real_algebraic_number.h"
+#include "util/real_floatingpoint.h"
 #include "util/regexp.h"
-#include "util/rfp_add.h"
-#include "util/rfp_round.h"
 #include "util/smt2_quote_string.h"
 #include "util/string.h"
 #include "util/uninterpreted_sort_value.h"
@@ -740,23 +739,17 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
 
     case kind::RFP_TO_FP:
-      out << "(_ rfp.to_fp " 
-        << n.getOperator().getConst<RfpRound>().d_eb << " "
-        << n.getOperator().getConst<RfpRound>().d_sb << ") ";
+      n.getOperator().getConst<RfpToFP>().print(out);
       stillNeedToPrintParams = false;
       break;
 
     case kind::RFP_ROUND:
-      out << "(_ rfp.round " 
-        << n.getOperator().getConst<RfpRound>().d_eb << " "
-        << n.getOperator().getConst<RfpRound>().d_sb << ") ";
+      n.getOperator().getConst<RfpRound>().print(out);
       stillNeedToPrintParams = false;
       break;
 
     case kind::RFP_ADD:
-      out << "(_ rfp.add " 
-        << n.getOperator().getConst<RfpRound>().d_eb << " "
-        << n.getOperator().getConst<RfpRound>().d_sb << ") ";
+      n.getOperator().getConst<RfpAdd>().print(out);
       stillNeedToPrintParams = false;
       break;
 

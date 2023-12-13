@@ -31,7 +31,6 @@
 #include "util/floatingpoint.h"
 #include "util/real_floatingpoint.h"
 #include "util/int_roundingmode.h"
-#include "util/rfp_add.h"
 
 namespace cvc5::internal {
 namespace preprocessing {

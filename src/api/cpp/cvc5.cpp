@@ -82,8 +82,7 @@
 #include "util/random.h"
 #include "util/regexp.h"
 #include "util/result.h"
-#include "util/rfp_round.h"
-#include "util/rfp_add.h"
+#include "util/real_floatingpoint.h"
 #include "util/roundingmode.h"
 #include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
@@ -2311,13 +2310,13 @@ Term Op::getIndexHelper(size_t index) const
     case Kind::RFP_ROUND:
     {
       t = Solver::mkRationalValHelper(
-          d_nm, d_node->getConst<internal::RfpRound>().hash(), true);
+          d_nm, (size_t)d_node->getConst<internal::RfpRound>(), true);
       break;
     }
     case Kind::RFP_ADD:
     {
       t = Solver::mkRationalValHelper(
-          d_nm, d_node->getConst<internal::RfpAdd>().hash(), true);
+          d_nm, (size_t)d_node->getConst<internal::RfpAdd>(), true);
       break;
     }
     case Kind::FLOATINGPOINT_TO_UBV:

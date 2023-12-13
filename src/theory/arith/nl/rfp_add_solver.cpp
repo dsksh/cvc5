@@ -22,7 +22,6 @@
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
-#include "util/rfp_add.h"
 #include "util/int_roundingmode.h"
 #include "util/real_floatingpoint.h"
 
@@ -164,9 +163,9 @@ void RfpAddSolver::checkFullRefine()
     //unsigned k = ts.first;
     for (const Node& node : ts.second)
     {
-      Node op = node.getOperator();
-      uint32_t eb = op.getConst<RfpAdd>().d_eb;
-      uint32_t sb = op.getConst<RfpAdd>().d_sb;
+      FloatingPointSize sz = node.getOperator().getConst<RfpAdd>().getSize();
+      uint32_t eb = sz.exponentWidth();
+      uint32_t sb = sz.significandWidth();
 
       Node valAdd = d_model.computeAbstractModelValue(node);
       Node valAddC = d_model.computeConcreteModelValue(node);
@@ -175,7 +174,6 @@ void RfpAddSolver::checkFullRefine()
       Node valX = d_model.computeConcreteModelValue(node[1]);
       Node valY = d_model.computeConcreteModelValue(node[2]);
 
-      node.getOperator();
       Integer rm = valRm.getConst<Rational>().getNumerator();
       Rational x = valX.getConst<Rational>();
       Rational y = valY.getConst<Rational>();

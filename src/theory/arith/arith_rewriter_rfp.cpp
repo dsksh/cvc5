@@ -32,8 +32,7 @@
 #include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/theory.h"
 #include "util/floatingpoint.h"
-#include "util/rfp_add.h"
-#include "util/rfp_round.h"
+#include "util/real_floatingpoint.h"
 #include "util/real_floatingpoint.h"
 
 using namespace cvc5::internal::kind;
@@ -72,8 +71,6 @@ RewriteResponse ArithRewriter::postRewriteRfpToReal(TNode t)
   {
     // rfp.to_real is only supported for floating-point numbers
     Assert(t[0].getType().isFloatingPoint());
-    uint32_t eb = t[0].getType().getFloatingPointExponentSize();
-    uint32_t sb = t[0].getType().getFloatingPointSignificandSize();
     FloatingPoint v = t[0].getConst<FloatingPoint>();
     Node ret = nm->mkConstReal(RFP::convertFPToReal(v));
     return RewriteResponse(REWRITE_DONE, ret);
@@ -85,8 +82,9 @@ RewriteResponse ArithRewriter::postRewriteRfpToReal(TNode t)
 RewriteResponse ArithRewriter::postRewriteRfpRound(TNode t)
 {
   Assert(t.getKind() == kind::RFP_ROUND);
-  uint32_t eb = t.getOperator().getConst<RfpRound>().d_eb;
-  uint32_t sb = t.getOperator().getConst<RfpRound>().d_sb;
+  FloatingPointSize sz = t.getOperator().getConst<RfpRound>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
   NodeManager* nm = NodeManager::currentNM();
   // if constant, can be eliminated
   if (t[0].isConst() && t[1].isConst())
@@ -96,7 +94,7 @@ RewriteResponse ArithRewriter::postRewriteRfpRound(TNode t)
     Assert(t[1].getType().isReal());
     Integer rm = t[0].getConst<Rational>().getNumerator();
     Rational v = t[1].getConst<Rational>();
-    Rational rounded = RealFloatingPoint::round(eb, sb, rm.getUnsignedInt(), v);
+    Rational rounded = RealFloatingPoint::round(eb,sb, rm.getUnsignedInt(), v);
     Node ret = nm->mkConstReal(rounded);
     return RewriteResponse(REWRITE_DONE, ret);
   }
@@ -107,8 +105,9 @@ RewriteResponse ArithRewriter::postRewriteRfpRound(TNode t)
 RewriteResponse ArithRewriter::postRewriteRfpAdd(TNode t)
 {
   Assert(t.getKind() == kind::RFP_ADD);
-  uint32_t eb = t.getOperator().getConst<RfpRound>().d_eb;
-  uint32_t sb = t.getOperator().getConst<RfpRound>().d_sb;
+  FloatingPointSize sz = t.getOperator().getConst<RfpRound>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
   NodeManager* nm = NodeManager::currentNM();
   // if constant, can be eliminated
   if (t[0].isConst() && t[1].isConst() && t[2].isConst())
