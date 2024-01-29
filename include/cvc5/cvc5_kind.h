@@ -568,6 +568,22 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(RFP_ADD),
   /**
+   * Real version of fp.sub.
+   */
+  EVALUE(RFP_SUB),
+  /**
+   * Real version of fp.neg.
+   */
+  EVALUE(RFP_NEG),
+  /**
+   * Real version of fp.mul.
+   */
+  EVALUE(RFP_MUL),
+  /**
+   * Real version of fp.div.
+   */
+  EVALUE(RFP_DIV),
+  /**
    * Arithmetic subtraction, left associative.
    *
    * - Arity: ``n > 1``

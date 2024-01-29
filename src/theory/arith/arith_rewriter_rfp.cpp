@@ -94,7 +94,7 @@ RewriteResponse ArithRewriter::postRewriteRfpRound(TNode t)
     Assert(t[1].getType().isReal());
     Integer rm = t[0].getConst<Rational>().getNumerator();
     Rational v = t[1].getConst<Rational>();
-    Rational rounded = RealFloatingPoint::round(eb,sb, rm.getUnsignedInt(), v);
+    Rational rounded = RFP::round(eb,sb, rm.getUnsignedInt(), v);
     Node ret = nm->mkConstReal(rounded);
     return RewriteResponse(REWRITE_DONE, ret);
   }
@@ -102,17 +102,30 @@ RewriteResponse ArithRewriter::postRewriteRfpRound(TNode t)
   return RewriteResponse(REWRITE_DONE, t);
 }
 
+bool sameSign(const Rational& x, const Rational& y)
+{
+  return (x >= 0 && y >= 0) || (x < 0 && y < 0);
+}
+
+RewriteResponse signZeroResult(uint32_t eb, uint32_t sb, NodeManager* nm, uint8_t rm)
+{
+  if (rm == IntRoundingMode::TN)
+    return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusZero(eb,sb)));
+  else
+    return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusZero(eb,sb)));
+}
+
 RewriteResponse ArithRewriter::postRewriteRfpAdd(TNode t)
 {
   Assert(t.getKind() == kind::RFP_ADD);
-  FloatingPointSize sz = t.getOperator().getConst<RfpRound>().getSize();
+  FloatingPointSize sz = t.getOperator().getConst<RfpAdd>().getSize();
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
   NodeManager* nm = NodeManager::currentNM();
   // if constant, can be eliminated
   if (t[0].isConst() && t[1].isConst() && t[2].isConst())
   {
-    // rfp.round is only supported for integer rms and real values
+    // rfp.add is only supported for integer rms and real values
     Assert(t[0].getType().isInteger());
     Assert(t[1].getType().isReal());
     Assert(t[2].getType().isReal());
@@ -121,11 +134,9 @@ RewriteResponse ArithRewriter::postRewriteRfpAdd(TNode t)
     Rational y = t[2].getConst<Rational>();
 
     // finite case
-    if (RFP::isFinite(eb, sb, x) && !RFP::isZero(eb, sb, x) &&
-        RFP::isFinite(eb, sb, y) && !RFP::isZero(eb, sb, y) &&
-        // TODO RFP::noOverflow(eb, sb, rm, x + y)
-        RFP::isFinite(eb, sb, x + y)
-        )
+    if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) &&
+        RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y) &&
+        RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x + y)))
     {
       Node op = nm->mkConst(RfpRound(eb, sb));
       Node sum = nm->mkNode(kind::ADD, t[1], t[2]);
@@ -134,35 +145,39 @@ RewriteResponse ArithRewriter::postRewriteRfpAdd(TNode t)
     }
 
     // zero cases
-    if (RFP::isZero(eb, sb, x) && RFP::isFinite(eb, sb, y) && !RFP::isZero(eb, sb, y))
+    if (RFP::isZero(eb,sb, x) && RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y))
     {
       return RewriteResponse(REWRITE_DONE, t[2]);
     }
-    if (RFP::isFinite(eb, sb, x) && !RFP::isZero(eb, sb, x) && RFP::isZero(eb, sb, y))
+    if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
     {
       return RewriteResponse(REWRITE_DONE, t[1]);
     }
-    if (RFP::isZero(eb, sb, x) && RFP::isZero(eb, sb, y) && x == y)
+    if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y) && x == y)
     {
       return RewriteResponse(REWRITE_DONE, t[1]);
     }
-    if (x == RFP::plusZero(eb,sb) && y == RFP::minusZero(eb,sb))
+    //if (x == RFP::plusZero(eb,sb) && y == RFP::minusZero(eb,sb))
+    //{
+    //  if (rm == IntRoundingMode::TN)
+    //    return RewriteResponse(REWRITE_DONE, t[2]);
+    //  else
+    //    return RewriteResponse(REWRITE_DONE, t[1]);
+    //}
+    //if (x == RFP::minusZero(eb,sb) && y == RFP::plusZero(eb,sb))
+    //{
+    //  if (rm == IntRoundingMode::TN)
+    //    return RewriteResponse(REWRITE_DONE, t[1]);
+    //  else
+    //    return RewriteResponse(REWRITE_DONE, t[2]);
+    //}
+    if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
     {
-      if (rm == IntRoundingMode::TN)
-        return RewriteResponse(REWRITE_DONE, t[2]);
-      else
-        return RewriteResponse(REWRITE_DONE, t[1]);
-    }
-    if (x == RFP::minusZero(eb,sb) && y == RFP::plusZero(eb,sb))
-    {
-      if (rm == IntRoundingMode::TN)
-        return RewriteResponse(REWRITE_DONE, t[1]);
-      else
-        return RewriteResponse(REWRITE_DONE, t[2]);
+      return signZeroResult(eb,sb, nm, rm);
     }
 
     // special cases
-    if (x == RFP::notANumber(eb,sb) && y == RFP::notANumber(eb,sb))
+    if (x == RFP::notANumber(eb,sb) || y == RFP::notANumber(eb,sb))
     {
       return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
     }
@@ -189,12 +204,328 @@ RewriteResponse ArithRewriter::postRewriteRfpAdd(TNode t)
       else
         return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
     }
-    if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && !RFP::isFinite(eb,sb, x + y))
+    if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
+        !RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x + y)))
     {
       if (x + y < 0)
         return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
       else
         return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+    }
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpSub(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_SUB);
+  FloatingPointSize sz = t.getOperator().getConst<RfpSub>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst() && t[1].isConst() && t[2].isConst())
+  {
+    // rfp.sub is only supported for integer rms and real values
+    Assert(t[0].getType().isInteger());
+    Assert(t[1].getType().isReal());
+    Assert(t[2].getType().isReal());
+    uint8_t rm = t[0].getConst<Rational>().getNumerator().getUnsignedInt();
+    Rational x = t[1].getConst<Rational>();
+    Rational y = t[2].getConst<Rational>();
+
+    // finite case
+    if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) &&
+        RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y) &&
+        RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x - y)))
+    {
+      Node op = nm->mkConst(RfpRound(eb, sb));
+      Node sub = nm->mkNode(kind::SUB, t[1], t[2]);
+      Node ret = nm->mkNode(RFP_ROUND, op, t[0], sub);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+
+    // zero cases
+    if (RFP::isZero(eb,sb, x) && RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y))
+    {
+      Node neg = nm->mkNode(kind::NEG, t[2]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, neg);
+    }
+    if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
+    {
+      return RewriteResponse(REWRITE_DONE, t[1]);
+    }
+    if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y) && x != y)
+    {
+      return RewriteResponse(REWRITE_DONE, t[1]);
+    }
+    if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
+    {
+      return signZeroResult(eb,sb, nm, rm);
+    }
+
+    // special cases
+    if (x == RFP::notANumber(eb,sb) || y == RFP::notANumber(eb,sb))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
+    }
+    if (RFP::isFinite(eb,sb, x) && RFP::isInfinite(eb,sb, y))
+    {
+      if (y == RFP::minusInfinity(eb,sb))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+    }
+    if (RFP::isInfinite(eb,sb, x) && RFP::isFinite(eb,sb, y))
+    {
+      if (x == RFP::minusInfinity(eb,sb))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+    }
+    if (RFP::isInfinite(eb,sb, x) && RFP::isInfinite(eb,sb, y))
+    {
+      if (x == RFP::minusInfinity(eb,sb) && y == RFP::plusInfinity(eb,sb))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+      else if (x == RFP::plusInfinity(eb,sb) && y == RFP::minusInfinity(eb,sb))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
+    }
+    if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
+        !RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x - y)))
+    {
+      if (x - y < 0)
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+    }
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpNeg(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_NEG);
+  FloatingPointSize sz = t.getOperator().getConst<RfpRound>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst())
+  {
+    // rfp.neg is only supported real values
+    Assert(t[0].getType().isReal());
+    Rational x = t[0].getConst<Rational>();
+
+    // finite case
+    if (RFP::isFinite(eb, sb, x) && !RFP::isZero(eb, sb, x))
+    {
+      Node neg = nm->mkNode(kind::NEG, t[0]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, neg);
+    }
+
+    // zero cases
+    if (x == RFP::minusZero(eb,sb))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusZero(eb,sb)));
+    }
+    if (x == RFP::plusZero(eb,sb))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusZero(eb,sb)));
+    }
+
+    // special cases
+    if (x == RFP::notANumber(eb,sb))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
+    }
+    if (x == RFP::minusInfinity(eb,sb))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+    }
+    if (x == RFP::plusInfinity(eb,sb))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+    }
+
+    return RewriteResponse(REWRITE_DONE, t[0]);
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpMul(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_MUL);
+  FloatingPointSize sz = t.getOperator().getConst<RfpMul>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst() && t[1].isConst() && t[2].isConst())
+  {
+    // rfp.mul is only supported for integer rms and real values
+    Assert(t[0].getType().isInteger());
+    Assert(t[1].getType().isReal());
+    Assert(t[2].getType().isReal());
+    uint8_t rm = t[0].getConst<Rational>().getNumerator().getUnsignedInt();
+    Rational x = t[1].getConst<Rational>();
+    Rational y = t[2].getConst<Rational>();
+
+    // finite case
+    if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) &&
+        RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y) &&
+        RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x * y)))
+    {
+      Node op = nm->mkConst(RfpRound(eb, sb));
+      Node mult = nm->mkNode(kind::MULT, t[1], t[2]);
+      Node ret = nm->mkNode(RFP_ROUND, op, t[0], mult);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+
+    // zero cases
+    if (RFP::isZero(eb,sb, x) && RFP::isFinite(eb,sb, y))
+    {
+      if (sameSign(x, y))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusZero(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusZero(eb,sb)));
+    }
+    if (RFP::isFinite(eb,sb, x) && RFP::isZero(eb,sb, y))
+    {
+      if (sameSign(x, y))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusZero(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusZero(eb,sb)));
+    }
+
+    // special cases
+    if (x == RFP::notANumber(eb,sb) || y == RFP::notANumber(eb,sb))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
+    }
+    if (RFP::isFinite(eb,sb, x) && RFP::isInfinite(eb,sb, y))
+    {
+      if (RFP::isZero(eb,sb, x))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
+      else if (sameSign(x, y))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+    }
+    if (RFP::isInfinite(eb,sb, x) && RFP::isFinite(eb,sb, y))
+    {
+      if (RFP::isZero(eb,sb, y))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
+      else if (sameSign(x, y))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+    }
+    if (RFP::isInfinite(eb,sb, x) && RFP::isInfinite(eb,sb, y))
+    {
+      if (sameSign(x, y))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+    }
+    if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
+        !RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x * y)))
+    {
+      if (sameSign(x, y))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+    }
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpDiv(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_DIV);
+  FloatingPointSize sz = t.getOperator().getConst<RfpMul>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst() && t[1].isConst() && t[2].isConst())
+  {
+    // rfp.mul is only supported for integer rms and real values
+    Assert(t[0].getType().isInteger());
+    Assert(t[1].getType().isReal());
+    Assert(t[2].getType().isReal());
+    uint8_t rm = t[0].getConst<Rational>().getNumerator().getUnsignedInt();
+    Rational x = t[1].getConst<Rational>();
+    Rational y = t[2].getConst<Rational>();
+
+    // finite case
+    if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) &&
+        RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y) &&
+        RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x / y)))
+    {
+      Node op = nm->mkConst(RfpRound(eb, sb));
+      Node div = nm->mkNode(kind::DIVISION, t[1], t[2]);
+      Node ret = nm->mkNode(RFP_ROUND, op, t[0], div);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+
+    // zero cases
+    if (RFP::isZero(eb,sb, x) && RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y))
+    {
+      if (sameSign(x, y))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusZero(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusZero(eb,sb)));
+    }
+
+    //Trace("rfp-rewrite") << "div special case" << std::endl;
+
+    // special cases
+    if (x == RFP::notANumber(eb,sb) || y == RFP::notANumber(eb,sb))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
+    }
+    if (RFP::isFinite(eb,sb, x) && RFP::isInfinite(eb,sb, y))
+    {
+      if (sameSign(x, y))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusZero(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusZero(eb,sb)));
+    }
+    if (RFP::isInfinite(eb,sb, x) && RFP::isFinite(eb,sb, y))
+    {
+      if (sameSign(x, y))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+    }
+    if (RFP::isInfinite(eb,sb, x) && RFP::isInfinite(eb,sb, y))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
+    }
+    if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y) &&
+        !RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x / y)))
+    {
+      if (sameSign(x, y))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+    }
+    if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
+    {
+      if (sameSign(x, y))
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+      else
+        return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+    }
+    if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
     }
   }
 

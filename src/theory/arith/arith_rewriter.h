@@ -108,6 +108,14 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse postRewriteRfpRound(TNode t);
   /** postRewrite RFP_ADD */
   static RewriteResponse postRewriteRfpAdd(TNode t);
+  /** postRewrite RFP_SUB */
+  static RewriteResponse postRewriteRfpSub(TNode t);
+  /** postRewrite RFP_NEG */
+  static RewriteResponse postRewriteRfpNeg(TNode t);
+  /** postRewrite RFP_MUL */
+  static RewriteResponse postRewriteRfpMul(TNode t);
+  /** postRewrite RFP_DIV */
+  static RewriteResponse postRewriteRfpDiv(TNode t);
 
   /** preRewrite transcendental functions */
   static RewriteResponse preRewriteTranscendental(TNode t);

@@ -223,18 +223,27 @@ TypeNode RfpUnOpTypeRule::computeType(NodeManager* nodeManager,
                                       bool check,
                                       std::ostream* errOut)
 {
-  if (n.getKind() != kind::RFP_ROUND)
+  if (n.getKind() != kind::RFP_ROUND && n.getKind() != kind::RFP_NEG)
   {
     InternalError() << "RFP_UN_OP typerule invoked for " << n << " instead of RFP_UN_OP kind";
   }
   if (check)
   {
-    TypeNode rm = n[0].getType(check);
-    TypeNode arg1 = n[1].getType(check);
-    if (!rm.isInteger())
-      throw TypeCheckingExceptionPrivate(n, "expecting an integer (irm) term");
-    if (!arg1.isReal())
-      throw TypeCheckingExceptionPrivate(n, "expecting a real term");
+    if (n.getKind() == kind::RFP_ROUND)
+    {
+      TypeNode rm = n[0].getType(check);
+      if (!rm.isInteger())
+        throw TypeCheckingExceptionPrivate(n, "expecting an integer (irm) term");
+      TypeNode arg1 = n[1].getType(check);
+      if (!arg1.isReal())
+        throw TypeCheckingExceptionPrivate(n, "expecting a real term");
+    }
+    else
+    {
+      TypeNode arg1 = n[0].getType(check);
+      if (!arg1.isReal())
+        throw TypeCheckingExceptionPrivate(n, "expecting a real term");
+    }
   }
   return nodeManager->realType();
 }
@@ -248,7 +257,8 @@ TypeNode RfpBinOpTypeRule::computeType(NodeManager* nodeManager,
                                        bool check,
                                        std::ostream* errOut)
 {
-  if (n.getKind() != kind::RFP_ADD)
+  if (n.getKind() != kind::RFP_ADD && n.getKind() != kind::RFP_SUB && 
+      n.getKind() != kind::RFP_MUL && n.getKind() != kind::RFP_DIV)
   {
     InternalError() << "RFP_BIN_OP typerule invoked for " << n << " instead of RFP_BIN_OP kind";
   }

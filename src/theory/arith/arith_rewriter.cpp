@@ -238,6 +238,10 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::RFP_TO_REAL: return RewriteResponse(REWRITE_DONE, t);
       case kind::RFP_ROUND: return RewriteResponse(REWRITE_DONE, t);
       case kind::RFP_ADD: return RewriteResponse(REWRITE_DONE, t);
+      case kind::RFP_SUB: return RewriteResponse(REWRITE_DONE, t);
+      case kind::RFP_NEG: return RewriteResponse(REWRITE_DONE, t);
+      case kind::RFP_MUL: return RewriteResponse(REWRITE_DONE, t);
+      case kind::RFP_DIV: return RewriteResponse(REWRITE_DONE, t);
       case kind::EXPONENTIAL:
       case kind::SINE:
       case kind::COSINE:
@@ -295,6 +299,10 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::RFP_TO_REAL: return postRewriteRfpToReal(t);
       case kind::RFP_ROUND: return postRewriteRfpRound(t);
       case kind::RFP_ADD: return postRewriteRfpAdd(t);
+      case kind::RFP_SUB: return postRewriteRfpSub(t);
+      case kind::RFP_NEG: return postRewriteRfpNeg(t);
+      case kind::RFP_MUL: return postRewriteRfpMul(t);
+      case kind::RFP_DIV: return postRewriteRfpDiv(t);
       case kind::EXPONENTIAL:
       case kind::SINE:
       case kind::COSINE:

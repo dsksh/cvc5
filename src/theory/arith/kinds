@@ -216,4 +216,52 @@ parameterized RFP_ADD RFP_ADD_OP 3 "real version of fp.add; first parameter is a
 typerule RFP_ADD_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule RFP_ADD ::cvc5::internal::theory::arith::RfpBinOpTypeRule
 
+# Real version of fp.sub.
+constant RFP_SUB_OP \
+  class \
+  RfpSub \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpSub >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.sub"
+parameterized RFP_SUB RFP_SUB_OP 3 "real version of fp.sub; first parameter is an RFP_SUB_OP, second is a rounding mode, and third and fourth are real terms"
+
+typerule RFP_SUB_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_SUB ::cvc5::internal::theory::arith::RfpBinOpTypeRule
+
+# Real version of fp.neg.
+constant RFP_NEG_OP \
+  class \
+  RfpNeg \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpNeg >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.neg"
+parameterized RFP_NEG RFP_NEG_OP 1 "real version of fp.neg; first parameter is an RFP_NEG_OP, and second is a real term"
+
+typerule RFP_NEG_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_NEG ::cvc5::internal::theory::arith::RfpUnOpTypeRule
+
+# Real version of fp.mul.
+constant RFP_MUL_OP \
+  class \
+  RfpMul \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpMul >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.mul"
+parameterized RFP_MUL RFP_MUL_OP 3 "real version of fp.mul; first parameter is an RFP_MUL_OP, second is a rounding mode, and third and fourth are real terms"
+
+typerule RFP_MUL_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_MUL ::cvc5::internal::theory::arith::RfpBinOpTypeRule
+
+# Real version of fp.div.
+constant RFP_DIV_OP \
+  class \
+  RfpDiv \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpDiv >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.div"
+parameterized RFP_DIV RFP_DIV_OP 3 "real version of fp.div; first parameter is an RFP_DIV_OP, second is a rounding mode, and third and fourth are real terms"
+
+typerule RFP_DIV_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_DIV ::cvc5::internal::theory::arith::RfpBinOpTypeRule
+
 endtheory

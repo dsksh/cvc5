@@ -34,26 +34,31 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-RfpAddSolver::RfpAddSolver(Env& env,
-                           InferenceManager& im,
-                           NlModel& model)
-    : EnvObj(env),
-      d_im(im),
-      d_model(model),
-      d_initRefine(userContext())
+//RfpAddSolver::RfpAddSolver(Env& env,
+//                           InferenceManager& im,
+//                           NlModel& model)
+//    : EnvObj(env),
+//      d_im(im),
+//      d_model(model),
+//      d_initRefine(userContext())
+//{
+//  NodeManager* nm = NodeManager::currentNM();
+//  d_false = nm->mkConst(false);
+//  d_true = nm->mkConst(true);
+//  d_zero = nm->mkConstReal(Rational(0));
+//  d_one = nm->mkConstReal(Rational(1));
+//}
+
+//RfpAddSolver::~RfpAddSolver() {}
+
+FloatingPointSize RfpAddSolver::getSize(TNode n)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  d_false = nm->mkConst(false);
-  d_true = nm->mkConst(true);
-  d_zero = nm->mkConstReal(Rational(0));
-  d_one = nm->mkConstReal(Rational(1));
+    return n.getOperator().getConst<RfpAdd>().getSize();
 }
 
-RfpAddSolver::~RfpAddSolver() {}
-
 void RfpAddSolver::initLastCall(const std::vector<Node>& assertions,
-                                  const std::vector<Node>& false_asserts,
-                                  const std::vector<Node>& xts)
+                                const std::vector<Node>& false_asserts,
+                                const std::vector<Node>& xts)
 {
   d_terms.clear();
 
@@ -72,7 +77,7 @@ void RfpAddSolver::initLastCall(const std::vector<Node>& assertions,
   }
 }
 
-void RfpAddSolver::checkInitialRefine()
+/*void RfpAddSolver::checkInitialRefine()
 {
   Trace("rfp-add-check") << "RfpAddSolver::checkInitialRefine" << std::endl;
   //NodeManager* nm = NodeManager::currentNM();
@@ -99,7 +104,9 @@ void RfpAddSolver::checkInitialRefine()
     }
   }
 }
+*/
 
+/*
 Node mkIsFinite(uint32_t eb, uint32_t sb, Node x)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -151,6 +158,7 @@ Node mkDiffSign(uint32_t eb, uint32_t sb, Node x, Node y)
   Node neg_pos = nm->mkNode(AND, mkIsNegative(eb,sb, x), mkIsPositive(eb,sb, y));
   return nm->mkNode(OR, pos_neg, neg_pos);
 }
+*/
 
 void RfpAddSolver::checkFullRefine()
 {
@@ -201,7 +209,7 @@ void RfpAddSolver::checkFullRefine()
         Node lem = nm->mkNode(IMPLIES, assumption, conclution);
         Trace("rfp-add-lemma") << "RfpAddSolver::Lemma: " << lem << " ; AUX_REFINE"
                                << std::endl;
-        d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ADD_AUX_REFINE);
+        d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
       }
 
       if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
@@ -220,7 +228,7 @@ void RfpAddSolver::checkFullRefine()
         Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
         Trace("rfp-add-lemma") << "RfpAddSolver::Lemma: " << lem << " ; AUX_REFINE"
                                << std::endl;
-        d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ADD_AUX_REFINE);
+        d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
       }
 
       // this is the most naive model-based schema based on model values
@@ -229,14 +237,14 @@ void RfpAddSolver::checkFullRefine()
           << "RfpAddSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
       // send the value lemma
       d_im.addPendingLemma(lem,
-                           InferenceId::ARITH_NL_RFP_ADD_VALUE_REFINE,
+                           InferenceId::ARITH_NL_RFP_VALUE_REFINE,
                            nullptr,
                            true);
     }
   }
 }
 
-Node RfpAddSolver::valueBasedLemma(Node n)
+/*Node RfpAddSolver::valueBasedLemma(Node n)
 {
   Assert(n.getKind() == RFP_ADD);
   Node rm = n[0];
@@ -259,6 +267,7 @@ Node RfpAddSolver::valueBasedLemma(Node n)
   Node assumption = nm->mkNode(AND, rm.eqNode(valRm), x.eqNode(valX), y.eqNode(valY));
   return nm->mkNode(IMPLIES, assumption, n.eqNode(valC));
 }
+*/
 
 }  // namespace nl
 }  // namespace arith

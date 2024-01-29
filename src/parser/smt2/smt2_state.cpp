@@ -822,6 +822,18 @@ void Smt2State::setLogic(std::string name)
 
       // real version of fp.add
       addIndexedOperator(Kind::RFP_ADD, "rfp.add");
+
+      // real version of fp.sub
+      addIndexedOperator(Kind::RFP_SUB, "rfp.sub");
+
+      // real version of fp.neg
+      addIndexedOperator(Kind::RFP_NEG, "rfp.neg");
+
+      // real version of fp.mul
+      addIndexedOperator(Kind::RFP_MUL, "rfp.mul");
+
+      // real version of fp.div
+      addIndexedOperator(Kind::RFP_DIV, "rfp.div");
     }
   }
 

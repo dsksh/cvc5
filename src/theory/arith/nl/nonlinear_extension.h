@@ -267,7 +267,7 @@ class NonlinearExtension : EnvObj
 
   /** The rfp.add solver
    */
-  RfpAddSolver d_rfpAddSlv;
+  RfpAddSolver d_rfpSlv;
 
   /** The strategy for the nonlinear extension. */
   Strategy d_strategy;

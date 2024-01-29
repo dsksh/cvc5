@@ -105,11 +105,12 @@ FloatingPoint convertToFP(uint32_t eb, uint32_t sb, const Rational& arg);
 }  // namespace RealFloatingPoint
 
 /**
- * The parameter type for the operations on RFP values.
+ * The parameter type for the accurate operations on RFP values.
  */
 class RfpOperation
 {
  public:
+  /** Constructors. */
   /** Constructors. */
   RfpOperation(uint32_t _e, uint32_t _s) : d_fp_size(_e, _s) {}
   RfpOperation(const FloatingPointSize& fps) : d_fp_size(fps) {}
@@ -118,10 +119,10 @@ class RfpOperation
   /** Operator overload for comparison of conversion sorts. */
   bool operator==(const RfpOperation& t) const
   {
-    return d_fp_size == t.d_fp_size;
+    return getSize() == t.getSize();
   }
 
-  operator size_t() const 
+  operator size_t() const
   { 
     FloatingPointSizeHashFunction f;
     //return f(d_fp_size) ^ (0x00005300 | (key << 24));
@@ -172,6 +173,38 @@ class RfpAdd : public RfpOperation
 
   /** Return the name. */
   std::string getName() const override { return "add"; }
+};
+
+class RfpSub : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "sub"; }
+};
+
+class RfpNeg : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "neg"; }
+};
+
+class RfpMul : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "mul"; }
+};
+
+class RfpDiv : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "div"; }
 };
 
 /** Output stream operator overloading for RFP operation sorts. */

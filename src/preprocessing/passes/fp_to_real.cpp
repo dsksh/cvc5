@@ -210,7 +210,31 @@ Node FPToReal::translateWithChildren(
 
   // The translation of the original node is determined by the kind of
   // the node.
-  kind::Kind_t oldKind = original.getKind();
+  kind::Kind_t newKind = original.getKind();
+
+  switch (newKind)
+  {
+    case kind::FLOATINGPOINT_ADD:
+    {
+      newKind = kind::RFP_ADD; break;
+    }
+    case kind::FLOATINGPOINT_SUB:
+    {
+      newKind = kind::RFP_SUB; break;
+    }
+    case kind::FLOATINGPOINT_NEG:
+    {
+      newKind = kind::RFP_NEG; break;
+    }
+    case kind::FLOATINGPOINT_MULT:
+    {
+      newKind = kind::RFP_MUL; break;
+    }
+    case kind::FLOATINGPOINT_DIV:
+    {
+      newKind = kind::RFP_DIV; break;
+    }
+  }
 
   // Store the translated node
   Node returnNode;
@@ -228,18 +252,28 @@ Node FPToReal::translateWithChildren(
   //}
 
   // Translate according to the kind of the original node.
-  switch (oldKind)
+  switch (newKind)
   {
-    case kind::FLOATINGPOINT_ADD:
+    case kind::RFP_NEG:
     {
-      Trace("fp-to-real") << original.getNumChildren() << endl;
-      Assert(original.getNumChildren() == 3);
-
+      Assert(original.getNumChildren() == 1);
       uint32_t eb = original.getType().getFloatingPointExponentSize();
       uint32_t sb = original.getType().getFloatingPointSignificandSize();
-      returnNode = createFPAddNode(
-          translated_children[0], translated_children[1], translated_children[2], eb, sb);
-
+      Node op = createFPOperator(newKind, eb, sb);
+      returnNode = d_nm->mkNode(newKind, op, translated_children[0]);
+      break;
+    }
+    case kind::RFP_ADD:
+    case kind::RFP_SUB:
+    case kind::RFP_MUL:
+    case kind::RFP_DIV:
+    {
+      Assert(original.getNumChildren() == 3);
+      uint32_t eb = original.getType().getFloatingPointExponentSize();
+      uint32_t sb = original.getType().getFloatingPointSignificandSize();
+      Node op = createFPOperator(newKind, eb, sb);
+      returnNode = d_nm->mkNode(newKind, op, translated_children[0], 
+        translated_children[1], translated_children[2]);
       break;
     }
     //case kind::BITVECTOR_MULT:
@@ -274,7 +308,7 @@ Node FPToReal::translateWithChildren(
     {
       // first, verify that we haven't missed
       // any bv operator
-      Assert(theory::kindToTheoryId(oldKind) != THEORY_FP);
+      Assert(theory::kindToTheoryId(newKind) != THEORY_FP);
 
       // In the default case, we have reached an operator that we do not
       // translate directly to reals. The children whose types have
@@ -492,10 +526,29 @@ Node FPToReal::reconstructNode(Node originalNode,
   return reconstruction;
 }
 
-Node FPToReal::createFPAddNode(Node rm, Node x, Node y, uint32_t eb, uint32_t sb)
+//Node FPToReal::createFPNode(kind::Kind_t rfpKind, Node op, Node rm, Node x, Node y)
+//{
+//  Node op = d_nm->mkConst(RfpAdd(eb, sb));
+//  return d_nm->mkNode(rfpKind, op, rm, x, y);
+//}
+
+Node FPToReal::createFPOperator(kind::Kind_t rfpKind, uint32_t eb, uint32_t sb)
 {
-  Node op = d_nm->mkConst(RfpAdd(eb, sb));
-  return d_nm->mkNode(kind::RFP_ADD, op, rm, x, y);
+  switch (rfpKind)
+  {
+    case kind::RFP_ADD:
+      return d_nm->mkConst(RfpAdd(eb, sb));
+    case kind::RFP_SUB:
+      return d_nm->mkConst(RfpSub(eb, sb));
+    case kind::RFP_NEG:
+      return d_nm->mkConst(RfpNeg(eb, sb));
+    case kind::RFP_MUL:
+      return d_nm->mkConst(RfpMul(eb, sb));
+    case kind::RFP_DIV:
+      return d_nm->mkConst(RfpDiv(eb, sb));
+    default:
+      Assert(false);
+  }
 }
 
 }  // namespace passes

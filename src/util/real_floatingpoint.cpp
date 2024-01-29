@@ -163,11 +163,10 @@ Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const R
 
   Rational normalMax = (Rational(2)-Rational(1)/mMax)*eeMax;
   Rational snMin = Rational(1, Integer::pow2(eMax-2+sb));
-  Rational minusZero = -snMin / 4;
 
   if (value.isZero())
     return Rational(0);
-  else if (toInt && value == minusZero) // -0
+  else if (toInt && value == minusZero(eb,sb)) // -0
     return value;
   else if (value.abs() == normalMax)
     return value;
@@ -196,7 +195,7 @@ Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const R
           || (rm == IntRoundingMode::NA && value > -snMin/2)
           || (rm == IntRoundingMode::TP && value > -snMin)
           || (rm == IntRoundingMode::TZ && value > -snMin) )){
-    return minusZero;
+    return minusZero(eb,sb);
   }else if ( (rm == IntRoundingMode::TP && value.sgn() > 0 && value <= snMin)
           || value == snMin ){
     return snMin;
@@ -240,15 +239,12 @@ Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const R
       r = -((-r).floor());
   }
 
-  Trace("rfp-round-eval") << "r_: " << r << std::endl;
-
   if (!toInt){
     r /= mMax;
     r *= ee;
   }else if (toInt && r.isZero() && value.sgn() < 0){
-    r = minusZero;
+    r = minusZero(eb,sb);
   }
-  Trace("rfp-round-eval") << "rv: " << r << std::endl;
   return r;
 }
 
@@ -256,7 +252,9 @@ Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const R
  */
 Rational round(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& value)
 {
-  return roundInternal(false, eb, sb, rm, value);
+  Rational r = roundInternal(false, eb, sb, rm, value);
+  Trace("rfp-round-eval") << "rv: " << r << std::endl;
+  return r;
 }
 /** Round to integer.
  */
@@ -288,7 +286,7 @@ Rational convertFPToReal(const FloatingPoint& arg)
   }
   else if (arg.isNaN())
   {
-      return notANumber(eb,sb);
+    return notANumber(eb,sb);
   }
 
   // delegate to the standard implementation

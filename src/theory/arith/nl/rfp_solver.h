@@ -10,42 +10,39 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Solver for rfp.add operators.
+ * Basic solver class for rfp operators.
  */
 
-#ifndef CVC5__THEORY__ARITH__NL__RFP_ADD_SOLVER_H
-#define CVC5__THEORY__ARITH__NL__RFP_ADD_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__NL__RFP_SOLVER_H
+#define CVC5__THEORY__ARITH__NL__RFP_SOLVER_H
 
-//#include <map>
-//#include <vector>
+#include <map>
+#include <vector>
 
-//#include "context/cdhashset.h"
-//#include "expr/node.h"
-//#include "smt/env_obj.h"
-//#include "theory/theory_state.h"
-#include "theory/arith/nl/rfp_solver.h"
+#include "context/cdhashset.h"
+#include "expr/node.h"
+#include "smt/env_obj.h"
+#include "theory/theory_state.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-//class InferenceManager;
+class InferenceManager;
 
 namespace nl {
 
-//class NlModel;
+class NlModel;
 
-/** Real-valued fp.add solver class
+/** Basic RFP solver class
  */
-//class RfpAddSolver : protected EnvObj
-class RfpAddSolver : public RfpSolver
+class RfpSolver : protected EnvObj
 {
-  //typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  //RfpAddSolver(Env& env, InferenceManager& im, NlModel& model);
-  using RfpSolver::RfpSolver;
-  //~RfpAddSolver();
+  RfpSolver(Env& env, InferenceManager& im, NlModel& model);
+  virtual ~RfpSolver();
 
   /** init last call
    *
@@ -64,7 +61,7 @@ class RfpAddSolver : public RfpSolver
    * This should be a heuristic incomplete check that only introduces a
    * small number of new terms in the lemmas it returns.
    */
-  //void checkInitialRefine();
+  void checkInitialRefine();
   /** check full refine
    *
    * This should be a complete check that returns at least one lemma to
@@ -73,35 +70,46 @@ class RfpAddSolver : public RfpSolver
   void checkFullRefine();
 
   //-------------------------------------------- end lemma schemas
- private:
-  //// The inference manager that we push conflicts and lemmas to.
-  //InferenceManager& d_im;
-  ///** Reference to the non-linear model object */
-  //NlModel& d_model;
-  ///** commonly used terms */
-  //Node d_false;
-  //Node d_true;
-  //Node d_zero;
-  //Node d_one;
+ protected:
+  Node mkIsFinite(uint32_t eb, uint32_t sb, Node x);
+  Node mkIsInfinite(uint32_t eb, uint32_t sb, Node x);
+  Node mkIsPositive(uint32_t eb, uint32_t sb, Node x);
+  Node mkIsNegative(uint32_t eb, uint32_t sb, Node x);
+  Node mkSameSign(uint32_t eb, uint32_t sb, Node x, Node y);
+  Node mkDiffSign(uint32_t eb, uint32_t sb, Node x, Node y);
 
-  ///** Terms that have been given initial refinement lemmas */
-  //NodeSet d_initRefine;
-  ///** all terms */
-  //std::map<unsigned, std::vector<Node> > d_terms;
+ //private:
+ protected:
+  // The inference manager that we push conflicts and lemmas to.
+  InferenceManager& d_im;
+  /** Reference to the non-linear model object */
+  NlModel& d_model;
+  /** commonly used terms */
+  Node d_false;
+  Node d_true;
+  Node d_zero;
+  Node d_one;
 
-  kind::Kind_t kind() override { return kind::RFP_ADD; }
-  FloatingPointSize getSize(TNode n) override;
+  /** Terms that have been given initial refinement lemmas */
+  NodeSet d_initRefine;
+  /** all terms */
+  std::map<unsigned, std::vector<Node> > d_terms;
+
+  /** RFP kind */
+  virtual kind::Kind_t kind() = 0;
+  /** Size of the FP data. */
+  virtual FloatingPointSize getSize(TNode n) = 0;
 
   /** Value-based refinement lemma for t.
    * 
    */
-  //Node valueBasedLemma(Node i);
+  Node valueBasedLemma(Node i);
 
-}; /* class RfpAddSolver */
+}; /* class RfpSolver */
 
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__ARITH__RFP_ADD_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__RFP_SOLVER_H */

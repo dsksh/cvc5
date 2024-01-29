@@ -753,6 +753,26 @@ void Smt2Printer::toStream(std::ostream& out,
       stillNeedToPrintParams = false;
       break;
 
+    case kind::RFP_SUB:
+      n.getOperator().getConst<RfpSub>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_NEG:
+      n.getOperator().getConst<RfpNeg>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_MUL:
+      n.getOperator().getConst<RfpMul>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_DIV:
+      n.getOperator().getConst<RfpDiv>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
     case kind::DIVISIBLE:
       toStream(out, n.getOperator(), toDepth, nullptr);
       out << ' ';
@@ -1105,6 +1125,10 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::IRM_TO_RM: return "irm.to_rm";
     case kind::RFP_ROUND: return "rfp.round";
     case kind::RFP_ADD: return "rfp.add";
+    case kind::RFP_SUB: return "rfp.sub";
+    case kind::RFP_NEG: return "rfp.neg";
+    case kind::RFP_MUL: return "rfp.mul";
+    case kind::RFP_DIV: return "rfp.div";
     case kind::EXPONENTIAL: return "exp";
     case kind::SINE: return "sin";
     case kind::COSINE: return "cos";

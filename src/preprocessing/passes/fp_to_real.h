@@ -44,7 +44,8 @@ class FPToReal : public PreprocessingPass
       AssertionPipeline* assertionsToPreprocess) override;
 
   /** Returns a node that represents the addition of x and y. */
-  Node createFPAddNode(Node rm, Node x, Node y, uint32_t esz, uint32_t ssz);
+  //Node createFPNode(kind::Kind_t kind, Node rm, Node x, Node y, uint32_t esz, uint32_t ssz);
+  Node createFPOperator(kind::Kind_t rfpKind, uint32_t eb = 0, uint32_t sb = 0);
 
   /**
    * A useful utility function.
