@@ -277,6 +277,58 @@ TypeNode RfpBinOpTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->realType();
 }
 
+TypeNode RfpPropTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
+TypeNode RfpPropTypeRule::computeType(NodeManager* nodeManager,
+                                      TNode n,
+                                      bool check,
+                                      std::ostream* errOut)
+{
+  if (n.getKind() != kind::RFP_IS_NORMAL && n.getKind() != kind::RFP_IS_SUBNORMAL && 
+      n.getKind() != kind::RFP_IS_ZERO && n.getKind() != kind::RFP_IS_INFINITE && 
+      n.getKind() != kind::RFP_IS_NAN &&
+      n.getKind() != kind::RFP_IS_NEGATIVE && n.getKind() != kind::RFP_IS_POSITIVE)
+  {
+    InternalError() << "RFP_PROP typerule invoked for " << n << " instead of RFP_PROP kind";
+  }
+  if (check)
+  {
+    TypeNode arg1 = n[0].getType(check);
+    if (!arg1.isReal())
+      throw TypeCheckingExceptionPrivate(n, "expecting a real term");
+  }
+  return nodeManager->booleanType();
+}
+
+TypeNode RfpRelOpTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
+TypeNode RfpRelOpTypeRule::computeType(NodeManager* nodeManager,
+                                       TNode n,
+                                       bool check,
+                                       std::ostream* errOut)
+{
+  if (n.getKind() != kind::RFP_EQ && 
+      n.getKind() != kind::RFP_LT && n.getKind() != kind::RFP_LE &&
+      n.getKind() != kind::RFP_GT && n.getKind() != kind::RFP_GE)
+  {
+    InternalError() << "RFP_REL_OP typerule invoked for " << n << " instead of RFP_REL_OP kind";
+  }
+  if (check)
+  {
+    TypeNode arg1 = n[0].getType(check);
+    TypeNode arg2 = n[1].getType(check);
+    if (!arg1.isReal())
+      throw TypeCheckingExceptionPrivate(n, "expecting a real term");
+    if (!arg2.isReal())
+      throw TypeCheckingExceptionPrivate(n, "expecting a real term");
+  }
+  return nodeManager->booleanType();
+}
+
 TypeNode IndexedRootPredicateTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return nm->booleanType();

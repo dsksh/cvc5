@@ -188,6 +188,90 @@ parameterized IAND IAND_OP 2 "integer version of AND operator; first parameter i
 typerule IAND_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule IAND ::cvc5::internal::theory::arith::IAndTypeRule
 
+# Real version of fp.isNormal.
+constant RFP_IS_NORMAL_OP \
+  class \
+  RfpIsNormal \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpIsNormal >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.isNormal"
+parameterized RFP_IS_NORMAL RFP_IS_NORMAL_OP 1 "real version of fp.isNormal; first parameter is an RFP_IS_NORMAL_OP, and second is a real term"
+
+typerule RFP_IS_NORMAL_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_IS_NORMAL ::cvc5::internal::theory::arith::RfpPropTypeRule
+
+# Real version of fp.isSubnormal.
+constant RFP_IS_SUBNORMAL_OP \
+  class \
+  RfpIsSubnormal \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpIsSubnormal >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.isSubnormal"
+parameterized RFP_IS_SUBNORMAL RFP_IS_SUBNORMAL_OP 1 "real version of fp.isSubnormal; first parameter is an RFP_IS_SUBNORMAL_OP, and second is a real term"
+
+typerule RFP_IS_SUBNORMAL_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_IS_SUBNORMAL ::cvc5::internal::theory::arith::RfpPropTypeRule
+
+# Real version of fp.isZero.
+constant RFP_IS_ZERO_OP \
+  class \
+  RfpIsZero \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpIsZero >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.isZero"
+parameterized RFP_IS_ZERO RFP_IS_ZERO_OP 1 "real version of fp.isZero; first parameter is an RFP_IS_ZERO_OP, and second is a real term"
+
+typerule RFP_IS_ZERO_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_IS_ZERO ::cvc5::internal::theory::arith::RfpPropTypeRule
+
+# Real version of fp.isInfinite.
+constant RFP_IS_INFINITE_OP \
+  class \
+  RfpIsInfinite \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpIsInfinite >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.isInfinite"
+parameterized RFP_IS_INFINITE RFP_IS_INFINITE_OP 1 "real version of fp.isInfinite; first parameter is an RFP_IS_INFINITE_OP, and second is a real term"
+
+typerule RFP_IS_INFINITE_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_IS_INFINITE ::cvc5::internal::theory::arith::RfpPropTypeRule
+
+# Real version of fp.isNaN.
+constant RFP_IS_NAN_OP \
+  class \
+  RfpIsNan \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpIsNan >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.isNaN"
+parameterized RFP_IS_NAN RFP_IS_NAN_OP 1 "real version of fp.isNaN; first parameter is an RFP_IS_NAN_OP, and second is a real term"
+
+typerule RFP_IS_NAN_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_IS_NAN ::cvc5::internal::theory::arith::RfpPropTypeRule
+
+# Real version of fp.isNegative.
+constant RFP_IS_NEGATIVE_OP \
+  class \
+  RfpIsNegative \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpIsNegative >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.isNegative"
+parameterized RFP_IS_NEGATIVE RFP_IS_NEGATIVE_OP 1 "real version of fp.isNegative; first parameter is an RFP_IS_NEGATIVE_OP, and second is a real term"
+
+typerule RFP_IS_NEGATIVE_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_IS_NEGATIVE ::cvc5::internal::theory::arith::RfpPropTypeRule
+
+# Real version of fp.isPositive.
+constant RFP_IS_POSITIVE_OP \
+  class \
+  RfpIsPositive \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpIsPositive >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.isPositive"
+parameterized RFP_IS_POSITIVE RFP_IS_POSITIVE_OP 1 "real version of fp.isPositive; first parameter is an RFP_IS_POSITIVE_OP, and second is a real term"
+
+typerule RFP_IS_POSITIVE_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_IS_POSITIVE ::cvc5::internal::theory::arith::RfpPropTypeRule
+
 # Real version of the FP rounding operator, which is parameterized by 
 # the precision.
 # ((_ rfp.round eb sb) irm v) is equivalent to:
@@ -263,5 +347,65 @@ parameterized RFP_DIV RFP_DIV_OP 3 "real version of fp.div; first parameter is a
 
 typerule RFP_DIV_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule RFP_DIV ::cvc5::internal::theory::arith::RfpBinOpTypeRule
+
+# Real version of fp.eq.
+constant RFP_EQ_OP \
+  class \
+  RfpEq \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpEq >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.eq"
+parameterized RFP_EQ RFP_EQ_OP 2 "real version of fp.eq; first parameter is an RFP_EQ_OP, and second and third are real terms"
+
+typerule RFP_EQ_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_EQ ::cvc5::internal::theory::arith::RfpRelOpTypeRule
+
+# Real version of fp.lt.
+constant RFP_LT_OP \
+  class \
+  RfpLt \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpLt >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.lt"
+parameterized RFP_LT RFP_LT_OP 2 "real version of fp.lt; first parameter is an RFP_LT_OP, and second and third are real terms"
+
+typerule RFP_LT_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_LT ::cvc5::internal::theory::arith::RfpRelOpTypeRule
+
+# Real version of fp.le.
+constant RFP_LE_OP \
+  class \
+  RfpLe \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpLe >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.le"
+parameterized RFP_LE RFP_LE_OP 2 "real version of fp.le; first parameter is an RFP_Le_OP, and second and third are real terms"
+
+typerule RFP_LE_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_LE ::cvc5::internal::theory::arith::RfpRelOpTypeRule
+
+# Real version of fp.gt.
+constant RFP_GT_OP \
+  class \
+  RfpGt \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpGt >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.gt"
+parameterized RFP_GT RFP_GT_OP 2 "real version of fp.gt; first parameter is an RFP_GT_OP, and second and third are real terms"
+
+typerule RFP_GT_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_GT ::cvc5::internal::theory::arith::RfpRelOpTypeRule
+
+# Real version of fp.ge.
+constant RFP_GE_OP \
+  class \
+  RfpGe \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpGe >" \
+  "util/real_floatingpoint.h" \
+  "real version of fp.ge"
+parameterized RFP_GE RFP_GE_OP 2 "real version of fp.ge; first parameter is an RFP_GE_OP, and second and third are real terms"
+
+typerule RFP_GE_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_GE ::cvc5::internal::theory::arith::RfpRelOpTypeRule
 
 endtheory

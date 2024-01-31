@@ -191,6 +191,34 @@ class RfpBinOpTypeRule
 };
 
 /**
+ * Type rule for the RFP properties.
+ * Always returns booleanType.
+ */
+class RfpPropTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
+/**
+ * Type rule for the RFP relational operators.
+ * Always returns booleanType.
+ */
+class RfpRelOpTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
+/**
  * Type rule for the IndexedRootPredicate operator.
  * Checks that the two arguments are booleanType and realType, always returns
  * booleanType.

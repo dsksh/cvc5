@@ -79,6 +79,146 @@ RewriteResponse ArithRewriter::postRewriteRfpToReal(TNode t)
   return RewriteResponse(REWRITE_DONE, t);
 }
 
+RewriteResponse ArithRewriter::postRewriteRfpIsNormal(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_IS_NORMAL);
+  FloatingPointSize sz = t.getOperator().getConst<RfpIsNormal>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst())
+  {
+    // rfp.isNormal is only supported for real values
+    Assert(t[0].getType().isReal());
+    Rational x = t[0].getConst<Rational>();
+    Node ret = nm->mkConst(RFP::isNormal(eb,sb, x));
+    return RewriteResponse(REWRITE_DONE, ret);
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpIsSubnormal(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_IS_SUBNORMAL);
+  FloatingPointSize sz = t.getOperator().getConst<RfpIsSubnormal>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst())
+  {
+    // rfp.isSubnormal is only supported for real values
+    Assert(t[0].getType().isReal());
+    Rational x = t[0].getConst<Rational>();
+    Node ret = nm->mkConst(RFP::isSubnormal(eb,sb, x));
+    return RewriteResponse(REWRITE_DONE, ret);
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpIsZero(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_IS_ZERO);
+  FloatingPointSize sz = t.getOperator().getConst<RfpIsZero>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst())
+  {
+    // rfp.isZero is only supported for real values
+    Assert(t[0].getType().isReal());
+    Rational x = t[0].getConst<Rational>();
+    Node ret = nm->mkConst(RFP::isZero(eb,sb, x));
+    return RewriteResponse(REWRITE_DONE, ret);
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpIsInfinite(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_IS_INFINITE);
+  FloatingPointSize sz = t.getOperator().getConst<RfpIsInfinite>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst())
+  {
+    // rfp.isInfiniteis only supported for real values
+    Assert(t[0].getType().isReal());
+    Rational x = t[0].getConst<Rational>();
+    Node ret = nm->mkConst(RFP::isInfinite(eb,sb, x));
+    return RewriteResponse(REWRITE_DONE, ret);
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpIsNan(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_IS_NAN);
+  FloatingPointSize sz = t.getOperator().getConst<RfpIsNan>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst())
+  {
+    // rfp.isNaN is only supported for real values
+    Assert(t[0].getType().isReal());
+    Rational x = t[0].getConst<Rational>();
+    Node ret = nm->mkConst(x == RFP::notANumber(eb,sb));
+    return RewriteResponse(REWRITE_DONE, ret);
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpIsNegative(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_IS_NEGATIVE);
+  FloatingPointSize sz = t.getOperator().getConst<RfpIsNegative>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst())
+  {
+    // rfp.isNegative is only supported for real values
+    Assert(t[0].getType().isReal());
+    Rational x = t[0].getConst<Rational>();
+    Node ret = nm->mkConst(x < 0);
+    return RewriteResponse(REWRITE_DONE, ret);
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpIsPositive(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_IS_POSITIVE);
+  FloatingPointSize sz = t.getOperator().getConst<RfpIsPositive>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst())
+  {
+    // rfp.isPositive is only supported for real values
+    Assert(t[0].getType().isReal());
+    Rational x = t[0].getConst<Rational>();
+    Node ret = nm->mkConst(x >= 0);
+    return RewriteResponse(REWRITE_DONE, ret);
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
 RewriteResponse ArithRewriter::postRewriteRfpRound(TNode t)
 {
   Assert(t.getKind() == kind::RFP_ROUND);
@@ -448,14 +588,14 @@ RewriteResponse ArithRewriter::postRewriteRfpMul(TNode t)
 RewriteResponse ArithRewriter::postRewriteRfpDiv(TNode t)
 {
   Assert(t.getKind() == kind::RFP_DIV);
-  FloatingPointSize sz = t.getOperator().getConst<RfpMul>().getSize();
+  FloatingPointSize sz = t.getOperator().getConst<RfpDiv>().getSize();
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
   NodeManager* nm = NodeManager::currentNM();
   // if constant, can be eliminated
   if (t[0].isConst() && t[1].isConst() && t[2].isConst())
   {
-    // rfp.mul is only supported for integer rms and real values
+    // rfp.div is only supported for integer rms and real values
     Assert(t[0].getType().isInteger());
     Assert(t[1].getType().isReal());
     Assert(t[2].getType().isReal());
@@ -530,6 +670,142 @@ RewriteResponse ArithRewriter::postRewriteRfpDiv(TNode t)
   }
 
   return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpEq(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_EQ);
+  FloatingPointSize sz = t.getOperator().getConst<RfpEq>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst() && t[1].isConst())
+  {
+    // rfp.lt is only supported for real values
+    Assert(t[0].getType().isReal());
+    Assert(t[1].getType().isReal());
+    Rational x = t[0].getConst<Rational>();
+    Rational y = t[1].getConst<Rational>();
+
+    // finite case
+    if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) &&
+        x == y) 
+    {
+      Node ret = nm->mkConst(true);
+      return RewriteResponse(REWRITE_DONE, ret);
+    }
+
+    if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) &&
+        RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y))
+    {
+      Node ret = nm->mkConst(x == y);
+      return RewriteResponse(REWRITE_DONE, ret);
+    }
+
+    // zero cases
+    if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
+    {
+      Node ret = nm->mkConst(true);
+      return RewriteResponse(REWRITE_DONE, ret);
+    }
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpLt(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_LT);
+  FloatingPointSize sz = t.getOperator().getConst<RfpLt>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst() && t[1].isConst())
+  {
+    // rfp.lt is only supported for real values
+    Assert(t[0].getType().isReal());
+    Assert(t[1].getType().isReal());
+    Rational x = t[0].getConst<Rational>();
+    Rational y = t[1].getConst<Rational>();
+
+    // finite case
+    if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
+        (!RFP::isZero(eb,sb, x) || !RFP::isZero(eb,sb, y)))
+    {
+      Node ret = nm->mkConst(x < y);
+      return RewriteResponse(REWRITE_DONE, ret);
+    }
+
+    // zero cases
+    if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
+    {
+      Node ret = nm->mkConst(false);
+      return RewriteResponse(REWRITE_DONE, ret);
+    }
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpLe(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_LE);
+  FloatingPointSize sz = t.getOperator().getConst<RfpLe>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst() && t[1].isConst())
+  {
+    // rfp.le is only supported for real values
+    Assert(t[0].getType().isReal());
+    Assert(t[1].getType().isReal());
+    Rational x = t[0].getConst<Rational>();
+    Rational y = t[1].getConst<Rational>();
+
+    // finite case
+    if (RFP::isFinite(eb,sb, y) && RFP::isFinite(eb,sb, x) && 
+        (!RFP::isZero(eb,sb, y) || !RFP::isZero(eb,sb, y))) 
+    {
+      Node ret = nm->mkConst(x <= y);
+      return RewriteResponse(REWRITE_DONE, ret);
+    }
+
+    // zero cases
+    if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
+    {
+      Node ret = nm->mkConst(true);
+      return RewriteResponse(REWRITE_DONE, ret);
+    }
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpGt(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_GT);
+  FloatingPointSize sz = t.getOperator().getConst<RfpGt>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  Node op = nm->mkConst(RfpLe(eb, sb));
+  Node ret = nm->mkNode(kind::RFP_LE, op, t[1], t[0]);
+  return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpGe(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_GE);
+  FloatingPointSize sz = t.getOperator().getConst<RfpGe>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  Node op = nm->mkConst(RfpLt(eb, sb));
+  Node ret = nm->mkNode(kind::RFP_LT, op, t[1], t[0]);
+  return RewriteResponse(REWRITE_AGAIN_FULL, ret);
 }
 
 }  // namespace arith

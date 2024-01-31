@@ -159,6 +159,62 @@ class RfpToFP : public RfpOperation
   std::string getName() const override { return "to_fp"; }
 };
 
+class RfpIsNormal : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "isNormal"; }
+};
+
+class RfpIsSubnormal : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "isSubnormal"; }
+};
+
+class RfpIsZero : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "isZero"; }
+};
+
+class RfpIsInfinite : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "isInfinite"; }
+};
+
+class RfpIsNan : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "isNaN"; }
+};
+
+class RfpIsNegative : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "isNegative"; }
+};
+
+class RfpIsPositive : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "isPositive"; }
+};
+
 class RfpRound : public RfpOperation
 {
   using RfpOperation::RfpOperation;
@@ -205,6 +261,46 @@ class RfpDiv : public RfpOperation
 
   /** Return the name. */
   std::string getName() const override { return "div"; }
+};
+
+class RfpEq : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "eq"; }
+};
+
+class RfpLt : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "lt"; }
+};
+
+class RfpLe : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "le"; }
+};
+
+class RfpGt : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "gt"; }
+};
+
+class RfpGe : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "ge"; }
 };
 
 /** Output stream operator overloading for RFP operation sorts. */

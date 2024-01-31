@@ -560,6 +560,34 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(RFP_TO_REAL),
   /**
+   * Real version of fp.isNormal.
+   */
+  EVALUE(RFP_IS_NORMAL),
+  /**
+   * Real version of fp.isSubnormal.
+   */
+  EVALUE(RFP_IS_SUBNORMAL),
+  /**
+   * Real version of fp.isZero.
+   */
+  EVALUE(RFP_IS_ZERO),
+  /**
+   * Real version of fp.isInfinite.
+   */
+  EVALUE(RFP_IS_INFINITE),
+  /**
+   * Real version of fp.isNaN.
+   */
+  EVALUE(RFP_IS_NAN),
+  /**
+   * Real version of fp.isNegative.
+   */
+  EVALUE(RFP_IS_NEGATIVE),
+  /**
+   * Real version of fp.isPositive.
+   */
+  EVALUE(RFP_IS_POSITIVE),
+  /**
    * Real version of FP rounding operator.
    */
   EVALUE(RFP_ROUND),
@@ -583,6 +611,26 @@ enum ENUM(Kind) : int32_t
    * Real version of fp.div.
    */
   EVALUE(RFP_DIV),
+  /**
+   * Real version of fp.eq.
+   */
+  EVALUE(RFP_EQ),
+  /**
+   * Real version of fp.lt.
+   */
+  EVALUE(RFP_LT),
+  /**
+   * Real version of fp.le.
+   */
+  EVALUE(RFP_LE),
+  /**
+   * Real version of fp.gt.
+   */
+  EVALUE(RFP_GT),
+  /**
+   * Real version of fp.ge.
+   */
+  EVALUE(RFP_GE),
   /**
    * Arithmetic subtraction, left associative.
    *

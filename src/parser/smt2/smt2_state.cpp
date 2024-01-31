@@ -817,6 +817,27 @@ void Smt2State::setLogic(std::string name)
       addOperator(Kind::RFP_TO_FP, "rfp.to_fp");
       addOperator(Kind::RFP_TO_REAL, "rfp.to_real");
 
+      // real version of fp.isNormal
+      addIndexedOperator(Kind::RFP_IS_NORMAL, "rfp.isNormal");
+
+      // real version of fp.isSubnormal
+      addIndexedOperator(Kind::RFP_IS_SUBNORMAL, "rfp.isSubnormal");
+
+      // real version of fp.isZero
+      addIndexedOperator(Kind::RFP_IS_ZERO, "rfp.isZero");
+
+      // real version of fp.isInfinite
+      addIndexedOperator(Kind::RFP_IS_INFINITE, "rfp.isInfinite");
+
+      // real version of fp.isNaN
+      addIndexedOperator(Kind::RFP_IS_NAN, "rfp.isNaN");
+
+      // real version of fp.isNegative
+      addIndexedOperator(Kind::RFP_IS_NEGATIVE, "rfp.isNegative");
+
+      // real version of fp.isPositive
+      addIndexedOperator(Kind::RFP_IS_POSITIVE, "rfp.isPositive");
+
       // real version of FP round 
       addIndexedOperator(Kind::RFP_ROUND, "rfp.round");
 
@@ -834,6 +855,21 @@ void Smt2State::setLogic(std::string name)
 
       // real version of fp.div
       addIndexedOperator(Kind::RFP_DIV, "rfp.div");
+
+      // real version of fp.eq
+      addIndexedOperator(Kind::RFP_EQ, "rfp.eq");
+
+      // real version of fp.lt
+      addIndexedOperator(Kind::RFP_LT, "rfp.lt");
+
+      // real version of fp.le
+      addIndexedOperator(Kind::RFP_LE, "rfp.le");
+
+      // real version of fp.gt
+      addIndexedOperator(Kind::RFP_GT, "rfp.gt");
+
+      // real version of fp.ge
+      addIndexedOperator(Kind::RFP_GE, "rfp.ge");
     }
   }
 

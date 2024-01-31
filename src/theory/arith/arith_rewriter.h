@@ -104,6 +104,20 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse postRewriteRfpToFP(TNode t);
   /** postRewrite RFP_TO_REAL */
   static RewriteResponse postRewriteRfpToReal(TNode t);
+  /** postRewrite RFP_IS_NORMAL */
+  static RewriteResponse postRewriteRfpIsNormal(TNode t);
+  /** postRewrite RFP_IS_SUBNORMAL */
+  static RewriteResponse postRewriteRfpIsSubnormal(TNode t);
+  /** postRewrite RFP_IS_ZERO */
+  static RewriteResponse postRewriteRfpIsZero(TNode t);
+  /** postRewrite RFP_IS_INFINITE */
+  static RewriteResponse postRewriteRfpIsInfinite(TNode t);
+  /** postRewrite RFP_IS_NAN */
+  static RewriteResponse postRewriteRfpIsNan(TNode t);
+  /** postRewrite RFP_IS_NEGATIVE */
+  static RewriteResponse postRewriteRfpIsNegative(TNode t);
+  /** postRewrite RFP_IS_POSITIVE */
+  static RewriteResponse postRewriteRfpIsPositive(TNode t);
   /** postRewrite RFP_ROUND */
   static RewriteResponse postRewriteRfpRound(TNode t);
   /** postRewrite RFP_ADD */
@@ -116,6 +130,16 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse postRewriteRfpMul(TNode t);
   /** postRewrite RFP_DIV */
   static RewriteResponse postRewriteRfpDiv(TNode t);
+  /** postRewrite RFP_EQ */
+  static RewriteResponse postRewriteRfpEq(TNode t);
+  /** postRewrite RFP_LT */
+  static RewriteResponse postRewriteRfpLt(TNode t);
+  /** postRewrite RFP_LE */
+  static RewriteResponse postRewriteRfpLe(TNode t);
+  /** postRewrite RFP_GT */
+  static RewriteResponse postRewriteRfpGt(TNode t);
+  /** postRewrite RFP_GE */
+  static RewriteResponse postRewriteRfpGe(TNode t);
 
   /** preRewrite transcendental functions */
   static RewriteResponse preRewriteTranscendental(TNode t);

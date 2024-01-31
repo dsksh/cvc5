@@ -743,6 +743,41 @@ void Smt2Printer::toStream(std::ostream& out,
       stillNeedToPrintParams = false;
       break;
 
+    case kind::RFP_IS_NORMAL:
+      n.getOperator().getConst<RfpIsNormal>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_IS_SUBNORMAL:
+      n.getOperator().getConst<RfpIsSubnormal>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_IS_ZERO:
+      n.getOperator().getConst<RfpIsZero>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_IS_INFINITE:
+      n.getOperator().getConst<RfpIsInfinite>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_IS_NAN:
+      n.getOperator().getConst<RfpIsNan>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_IS_NEGATIVE:
+      n.getOperator().getConst<RfpIsNegative>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_IS_POSITIVE:
+      n.getOperator().getConst<RfpIsPositive>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
     case kind::RFP_ROUND:
       n.getOperator().getConst<RfpRound>().print(out);
       stillNeedToPrintParams = false;
@@ -770,6 +805,31 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::RFP_DIV:
       n.getOperator().getConst<RfpDiv>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_EQ:
+      n.getOperator().getConst<RfpEq>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_LT:
+      n.getOperator().getConst<RfpLt>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_LE:
+      n.getOperator().getConst<RfpLe>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_GT:
+      n.getOperator().getConst<RfpGt>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_GE:
+      n.getOperator().getConst<RfpGe>().print(out);
       stillNeedToPrintParams = false;
       break;
 
@@ -1123,12 +1183,24 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::RFP_TO_REAL: return "rfp.to_real";
     case kind::IRM_TO_INT: return "irm.to_int";
     case kind::IRM_TO_RM: return "irm.to_rm";
+    case kind::RFP_IS_NORMAL: return "rfp.isNormal";
+    case kind::RFP_IS_SUBNORMAL: return "rfp.isSubnormal";
+    case kind::RFP_IS_ZERO: return "rfp.isZero";
+    case kind::RFP_IS_INFINITE: return "rfp.isInfinite";
+    case kind::RFP_IS_NAN: return "rfp.isNaN";
+    case kind::RFP_IS_NEGATIVE: return "rfp.isNegative";
+    case kind::RFP_IS_POSITIVE: return "rfp.isPositive";
     case kind::RFP_ROUND: return "rfp.round";
     case kind::RFP_ADD: return "rfp.add";
     case kind::RFP_SUB: return "rfp.sub";
     case kind::RFP_NEG: return "rfp.neg";
     case kind::RFP_MUL: return "rfp.mul";
     case kind::RFP_DIV: return "rfp.div";
+    case kind::RFP_EQ: return "rfp.eq";
+    case kind::RFP_LT: return "rfp.lt";
+    case kind::RFP_LE: return "rfp.le";
+    case kind::RFP_GT: return "rfp.gt";
+    case kind::RFP_GE: return "rfp.ge";
     case kind::EXPONENTIAL: return "exp";
     case kind::SINE: return "sin";
     case kind::COSINE: return "cos";

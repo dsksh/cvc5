@@ -214,6 +214,34 @@ Node FPToReal::translateWithChildren(
 
   switch (newKind)
   {
+    case kind::FLOATINGPOINT_IS_NORMAL:
+    {
+      newKind = kind::RFP_IS_NORMAL; break;
+    }
+    case kind::FLOATINGPOINT_IS_SUBNORMAL:
+    {
+      newKind = kind::RFP_IS_SUBNORMAL; break;
+    }
+    case kind::FLOATINGPOINT_IS_ZERO:
+    {
+      newKind = kind::RFP_IS_ZERO; break;
+    }
+    case kind::FLOATINGPOINT_IS_INF:
+    {
+      newKind = kind::RFP_IS_INFINITE; break;
+    }
+    case kind::FLOATINGPOINT_IS_NAN:
+    {
+      newKind = kind::RFP_IS_NAN; break;
+    }
+    case kind::FLOATINGPOINT_IS_NEG:
+    {
+      newKind = kind::RFP_IS_NEGATIVE; break;
+    }
+    case kind::FLOATINGPOINT_IS_POS:
+    {
+      newKind = kind::RFP_IS_POSITIVE; break;
+    }
     case kind::FLOATINGPOINT_ADD:
     {
       newKind = kind::RFP_ADD; break;
@@ -233,6 +261,26 @@ Node FPToReal::translateWithChildren(
     case kind::FLOATINGPOINT_DIV:
     {
       newKind = kind::RFP_DIV; break;
+    }
+    case kind::FLOATINGPOINT_EQ:
+    {
+      newKind = kind::RFP_EQ; break;
+    }
+    case kind::FLOATINGPOINT_LT:
+    {
+      newKind = kind::RFP_LT; break;
+    }
+    case kind::FLOATINGPOINT_LEQ:
+    {
+      newKind = kind::RFP_LE; break;
+    }
+    case kind::FLOATINGPOINT_GT:
+    {
+      newKind = kind::RFP_GT; break;
+    }
+    case kind::FLOATINGPOINT_GEQ:
+    {
+      newKind = kind::RFP_GE; break;
     }
   }
 
@@ -274,6 +322,35 @@ Node FPToReal::translateWithChildren(
       Node op = createFPOperator(newKind, eb, sb);
       returnNode = d_nm->mkNode(newKind, op, translated_children[0], 
         translated_children[1], translated_children[2]);
+      break;
+    }
+    case kind::RFP_IS_NORMAL:
+    case kind::RFP_IS_SUBNORMAL:
+    case kind::RFP_IS_ZERO:
+    case kind::RFP_IS_INFINITE:
+    case kind::RFP_IS_NAN:
+    case kind::RFP_IS_NEGATIVE:
+    case kind::RFP_IS_POSITIVE:
+    {
+      Assert(original.getNumChildren() == 1);
+      uint32_t eb = original[0].getType().getFloatingPointExponentSize();
+      uint32_t sb = original[0].getType().getFloatingPointSignificandSize();
+      Node op = createFPOperator(newKind, eb, sb);
+      returnNode = d_nm->mkNode(newKind, op, translated_children[0]);
+      break;
+    }
+    case kind::RFP_EQ:
+    case kind::RFP_LT:
+    case kind::RFP_LE:
+    case kind::RFP_GT:
+    case kind::RFP_GE:
+    {
+      Assert(original.getNumChildren() == 2);
+      uint32_t eb = original[0].getType().getFloatingPointExponentSize();
+      uint32_t sb = original[0].getType().getFloatingPointSignificandSize();
+      Node op = createFPOperator(newKind, eb, sb);
+      returnNode = d_nm->mkNode(newKind, op, 
+        translated_children[0], translated_children[1]);
       break;
     }
     //case kind::BITVECTOR_MULT:
@@ -536,6 +613,20 @@ Node FPToReal::createFPOperator(kind::Kind_t rfpKind, uint32_t eb, uint32_t sb)
 {
   switch (rfpKind)
   {
+    case kind::RFP_IS_NORMAL:
+      return d_nm->mkConst(RfpIsNormal(eb, sb));
+    case kind::RFP_IS_SUBNORMAL:
+      return d_nm->mkConst(RfpIsSubnormal(eb, sb));
+    case kind::RFP_IS_ZERO:
+      return d_nm->mkConst(RfpIsZero(eb, sb));
+    case kind::RFP_IS_INFINITE:
+      return d_nm->mkConst(RfpIsInfinite(eb, sb));
+    case kind::RFP_IS_NAN:
+      return d_nm->mkConst(RfpIsNan(eb, sb));
+    case kind::RFP_IS_NEGATIVE:
+      return d_nm->mkConst(RfpIsNegative(eb, sb));
+    case kind::RFP_IS_POSITIVE:
+      return d_nm->mkConst(RfpIsPositive(eb, sb));
     case kind::RFP_ADD:
       return d_nm->mkConst(RfpAdd(eb, sb));
     case kind::RFP_SUB:
@@ -546,6 +637,16 @@ Node FPToReal::createFPOperator(kind::Kind_t rfpKind, uint32_t eb, uint32_t sb)
       return d_nm->mkConst(RfpMul(eb, sb));
     case kind::RFP_DIV:
       return d_nm->mkConst(RfpDiv(eb, sb));
+    case kind::RFP_EQ:
+      return d_nm->mkConst(RfpEq(eb, sb));
+    case kind::RFP_LT:
+      return d_nm->mkConst(RfpLt(eb, sb));
+    case kind::RFP_LE:
+      return d_nm->mkConst(RfpLe(eb, sb));
+    case kind::RFP_GT:
+      return d_nm->mkConst(RfpGt(eb, sb));
+    case kind::RFP_GE:
+      return d_nm->mkConst(RfpGe(eb, sb));
     default:
       Assert(false);
   }
