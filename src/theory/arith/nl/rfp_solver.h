@@ -52,9 +52,9 @@ class RfpSolver : protected EnvObj
    * model, and xts is the set of extended function terms that are active in
    * the current context.
    */
-  void initLastCall(const std::vector<Node>& assertions,
-                    const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+  virtual void initLastCall(const std::vector<Node>& assertions,
+                            const std::vector<Node>& false_asserts,
+                            const std::vector<Node>& xts);
   //-------------------------------------------- lemma schemas
   /** check initial refine
    *
@@ -71,15 +71,6 @@ class RfpSolver : protected EnvObj
 
   //-------------------------------------------- end lemma schemas
  protected:
-  Node mkIsFinite(uint32_t eb, uint32_t sb, Node x);
-  Node mkIsInfinite(uint32_t eb, uint32_t sb, Node x);
-  Node mkIsPositive(uint32_t eb, uint32_t sb, Node x);
-  Node mkIsNegative(uint32_t eb, uint32_t sb, Node x);
-  Node mkSameSign(uint32_t eb, uint32_t sb, Node x, Node y);
-  Node mkDiffSign(uint32_t eb, uint32_t sb, Node x, Node y);
-
- //private:
- protected:
   // The inference manager that we push conflicts and lemmas to.
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
@@ -92,18 +83,43 @@ class RfpSolver : protected EnvObj
 
   /** Terms that have been given initial refinement lemmas */
   NodeSet d_initRefine;
-  /** all terms */
-  std::map<unsigned, std::vector<Node> > d_terms;
+  /** Term data */
+  std::map<Kind, std::map<unsigned, std::vector<Node> > > d_terms;
 
-  /** RFP kind */
-  virtual kind::Kind_t kind() = 0;
-  /** Size of the FP data. */
-  virtual FloatingPointSize getSize(TNode n) = 0;
+  //template<Kind K>
+  //void checkFullRefineBody(Node n);
 
-  /** Value-based refinement lemma for t.
-   * 
+  ///** RFP kind */
+  //virtual kind::Kind_t kind() = 0;
+  ///** Size of the FP data. */
+  //virtual FloatingPointSize getSize(TNode n) = 0;
+
+  /** Value-based refinement lemma for the arithmetic operators.
    */
-  Node valueBasedLemma(Node i);
+  Node opValueBasedLemma(Node i);
+  /** Value-based refinement lemma for the relational operators.
+   */
+  Node relValueBasedLemma(Node i);
+
+ //private:
+  //Node mkFalse(Node i);
+  //Node mkTrue(Node i);
+  //Node mkIsFinite(uint32_t eb, uint32_t sb, Node x);
+  //Node mkIsInfinite(uint32_t eb, uint32_t sb, Node x);
+  //Node mkIsPositive(uint32_t eb, uint32_t sb, Node x);
+  //Node mkIsNegative(uint32_t eb, uint32_t sb, Node x);
+  //Node mkSameSign(uint32_t eb, uint32_t sb, Node x, Node y);
+  //Node mkDiffSign(uint32_t eb, uint32_t sb, Node x, Node y);
+  //Node mkIsMinusInf(uint32_t eb, uint32_t sb, Node x);
+  //Node mkIsPlusInf(uint32_t eb, uint32_t sb, Node x);
+  //Node mkIsNan(uint32_t eb, uint32_t sb, Node x);
+
+  void checkFullRefineValue(TNode n);
+
+  void checkInitialRefineAdd(TNode n);
+  void checkFullRefineAdd(TNode n);
+  void checkInitialRefineLt(TNode n);
+  void checkFullRefineLt(TNode n);
 
 }; /* class RfpSolver */
 

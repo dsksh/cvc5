@@ -692,21 +692,24 @@ RewriteResponse ArithRewriter::postRewriteRfpEq(TNode t)
     if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) &&
         x == y) 
     {
-      Node ret = nm->mkConst(true);
+      //Node ret = nm->mkConst(true);
+      Node ret = nm->mkConstInt(1);
       return RewriteResponse(REWRITE_DONE, ret);
     }
 
     if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) &&
         RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y))
     {
-      Node ret = nm->mkConst(x == y);
+      //Node ret = nm->mkConst(x == y);
+      Node ret = x == y ? nm->mkConstInt(1) : nm->mkConstInt(0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
 
     // zero cases
     if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
     {
-      Node ret = nm->mkConst(true);
+      //Node ret = nm->mkConst(true);
+      Node ret = nm->mkConstInt(1);
       return RewriteResponse(REWRITE_DONE, ret);
     }
   }
@@ -734,14 +737,16 @@ RewriteResponse ArithRewriter::postRewriteRfpLt(TNode t)
     if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
         (!RFP::isZero(eb,sb, x) || !RFP::isZero(eb,sb, y)))
     {
-      Node ret = nm->mkConst(x < y);
+      //Node ret = nm->mkConst(x < y);
+      Node ret = x < y ? nm->mkConstInt(1): nm->mkConstInt(0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
 
     // zero cases
     if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
     {
-      Node ret = nm->mkConst(false);
+      //Node ret = nm->mkConst(false);
+      Node ret = nm->mkConstInt(0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
   }
@@ -769,14 +774,14 @@ RewriteResponse ArithRewriter::postRewriteRfpLe(TNode t)
     if (RFP::isFinite(eb,sb, y) && RFP::isFinite(eb,sb, x) && 
         (!RFP::isZero(eb,sb, y) || !RFP::isZero(eb,sb, y))) 
     {
-      Node ret = nm->mkConst(x <= y);
+      Node ret = x <= y ? nm->mkConstInt(1) : nm->mkConstInt(0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
 
     // zero cases
     if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
     {
-      Node ret = nm->mkConst(true);
+      Node ret = nm->mkConstInt(1);
       return RewriteResponse(REWRITE_DONE, ret);
     }
   }

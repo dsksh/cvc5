@@ -337,6 +337,7 @@ Node FPToReal::translateWithChildren(
       uint32_t sb = original[0].getType().getFloatingPointSignificandSize();
       Node op = createFPOperator(newKind, eb, sb);
       returnNode = d_nm->mkNode(newKind, op, translated_children[0]);
+      returnNode = d_nm->mkNode(newKind, op, translated_children[0]);
       break;
     }
     case kind::RFP_EQ:
@@ -349,8 +350,11 @@ Node FPToReal::translateWithChildren(
       uint32_t eb = original[0].getType().getFloatingPointExponentSize();
       uint32_t sb = original[0].getType().getFloatingPointSignificandSize();
       Node op = createFPOperator(newKind, eb, sb);
-      returnNode = d_nm->mkNode(newKind, op, 
+      //returnNode = d_nm->mkNode(newKind, op, 
+      //  translated_children[0], translated_children[1]);
+      Node rel = d_nm->mkNode(newKind, op, 
         translated_children[0], translated_children[1]);
+      returnNode = d_nm->mkNode(kind::GT, rel, d_zero);
       break;
     }
     //case kind::BITVECTOR_MULT:

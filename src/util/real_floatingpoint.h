@@ -139,8 +139,8 @@ class RfpOperation
   std::ostream& print(std::ostream& os) const
   {
     return os << "(_ rfp." << getName() << " " 
-              << d_fp_size.exponentWidth() 
-              << d_fp_size.significandWidth() << ")";
+              << d_fp_size.exponentWidth() << " "
+              << d_fp_size.significandWidth() << ") ";
   }
 
  private:

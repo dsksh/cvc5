@@ -304,7 +304,8 @@ TypeNode RfpPropTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode RfpRelOpTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return nm->booleanType();
+  //return nm->booleanType();
+  return nm->integerType();
 }
 TypeNode RfpRelOpTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
@@ -326,7 +327,8 @@ TypeNode RfpRelOpTypeRule::computeType(NodeManager* nodeManager,
     if (!arg2.isReal())
       throw TypeCheckingExceptionPrivate(n, "expecting a real term");
   }
-  return nodeManager->booleanType();
+  //return nodeManager->booleanType();
+  return nodeManager->integerType();
 }
 
 TypeNode IndexedRootPredicateTypeRule::preComputeType(NodeManager* nm, TNode n)

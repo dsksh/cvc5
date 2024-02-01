@@ -241,6 +241,16 @@ public:
      case kind::DIVISION_TOTAL: return isDivMember(n);
      case kind::IAND:
      case kind::POW2:
+     case kind::RFP_ADD:
+     case kind::RFP_SUB:
+     case kind::RFP_NEG:
+     case kind::RFP_MUL:
+     case kind::RFP_DIV:
+     case kind::RFP_EQ:
+     case kind::RFP_LT:
+     case kind::RFP_LE:
+     case kind::RFP_GT:
+     case kind::RFP_GE:
      case kind::EXPONENTIAL:
      case kind::SINE:
      case kind::COSINE:

@@ -35,7 +35,7 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/pow2_solver.h"
 #include "theory/arith/nl/rfp_round_solver.h"
-#include "theory/arith/nl/rfp_add_solver.h"
+#include "theory/arith/nl/rfp_solver.h"
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/strategy.h"
 #include "theory/arith/nl/transcendental/transcendental_solver.h"
@@ -267,7 +267,7 @@ class NonlinearExtension : EnvObj
 
   /** The rfp.add solver
    */
-  RfpAddSolver d_rfpSlv;
+  RfpSolver d_rfpSlv;
 
   /** The strategy for the nonlinear extension. */
   Strategy d_strategy;
