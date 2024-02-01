@@ -287,9 +287,9 @@ TypeNode RfpPropTypeRule::computeType(NodeManager* nodeManager,
                                       std::ostream* errOut)
 {
   if (n.getKind() != kind::RFP_IS_NORMAL && n.getKind() != kind::RFP_IS_SUBNORMAL && 
-      n.getKind() != kind::RFP_IS_ZERO && n.getKind() != kind::RFP_IS_INFINITE && 
+      n.getKind() != kind::RFP_IS_ZERO && n.getKind() != kind::RFP_IS_INF&& 
       n.getKind() != kind::RFP_IS_NAN &&
-      n.getKind() != kind::RFP_IS_NEGATIVE && n.getKind() != kind::RFP_IS_POSITIVE)
+      n.getKind() != kind::RFP_IS_NEG && n.getKind() != kind::RFP_IS_POS)
   {
     InternalError() << "RFP_PROP typerule invoked for " << n << " instead of RFP_PROP kind";
   }
@@ -313,8 +313,8 @@ TypeNode RfpRelOpTypeRule::computeType(NodeManager* nodeManager,
                                        std::ostream* errOut)
 {
   if (n.getKind() != kind::RFP_EQ && 
-      n.getKind() != kind::RFP_LT && n.getKind() != kind::RFP_LE &&
-      n.getKind() != kind::RFP_GT && n.getKind() != kind::RFP_GE)
+      n.getKind() != kind::RFP_LT && n.getKind() != kind::RFP_LEQ &&
+      n.getKind() != kind::RFP_GT && n.getKind() != kind::RFP_GEQ)
   {
     InternalError() << "RFP_REL_OP typerule invoked for " << n << " instead of RFP_REL_OP kind";
   }

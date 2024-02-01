@@ -97,11 +97,6 @@ Rational convertFPToReal(const FloatingPoint& arg);
  */
 FloatingPoint convertToFP(uint32_t eb, uint32_t sb, const Rational& arg);
 
-///**
-// * Addition.
-// */
-//Rational add(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg1, const Rational& arg2);
-
 }  // namespace RealFloatingPoint
 
 /**
@@ -183,7 +178,7 @@ class RfpIsZero : public RfpOperation
   std::string getName() const override { return "isZero"; }
 };
 
-class RfpIsInfinite : public RfpOperation
+class RfpIsInf : public RfpOperation
 {
   using RfpOperation::RfpOperation;
 
@@ -199,7 +194,7 @@ class RfpIsNan : public RfpOperation
   std::string getName() const override { return "isNaN"; }
 };
 
-class RfpIsNegative : public RfpOperation
+class RfpIsNeg : public RfpOperation
 {
   using RfpOperation::RfpOperation;
 
@@ -207,7 +202,7 @@ class RfpIsNegative : public RfpOperation
   std::string getName() const override { return "isNegative"; }
 };
 
-class RfpIsPositive : public RfpOperation
+class RfpIsPos : public RfpOperation
 {
   using RfpOperation::RfpOperation;
 
@@ -279,12 +274,12 @@ class RfpLt : public RfpOperation
   std::string getName() const override { return "lt"; }
 };
 
-class RfpLe : public RfpOperation
+class RfpLeq : public RfpOperation
 {
   using RfpOperation::RfpOperation;
 
   /** Return the name. */
-  std::string getName() const override { return "le"; }
+  std::string getName() const override { return "leq"; }
 };
 
 class RfpGt : public RfpOperation
@@ -295,12 +290,12 @@ class RfpGt : public RfpOperation
   std::string getName() const override { return "gt"; }
 };
 
-class RfpGe : public RfpOperation
+class RfpGeq : public RfpOperation
 {
   using RfpOperation::RfpOperation;
 
   /** Return the name. */
-  std::string getName() const override { return "ge"; }
+  std::string getName() const override { return "geq"; }
 };
 
 /** Output stream operator overloading for RFP operation sorts. */

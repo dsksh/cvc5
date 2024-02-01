@@ -248,9 +248,9 @@ public:
      case kind::RFP_DIV:
      case kind::RFP_EQ:
      case kind::RFP_LT:
-     case kind::RFP_LE:
+     case kind::RFP_LEQ:
      case kind::RFP_GT:
-     case kind::RFP_GE:
+     case kind::RFP_GEQ:
      case kind::EXPONENTIAL:
      case kind::SINE:
      case kind::COSINE:

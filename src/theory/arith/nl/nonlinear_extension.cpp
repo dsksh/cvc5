@@ -76,7 +76,7 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
   d_extTheory.addFunctionKind(kind::RFP_DIV);
   d_extTheory.addFunctionKind(kind::RFP_EQ);
   d_extTheory.addFunctionKind(kind::RFP_LT);
-  d_extTheory.addFunctionKind(kind::RFP_LE);
+  d_extTheory.addFunctionKind(kind::RFP_LEQ);
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 

@@ -242,7 +242,7 @@ Node mkIsFinite(uint32_t eb, uint32_t sb, Node x)
   return nm->mkNode(AND, lb, ub);
 }
 
-Node mkIsInfinite(uint32_t eb, uint32_t sb, Node x)
+Node mkIsInf(uint32_t eb, uint32_t sb, Node x)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node is_ninf = nm->mkNode(EQUAL, x, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
@@ -250,22 +250,22 @@ Node mkIsInfinite(uint32_t eb, uint32_t sb, Node x)
   return nm->mkNode(OR, is_ninf, is_pinf);
 }
 
-Node mkIsPositive(uint32_t eb, uint32_t sb, Node x)
+Node mkIsPos(uint32_t eb, uint32_t sb, Node x)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node is_finite = mkIsFinite(eb,sb, x);
-  Node is_infinite = mkIsInfinite(eb,sb, x);
-  Node fin_or_inf = nm->mkNode(OR, is_finite, is_infinite);
+  Node is_inf = mkIsInf(eb,sb, x);
+  Node fin_or_inf = nm->mkNode(OR, is_finite, is_inf);
   Node positive = nm->mkNode(GT, x, nm->mkConstReal(Rational(0)));
   return nm->mkNode(AND, fin_or_inf, positive);
 }
 
-Node mkIsNegative(uint32_t eb, uint32_t sb, Node x)
+Node mkIsNeg(uint32_t eb, uint32_t sb, Node x)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node is_finite = mkIsFinite(eb,sb, x);
-  Node is_infinite = mkIsInfinite(eb,sb, x);
-  Node fin_or_inf = nm->mkNode(OR, is_finite, is_infinite);
+  Node is_inf = mkIsInf(eb,sb, x);
+  Node fin_or_inf = nm->mkNode(OR, is_finite, is_inf);
   Node negative = nm->mkNode(LT, x, nm->mkConstReal(Rational(0)));
   return nm->mkNode(AND, fin_or_inf, negative);
 }
@@ -273,16 +273,16 @@ Node mkIsNegative(uint32_t eb, uint32_t sb, Node x)
 Node mkSameSign(uint32_t eb, uint32_t sb, Node x, Node y)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node positive = nm->mkNode(AND, mkIsPositive(eb,sb, x), mkIsPositive(eb,sb, y));
-  Node negative = nm->mkNode(AND, mkIsNegative(eb,sb, x), mkIsNegative(eb,sb, y));
+  Node positive = nm->mkNode(AND, mkIsPos(eb,sb, x), mkIsPos(eb,sb, y));
+  Node negative = nm->mkNode(AND, mkIsNeg(eb,sb, x), mkIsNeg(eb,sb, y));
   return nm->mkNode(OR, positive, negative);
 }
 
 Node mkDiffSign(uint32_t eb, uint32_t sb, Node x, Node y)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node pos_neg = nm->mkNode(AND, mkIsPositive(eb,sb, x), mkIsNegative(eb,sb, y));
-  Node neg_pos = nm->mkNode(AND, mkIsNegative(eb,sb, x), mkIsPositive(eb,sb, y));
+  Node pos_neg = nm->mkNode(AND, mkIsPos(eb,sb, x), mkIsNeg(eb,sb, y));
+  Node neg_pos = nm->mkNode(AND, mkIsNeg(eb,sb, x), mkIsPos(eb,sb, y));
   return nm->mkNode(OR, pos_neg, neg_pos);
 }
 
@@ -381,8 +381,8 @@ void RfpSolver::checkFullRefineAdd(TNode node)
     Node assumption = nm->mkAnd(conj);
     Node rtn = node[0].eqNode(nm->mkConstInt(IntRoundingMode::TN));
     Node conclusion = nm->mkNode(ITE, rtn, 
-                                 mkIsNegative(eb,sb, node), 
-                                 mkIsPositive(eb,sb, node));
+                                 mkIsNeg(eb,sb, node), 
+                                 mkIsPos(eb,sb, node));
     Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
     Trace("rfp-add-lemma") << "RfpAddSolver::Lemma: " << lem << " ; AUX_REFINE"
                            << std::endl;

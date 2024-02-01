@@ -105,13 +105,13 @@ class RfpSolver : protected EnvObj
   //Node mkFalse(Node i);
   //Node mkTrue(Node i);
   //Node mkIsFinite(uint32_t eb, uint32_t sb, Node x);
-  //Node mkIsInfinite(uint32_t eb, uint32_t sb, Node x);
-  //Node mkIsPositive(uint32_t eb, uint32_t sb, Node x);
-  //Node mkIsNegative(uint32_t eb, uint32_t sb, Node x);
+  //Node mkIsInf(uint32_t eb, uint32_t sb, Node x);
+  //Node mkIsPos(uint32_t eb, uint32_t sb, Node x);
+  //Node mkIsNeg(uint32_t eb, uint32_t sb, Node x);
   //Node mkSameSign(uint32_t eb, uint32_t sb, Node x, Node y);
   //Node mkDiffSign(uint32_t eb, uint32_t sb, Node x, Node y);
-  //Node mkIsMinusInf(uint32_t eb, uint32_t sb, Node x);
-  //Node mkIsPlusInf(uint32_t eb, uint32_t sb, Node x);
+  //Node mkIsNegInf(uint32_t eb, uint32_t sb, Node x);
+  //Node mkIsPosInf(uint32_t eb, uint32_t sb, Node x);
   //Node mkIsNan(uint32_t eb, uint32_t sb, Node x);
 
   void checkFullRefineValue(TNode n);

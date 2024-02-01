@@ -228,7 +228,7 @@ Node FPToReal::translateWithChildren(
     }
     case kind::FLOATINGPOINT_IS_INF:
     {
-      newKind = kind::RFP_IS_INFINITE; break;
+      newKind = kind::RFP_IS_INF; break;
     }
     case kind::FLOATINGPOINT_IS_NAN:
     {
@@ -236,11 +236,11 @@ Node FPToReal::translateWithChildren(
     }
     case kind::FLOATINGPOINT_IS_NEG:
     {
-      newKind = kind::RFP_IS_NEGATIVE; break;
+      newKind = kind::RFP_IS_NEG; break;
     }
     case kind::FLOATINGPOINT_IS_POS:
     {
-      newKind = kind::RFP_IS_POSITIVE; break;
+      newKind = kind::RFP_IS_POS; break;
     }
     case kind::FLOATINGPOINT_ADD:
     {
@@ -272,7 +272,7 @@ Node FPToReal::translateWithChildren(
     }
     case kind::FLOATINGPOINT_LEQ:
     {
-      newKind = kind::RFP_LE; break;
+      newKind = kind::RFP_LEQ; break;
     }
     case kind::FLOATINGPOINT_GT:
     {
@@ -280,7 +280,7 @@ Node FPToReal::translateWithChildren(
     }
     case kind::FLOATINGPOINT_GEQ:
     {
-      newKind = kind::RFP_GE; break;
+      newKind = kind::RFP_GEQ; break;
     }
   }
 
@@ -327,10 +327,10 @@ Node FPToReal::translateWithChildren(
     case kind::RFP_IS_NORMAL:
     case kind::RFP_IS_SUBNORMAL:
     case kind::RFP_IS_ZERO:
-    case kind::RFP_IS_INFINITE:
+    case kind::RFP_IS_INF:
     case kind::RFP_IS_NAN:
-    case kind::RFP_IS_NEGATIVE:
-    case kind::RFP_IS_POSITIVE:
+    case kind::RFP_IS_NEG:
+    case kind::RFP_IS_POS:
     {
       Assert(original.getNumChildren() == 1);
       uint32_t eb = original[0].getType().getFloatingPointExponentSize();
@@ -342,9 +342,9 @@ Node FPToReal::translateWithChildren(
     }
     case kind::RFP_EQ:
     case kind::RFP_LT:
-    case kind::RFP_LE:
+    case kind::RFP_LEQ:
     case kind::RFP_GT:
-    case kind::RFP_GE:
+    case kind::RFP_GEQ:
     {
       Assert(original.getNumChildren() == 2);
       uint32_t eb = original[0].getType().getFloatingPointExponentSize();
@@ -623,14 +623,14 @@ Node FPToReal::createFPOperator(kind::Kind_t rfpKind, uint32_t eb, uint32_t sb)
       return d_nm->mkConst(RfpIsSubnormal(eb, sb));
     case kind::RFP_IS_ZERO:
       return d_nm->mkConst(RfpIsZero(eb, sb));
-    case kind::RFP_IS_INFINITE:
-      return d_nm->mkConst(RfpIsInfinite(eb, sb));
+    case kind::RFP_IS_INF:
+      return d_nm->mkConst(RfpIsInf(eb, sb));
     case kind::RFP_IS_NAN:
       return d_nm->mkConst(RfpIsNan(eb, sb));
-    case kind::RFP_IS_NEGATIVE:
-      return d_nm->mkConst(RfpIsNegative(eb, sb));
-    case kind::RFP_IS_POSITIVE:
-      return d_nm->mkConst(RfpIsPositive(eb, sb));
+    case kind::RFP_IS_NEG:
+      return d_nm->mkConst(RfpIsNeg(eb, sb));
+    case kind::RFP_IS_POS:
+      return d_nm->mkConst(RfpIsPos(eb, sb));
     case kind::RFP_ADD:
       return d_nm->mkConst(RfpAdd(eb, sb));
     case kind::RFP_SUB:
@@ -645,12 +645,12 @@ Node FPToReal::createFPOperator(kind::Kind_t rfpKind, uint32_t eb, uint32_t sb)
       return d_nm->mkConst(RfpEq(eb, sb));
     case kind::RFP_LT:
       return d_nm->mkConst(RfpLt(eb, sb));
-    case kind::RFP_LE:
-      return d_nm->mkConst(RfpLe(eb, sb));
+    case kind::RFP_LEQ:
+      return d_nm->mkConst(RfpLeq(eb, sb));
     case kind::RFP_GT:
       return d_nm->mkConst(RfpGt(eb, sb));
-    case kind::RFP_GE:
-      return d_nm->mkConst(RfpGe(eb, sb));
+    case kind::RFP_GEQ:
+      return d_nm->mkConst(RfpGeq(eb, sb));
     default:
       Assert(false);
   }
