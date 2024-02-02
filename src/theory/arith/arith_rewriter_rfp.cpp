@@ -21,6 +21,8 @@
 #include <stack>
 #include <vector>
 
+#include <limits>
+
 #include "expr/algorithm/flatten.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
@@ -255,6 +257,24 @@ RewriteResponse signZeroResult(uint32_t eb, uint32_t sb, NodeManager* nm, uint8_
     return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusZero(eb,sb)));
 }
 
+double toDouble(uint32_t eb, uint32_t sb, const Rational& x)
+{
+  if (x == RFP::minusZero(eb,sb))
+    return -0.0;
+  else if (x == RFP::plusZero(eb,sb))
+    return 0.0;
+  else if (x == RFP::minusInfinity(eb,sb))
+    return -std::numeric_limits<double>::infinity();
+  else if (x == RFP::plusInfinity(eb,sb))
+    return std::numeric_limits<double>::infinity();
+  else if (x == RFP::notANumber(eb,sb))
+    return std::numeric_limits<double>::quiet_NaN();
+  else if (x < 0)
+    return -1.0;
+  else 
+    return 1.0;
+}
+
 RewriteResponse ArithRewriter::postRewriteRfpAdd(TNode t)
 {
   Assert(t.getKind() == kind::RFP_ADD);
@@ -297,20 +317,20 @@ RewriteResponse ArithRewriter::postRewriteRfpAdd(TNode t)
     {
       return RewriteResponse(REWRITE_DONE, t[1]);
     }
-    //if (x == RFP::plusZero(eb,sb) && y == RFP::minusZero(eb,sb))
-    //{
-    //  if (rm == IntRoundingMode::TN)
-    //    return RewriteResponse(REWRITE_DONE, t[2]);
-    //  else
-    //    return RewriteResponse(REWRITE_DONE, t[1]);
-    //}
-    //if (x == RFP::minusZero(eb,sb) && y == RFP::plusZero(eb,sb))
-    //{
-    //  if (rm == IntRoundingMode::TN)
-    //    return RewriteResponse(REWRITE_DONE, t[1]);
-    //  else
-    //    return RewriteResponse(REWRITE_DONE, t[2]);
-    //}
+    if (x == RFP::plusZero(eb,sb) && y == RFP::minusZero(eb,sb))
+    {
+      if (rm == IntRoundingMode::TN)
+        return RewriteResponse(REWRITE_DONE, t[2]);
+      else
+        return RewriteResponse(REWRITE_DONE, t[1]);
+    }
+    if (x == RFP::minusZero(eb,sb) && y == RFP::plusZero(eb,sb))
+    {
+      if (rm == IntRoundingMode::TN)
+        return RewriteResponse(REWRITE_DONE, t[1]);
+      else
+        return RewriteResponse(REWRITE_DONE, t[2]);
+    }
     if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
     {
       return signZeroResult(eb,sb, nm, rm);
@@ -696,20 +716,25 @@ RewriteResponse ArithRewriter::postRewriteRfpEq(TNode t)
       Node ret = nm->mkConstInt(1);
       return RewriteResponse(REWRITE_DONE, ret);
     }
-
-    if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) &&
-        RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y))
+    else if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) &&
+             RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y))
     {
       //Node ret = nm->mkConst(x == y);
       Node ret = x == y ? nm->mkConstInt(1) : nm->mkConstInt(0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
-
-    // zero cases
-    if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
+    //// zero cases
+    //else if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
+    //{
+    //  //Node ret = nm->mkConst(true);
+    //  Node ret = nm->mkConstInt(1);
+    //  return RewriteResponse(REWRITE_DONE, ret);
+    //}
+    else
     {
-      //Node ret = nm->mkConst(true);
-      Node ret = nm->mkConstInt(1);
+      double dx = toDouble(eb,sb, x);
+      double dy = toDouble(eb,sb, y);
+      Node ret = nm->mkConstInt(dx == dy);
       return RewriteResponse(REWRITE_DONE, ret);
     }
   }
@@ -741,12 +766,18 @@ RewriteResponse ArithRewriter::postRewriteRfpLt(TNode t)
       Node ret = x < y ? nm->mkConstInt(1): nm->mkConstInt(0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
-
-    // zero cases
-    if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
+    //// zero cases
+    //else if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
+    //{
+    //  //Node ret = nm->mkConst(false);
+    //  Node ret = nm->mkConstInt(0);
+    //  return RewriteResponse(REWRITE_DONE, ret);
+    //}
+    else
     {
-      //Node ret = nm->mkConst(false);
-      Node ret = nm->mkConstInt(0);
+      double dx = toDouble(eb,sb, x);
+      double dy = toDouble(eb,sb, y);
+      Node ret = nm->mkConstInt(dx < dy);
       return RewriteResponse(REWRITE_DONE, ret);
     }
   }
@@ -777,11 +808,11 @@ RewriteResponse ArithRewriter::postRewriteRfpLeq(TNode t)
       Node ret = x <= y ? nm->mkConstInt(1) : nm->mkConstInt(0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
-
-    // zero cases
-    if (RFP::isZero(eb,sb, x) && RFP::isZero(eb,sb, y))
+    else
     {
-      Node ret = nm->mkConstInt(1);
+      double dx = toDouble(eb,sb, x);
+      double dy = toDouble(eb,sb, y);
+      Node ret = nm->mkConstInt(dx <= dy);
       return RewriteResponse(REWRITE_DONE, ret);
     }
   }
@@ -796,8 +827,8 @@ RewriteResponse ArithRewriter::postRewriteRfpGt(TNode t)
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
   NodeManager* nm = NodeManager::currentNM();
-  Node op = nm->mkConst(RfpLeq(eb, sb));
-  Node ret = nm->mkNode(kind::RFP_LEQ, op, t[1], t[0]);
+  Node op = nm->mkConst(RfpLt(eb, sb));
+  Node ret = nm->mkNode(kind::RFP_LT, op, t[1], t[0]);
   return RewriteResponse(REWRITE_AGAIN_FULL, ret);
 }
 
@@ -808,8 +839,8 @@ RewriteResponse ArithRewriter::postRewriteRfpGeq(TNode t)
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
   NodeManager* nm = NodeManager::currentNM();
-  Node op = nm->mkConst(RfpLt(eb, sb));
-  Node ret = nm->mkNode(kind::RFP_LT, op, t[1], t[0]);
+  Node op = nm->mkConst(RfpLeq(eb, sb));
+  Node ret = nm->mkNode(kind::RFP_LEQ, op, t[1], t[0]);
   return RewriteResponse(REWRITE_AGAIN_FULL, ret);
 }
 

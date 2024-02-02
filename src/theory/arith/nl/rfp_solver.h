@@ -120,6 +120,8 @@ class RfpSolver : protected EnvObj
   void checkFullRefineAdd(TNode n);
   void checkInitialRefineLt(TNode n);
   void checkFullRefineLt(TNode n);
+  void checkInitialRefineLeq(TNode n);
+  void checkFullRefineLeq(TNode n);
 
 }; /* class RfpSolver */
 

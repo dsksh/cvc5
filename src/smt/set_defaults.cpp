@@ -333,6 +333,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       logic = logic.getUnlockedCopy();
       logic.enableTheory(THEORY_ARITH);
       logic.arithNonLinear();
+      logic.enableIntegers();
       logic.lock();
     }
   }

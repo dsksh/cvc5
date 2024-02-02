@@ -76,7 +76,11 @@ bool NlExtTheoryCallback::isExtfReduced(
   {
     Kind k = n.getKind();
     if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND
-        && k != POW2)
+        && k != POW2
+        && k != RFP_ADD
+        && k != RFP_LT
+        && k != RFP_LEQ
+        )
     {
       // we consider an extended function to be reduced if it simplifies to
       // something that is not a non-linear term. For example, if we know
