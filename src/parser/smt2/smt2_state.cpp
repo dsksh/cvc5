@@ -814,7 +814,7 @@ void Smt2State::setLogic(std::string name)
       addOperator(Kind::ILOG2, "real.ilog2");
 
       // conversion between RFP and FP values
-      addOperator(Kind::RFP_TO_FP, "rfp.to_fp");
+      addOperator(Kind::RFP_ROUND, "rfp.to_fp");
       addOperator(Kind::RFP_TO_REAL, "rfp.to_real");
 
       // real version of fp.isNormal
@@ -838,8 +838,8 @@ void Smt2State::setLogic(std::string name)
       // real version of fp.isPositive
       addIndexedOperator(Kind::RFP_IS_POS, "rfp.isPositive");
 
-      // real version of FP round 
-      addIndexedOperator(Kind::RFP_ROUND, "rfp.round");
+      // real version of fp.to_fp
+      addIndexedOperator(Kind::RFP_TO_RFP_FROM_RFP, "rfp.to_fp");
 
       // real version of fp.add
       addIndexedOperator(Kind::RFP_ADD, "rfp.add");

@@ -223,13 +223,16 @@ TypeNode RfpUnOpTypeRule::computeType(NodeManager* nodeManager,
                                       bool check,
                                       std::ostream* errOut)
 {
-  if (n.getKind() != kind::RFP_ROUND && n.getKind() != kind::RFP_NEG)
+  if (n.getKind() != kind::RFP_TO_RFP_FROM_RFP 
+      && n.getKind() != kind::RFP_ROUND
+      && n.getKind() != kind::RFP_NEG
+      && n.getKind() != kind::RFP_TO_REAL)
   {
     InternalError() << "RFP_UN_OP typerule invoked for " << n << " instead of RFP_UN_OP kind";
   }
   if (check)
   {
-    if (n.getKind() == kind::RFP_ROUND)
+    if (n.getKind() == kind::RFP_TO_RFP_FROM_RFP || n.getKind() == kind::RFP_ROUND)
     {
       TypeNode rm = n[0].getType(check);
       if (!rm.isInteger())

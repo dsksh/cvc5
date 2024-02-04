@@ -588,8 +588,9 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(RFP_IS_POS),
   /**
-   * Real version of FP rounding operator.
+   * Real version of fp.to_fp operator.
    */
+  EVALUE(RFP_TO_RFP_FROM_RFP),
   EVALUE(RFP_ROUND),
   /**
    * Real version of fp.add.

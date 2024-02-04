@@ -221,6 +221,61 @@ RewriteResponse ArithRewriter::postRewriteRfpIsPos(TNode t)
   return RewriteResponse(REWRITE_DONE, t);
 }
 
+RewriteResponse ArithRewriter::postRewriteRfpToRfpFromRfp(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_TO_RFP_FROM_RFP);
+  FloatingPointSize srcSz = t.getOperator().getConst<RfpToRfpFromRfp>().getSrcSize();
+  FloatingPointSize sz = t.getOperator().getConst<RfpToRfpFromRfp>().getSize();
+  uint32_t eb0 = srcSz.exponentWidth();
+  uint32_t sb0 = srcSz.significandWidth();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst() && t[1].isConst())
+  {
+    // rfp.round is only supported for integer rms and real values
+    Assert(t[0].getType().isInteger());
+    Assert(t[1].getType().isReal());
+    Integer rm = t[0].getConst<Rational>().getNumerator();
+    Rational x = t[1].getConst<Rational>();
+
+    // finite case
+    if (RFP::isFinite(eb0,sb0, x) && !RFP::isZero(eb0,sb0, x))
+    {
+      Rational rounded = RFP::round(eb,sb, rm.getUnsignedInt(), x);
+      Node ret = nm->mkConstReal(rounded);
+      return RewriteResponse(REWRITE_DONE, ret);
+    }
+
+    // zero cases
+    if (x == RFP::minusZero(eb0,sb0))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusZero(eb,sb)));
+    }
+    if (x == RFP::plusZero(eb0,sb0))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusZero(eb,sb)));
+    }
+
+    // special cases
+    if (x == RFP::notANumber(eb0,sb0))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
+    }
+    if (x == RFP::minusInfinity(eb0,sb0))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+    }
+    if (x == RFP::plusInfinity(eb0,sb0))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+    }
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
 RewriteResponse ArithRewriter::postRewriteRfpRound(TNode t)
 {
   Assert(t.getKind() == kind::RFP_ROUND);
@@ -469,7 +524,7 @@ RewriteResponse ArithRewriter::postRewriteRfpSub(TNode t)
 RewriteResponse ArithRewriter::postRewriteRfpNeg(TNode t)
 {
   Assert(t.getKind() == kind::RFP_NEG);
-  FloatingPointSize sz = t.getOperator().getConst<RfpRound>().getSize();
+  FloatingPointSize sz = t.getOperator().getConst<RfpNeg>().getSize();
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
   NodeManager* nm = NodeManager::currentNM();

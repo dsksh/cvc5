@@ -54,7 +54,7 @@ void RfpRoundSolver::initLastCall(const std::vector<Node>& assertions,
 {
   d_terms.clear();
 
-  Trace("rfp-round-mv") << "RFP_ROUND terms : " << std::endl;
+  Trace("rfp-round-mv") << "RFP_TO_FP terms : " << std::endl;
   for (const Node& a : xts)
   {
     Kind ak = a.getKind();

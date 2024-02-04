@@ -118,6 +118,8 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse postRewriteRfpIsNeg(TNode t);
   /** postRewrite RFP_IS_POS*/
   static RewriteResponse postRewriteRfpIsPos(TNode t);
+  /** postRewrite RFP_TO_RFP_FROM_RFP */
+  static RewriteResponse postRewriteRfpToRfpFromRfp(TNode t);
   /** postRewrite RFP_ROUND */
   static RewriteResponse postRewriteRfpRound(TNode t);
   /** postRewrite RFP_ADD */

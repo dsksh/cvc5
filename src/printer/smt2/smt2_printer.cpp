@@ -738,11 +738,6 @@ void Smt2Printer::toStream(std::ostream& out,
       stillNeedToPrintParams = false;
       break;
 
-    case kind::RFP_TO_FP:
-      n.getOperator().getConst<RfpToFP>().print(out);
-      stillNeedToPrintParams = false;
-      break;
-
     case kind::RFP_IS_NORMAL:
       n.getOperator().getConst<RfpIsNormal>().print(out);
       stillNeedToPrintParams = false;
@@ -775,6 +770,11 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::RFP_IS_POS:
       n.getOperator().getConst<RfpIsPos>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
+    case kind::RFP_TO_RFP_FROM_RFP:
+      n.getOperator().getConst<RfpToRfpFromRfp>().print(out);
       stillNeedToPrintParams = false;
       break;
 
@@ -1179,10 +1179,6 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::POW2: return "int.pow2";
     case kind::MAX3: return "real.max3";
     case kind::ILOG2: return "real.ilog2";
-    case kind::RFP_TO_FP: return "rfp.to_fp";
-    case kind::RFP_TO_REAL: return "rfp.to_real";
-    case kind::IRM_TO_INT: return "irm.to_int";
-    case kind::IRM_TO_RM: return "irm.to_rm";
     case kind::RFP_IS_NORMAL: return "rfp.isNormal";
     case kind::RFP_IS_SUBNORMAL: return "rfp.isSubnormal";
     case kind::RFP_IS_ZERO: return "rfp.isZero";
@@ -1190,6 +1186,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::RFP_IS_NAN: return "rfp.isNaN";
     case kind::RFP_IS_NEG: return "rfp.isNegative";
     case kind::RFP_IS_POS: return "rfp.isPositive";
+    case kind::RFP_TO_RFP_FROM_RFP: return "rfp.to_rfp";
     case kind::RFP_ROUND: return "rfp.round";
     case kind::RFP_ADD: return "rfp.add";
     case kind::RFP_SUB: return "rfp.sub";
@@ -1201,6 +1198,9 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::RFP_LEQ: return "rfp.leq";
     case kind::RFP_GT: return "rfp.gt";
     case kind::RFP_GEQ: return "rfp.geq";
+    case kind::RFP_TO_REAL: return "rfp.to_real";
+    case kind::IRM_TO_INT: return "irm.to_int";
+    case kind::IRM_TO_RM: return "irm.to_rm";
     case kind::EXPONENTIAL: return "exp";
     case kind::SINE: return "sin";
     case kind::COSINE: return "cos";

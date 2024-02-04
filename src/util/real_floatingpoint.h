@@ -107,25 +107,25 @@ class RfpOperation
  public:
   /** Constructors. */
   /** Constructors. */
-  RfpOperation(uint32_t _e, uint32_t _s) : d_fp_size(_e, _s) {}
-  RfpOperation(const FloatingPointSize& fps) : d_fp_size(fps) {}
+  RfpOperation(uint32_t _e, uint32_t _s) : d_fpSize(_e, _s) {}
+  RfpOperation(const FloatingPointSize& fps) : d_fpSize(fps) {}
   virtual ~RfpOperation() {}
 
   /** Operator overload for comparison of conversion sorts. */
-  bool operator==(const RfpOperation& t) const
+  virtual bool operator==(const RfpOperation& t) const
   {
     return getSize() == t.getSize();
   }
 
-  operator size_t() const
+  virtual operator size_t() const
   { 
     FloatingPointSizeHashFunction f;
-    //return f(d_fp_size) ^ (0x00005300 | (key << 24));
-    return f(d_fp_size);
+    //return f(d_fpSize) ^ (0x00005300 | (key << 24));
+    return f(d_fpSize);
   }
 
   /** Return the size of this RFP convert sort. */
-  FloatingPointSize getSize() const { return d_fp_size; }
+  FloatingPointSize getSize() const { return d_fpSize; }
 
   /** Return the name. */
   virtual std::string getName() const = 0;
@@ -134,14 +134,49 @@ class RfpOperation
   std::ostream& print(std::ostream& os) const
   {
     return os << "(_ rfp." << getName() << " " 
-              << d_fp_size.exponentWidth() << " "
-              << d_fp_size.significandWidth() << ") ";
+              << d_fpSize.exponentWidth() << " "
+              << d_fpSize.significandWidth() << ") ";
   }
 
  private:
   /** The floating-point size of this sort. */
-  FloatingPointSize d_fp_size;
+  FloatingPointSize d_fpSize;
 }; /* class RfpOperation*/
+
+class RfpToRfpFromRfp : public RfpOperation
+{
+ public:
+  RfpToRfpFromRfp(uint32_t _e0, uint32_t _s0, uint32_t _e, uint32_t _s) 
+  : RfpOperation(_e, _s), d_srcFpSize(_e0, _s0) {}
+  virtual ~RfpToRfpFromRfp() {}
+
+  /** Operator overload for comparison of conversion sorts. */
+  bool operator==(const RfpToRfpFromRfp& t) const
+  {
+    return RfpOperation::operator==(t) 
+      && getSrcSize() == t.getSrcSize();
+  }
+
+  operator size_t() const override
+  { 
+    // TODO
+    FloatingPointSizeHashFunction f;
+    return f(getSize()) + 7 * f(d_srcFpSize);
+  }
+
+  /** Return the size of this RFP convert sort. */
+  FloatingPointSize getSrcSize() const
+  { 
+    return d_srcFpSize; 
+  }
+
+  /** Return the name. */
+  std::string getName() const override { return "to_rfp"; }
+
+ private:
+  /** The size of the source floating-point sort. */
+  FloatingPointSize d_srcFpSize;
+};
 
 class RfpToFP : public RfpOperation
 {
