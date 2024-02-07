@@ -798,8 +798,8 @@ void Smt2Printer::toStream(std::ostream& out,
       stillNeedToPrintParams = false;
       break;
 
-    case kind::RFP_MUL:
-      n.getOperator().getConst<RfpMul>().print(out);
+    case kind::RFP_MULT:
+      n.getOperator().getConst<RfpMult>().print(out);
       stillNeedToPrintParams = false;
       break;
 
@@ -1191,7 +1191,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::RFP_ADD: return "rfp.add";
     case kind::RFP_SUB: return "rfp.sub";
     case kind::RFP_NEG: return "rfp.neg";
-    case kind::RFP_MUL: return "rfp.mul";
+    case kind::RFP_MULT: return "rfp.mul";
     case kind::RFP_DIV: return "rfp.div";
     case kind::RFP_EQ: return "rfp.eq";
     case kind::RFP_LT: return "rfp.lt";

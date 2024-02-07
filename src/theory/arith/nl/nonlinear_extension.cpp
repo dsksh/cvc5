@@ -71,7 +71,7 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
   d_extTheory.addFunctionKind(kind::RFP_ADD);
   d_extTheory.addFunctionKind(kind::RFP_SUB);
   d_extTheory.addFunctionKind(kind::RFP_NEG);
-  d_extTheory.addFunctionKind(kind::RFP_MUL);
+  d_extTheory.addFunctionKind(kind::RFP_MULT);
   d_extTheory.addFunctionKind(kind::RFP_DIV);
   d_extTheory.addFunctionKind(kind::RFP_EQ);
   d_extTheory.addFunctionKind(kind::RFP_LT);
@@ -465,11 +465,17 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::RFP_ROUND_FULL: 
         d_rfpRoundSlv.checkFullRefine(); 
         break;
+      case InferStep::RFP_ROUND_INITIAL:
+        d_rfpRoundSlv.checkInitialRefine();
+        break;
       case InferStep::RFP_INIT:
         d_rfpSlv.initLastCall(assertions, false_asserts, xts);
         break;
       case InferStep::RFP_FULL: 
         d_rfpSlv.checkFullRefine(); 
+        break;
+      case InferStep::RFP_INITIAL:
+        d_rfpSlv.checkInitialRefine();
         break;
       case InferStep::ICP:
         d_icpSlv.reset(assertions);

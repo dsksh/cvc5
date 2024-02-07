@@ -29,6 +29,8 @@ namespace cvc5::internal {
 
 namespace RealFloatingPoint {
 
+using IRM = typename cvc5::internal::IntRoundingMode;
+
 /* -------------------------------------------------------------------------- */
 
 uint32_t hash(uint32_t eb, uint32_t sb)
@@ -82,9 +84,12 @@ Rational minSubnormal(uint32_t eb, uint32_t sb)
  */
 Rational minusZero(uint32_t eb, uint32_t sb)
 {
-  // compute the half of the smallest subnormal positive number
-  // (and then make it negative).
-  return -minSubnormal(eb,sb) / 2;
+  // compute approximately minus the half of the smallest 
+  // subnormal positive number (and then make it negative).
+  // TODO: should not be the result of normal FPA operation.
+  //return -minSubnormal(eb,sb) / 2;
+  Rational v = minSubnormal(eb,sb);
+  return Rational(-v.getNumerator(), v.getDenominator() * 2 + 1);
 }
 
 /** Get the possitive zero.
@@ -98,21 +103,30 @@ Rational plusZero(uint32_t eb, uint32_t sb)
  */
 Rational minusInfinity(uint32_t eb, uint32_t sb)
 {
-  return -maxValue(eb,sb) - 2;
+  // TODO: should not be the result of normal FPA operation.
+  //return -maxValue(eb,sb) - 2;
+  Rational v = maxValue(eb,sb);
+  return Rational(-v.getNumerator() * 2 - 2, v.getDenominator() * 2);
 }
 
 /** Get the possitive infinity.
  */
 Rational plusInfinity(uint32_t eb, uint32_t sb)
 {
-  return maxValue(eb,sb) + 1;
+  // TODO: should not be the result of normal FPA operation.
+  //return maxValue(eb,sb) + 1;
+  Rational v = maxValue(eb,sb);
+  return Rational(v.getNumerator() * 2 + 1, v.getDenominator() * 2);
 }
 
 /** Get the NaN.
  */
 Rational notANumber(uint32_t eb, uint32_t sb)
 {
-  return -maxValue(eb,sb) - 1;
+  // TODO: should not be the result of normal FPA operation.
+  //return -maxValue(eb,sb) - 1;
+  Rational v = maxValue(eb,sb);
+  return Rational(-v.getNumerator() * 2 - 1, v.getDenominator() * 2);
 }
 
 bool isNormal(uint32_t eb, uint32_t sb, const Rational& arg)
@@ -142,7 +156,13 @@ bool isFinite(uint32_t eb, uint32_t sb, const Rational& arg)
 
 bool isInfinite(uint32_t eb, uint32_t sb, const Rational& arg)
 {
-  return arg <= minusInfinity(eb,sb) || plusInfinity(eb,sb) <= arg;
+  //return arg <= minusInfinity(eb,sb) || plusInfinity(eb,sb) <= arg;
+  return arg == minusInfinity(eb,sb) || plusInfinity(eb,sb) == arg;
+}
+
+bool isNan(uint32_t eb, uint32_t sb, const Rational& arg)
+{
+  return arg == notANumber(eb,sb);
 }
 
 bool noOverflow(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg)
@@ -164,8 +184,9 @@ Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const R
   Rational normalMax = (Rational(2)-Rational(1)/mMax)*eeMax;
   Rational snMin = Rational(1, Integer::pow2(eMax-2+sb));
 
-  if (value.isZero())
-    return Rational(0);
+  //if (value.isZero())
+  if (value.isZero() || isInfinite(eb,sb, value) || isNan(eb,sb, value))
+    return value;
   else if (toInt && value == minusZero(eb,sb)) // -0
     return value;
   else if (value.abs() == normalMax)
@@ -174,33 +195,43 @@ Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const R
     return value;
   else if (value.abs() > normalMax){
     if (value.sgn() > 0){
-      if (rm == IntRoundingMode::TN || rm == IntRoundingMode::TZ)
+      if (rm == IRM::TN || rm == IRM::TZ)
         return normalMax;
+      else if (rm == IRM::TPS)
+        return value;
       else
         return normalMax+1; //value;
     }else{ // value.sgn() < 0
-      if (rm == IntRoundingMode::TP || rm == IntRoundingMode::TZ)
+      if (rm == IRM::TP || rm == IRM::TZ)
         return -normalMax;
+      else if (rm == IRM::TNS)
+        return value;
       else
         return -normalMax-1; //value;
     }
   }else if ( value.sgn() > 0 && (
-             (rm == IntRoundingMode::NE && value <= snMin/2)
-          || (rm == IntRoundingMode::NA && value < snMin/2)
-          || (rm == IntRoundingMode::TN && value < snMin)
-          || (rm == IntRoundingMode::TZ && value < snMin) )){
+             (rm == IRM::NE && value <= snMin/2)
+          || (rm == IRM::NA && value < snMin/2)
+          || (rm == IRM::TN && value < snMin)
+          || (rm == IRM::TNS && value < snMin)
+          || (rm == IRM::TZ && value < snMin) )){
     return Rational(0);
   }else if ( value.sgn() < 0 && (
-             (rm == IntRoundingMode::NE && value >= -snMin/2)
-          || (rm == IntRoundingMode::NA && value > -snMin/2)
-          || (rm == IntRoundingMode::TP && value > -snMin)
-          || (rm == IntRoundingMode::TZ && value > -snMin) )){
+             (rm == IRM::NE && value >= -snMin/2)
+          || (rm == IRM::NA && value > -snMin/2)
+          || (rm == IRM::TP && value > -snMin)
+          || (rm == IRM::TZ && value > -snMin) )){
     return minusZero(eb,sb);
-  }else if ( (rm == IntRoundingMode::TP && value.sgn() > 0 && value <= snMin)
-          || value == snMin ){
+  }else if ( value.sgn() < 0 && 
+             (rm == IRM::TPS && value > -snMin) ){
+    return Rational(0);
+  }else if ( ( (rm == IRM::TP || rm == IRM::TPS) 
+               && value.sgn() > 0 && value <= snMin )
+             || value == snMin ){
     return snMin;
-  }else if ( (rm == IntRoundingMode::TN && value.sgn() <  0 && value >= -snMin)
-          || value == -snMin ){
+  }else if ( ( (rm == IRM::TN || rm == IRM::TNS) 
+               && value.sgn() <  0 && value >= -snMin )
+             || value == -snMin ){
     return -snMin;
   }
 
@@ -215,23 +246,23 @@ Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const R
     r *= mMax;
   }
 
-  if (rm == IntRoundingMode::TP){
+  if (rm == IRM::TP || rm == IRM::TPS){
     r = r.ceiling();
-  }else if (rm == IntRoundingMode::TN){
+  }else if (rm == IRM::TN || rm == IRM::TNS){
     r = r.floor();
-  }else if (rm == IntRoundingMode::TZ){
+  }else if (rm == IRM::TZ){
     if (r.sgn() >= 0)
       r = r.floor();
     else
       r = -((-r).floor());
-  }else if (rm == IntRoundingMode::NE){
+  }else if (rm == IRM::NE){
     Integer i1 = (r+Rational(1,2)).floor();
     Integer i2 = (r-Rational(1,2)).ceiling();
     if (i1 == i2 || i1.modByPow2(1) == 0)
       r = i1;
     else
       r = i2;
-  }else if (rm == IntRoundingMode::NA){
+  }else if (rm == IRM::NA){
     r += Rational(1,2);
     if (r.sgn() >= 0)
       r = r.floor();

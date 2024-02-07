@@ -41,6 +41,8 @@
 #include "theory/fp/fp_word_blaster.h"
 #include "util/floatingpoint.h"
 
+#include "util/real_floatingpoint.h"
+
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
@@ -980,6 +982,23 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     }
   }
 
+  // ishii
+  RewriteResponse convertFromRealFP(TNode node, bool isPreRewrite)
+  {
+    Assert(node.getKind() == kind::RFP_TO_FP);
+
+    TNode op = node.getOperator();
+    const FloatingPointSize& size =
+      op.getConst<RfpToFP>().getSize();
+    uint32_t eb = size.exponentWidth();
+    uint32_t sb = size.significandWidth();
+
+    Rational arg(node[0].getConst<Rational>());
+    NodeManager *nm = NodeManager::currentNM();
+    Node ret = nm->mkConst(RealFloatingPoint::convertToFP(eb,sb, arg));
+    return RewriteResponse(REWRITE_DONE, ret);
+  }
+
   RewriteResponse componentFlag(TNode node, bool isPreRewrite)
   {
     Kind k = node.getKind();
@@ -1147,6 +1166,9 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     d_preRewriteTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] = rewrite::identity;
     d_preRewriteTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] = rewrite::identity;
 
+    // ishii
+    d_preRewriteTable[kind::RFP_TO_FP] = rewrite::identity;
+
     /******** Variables ********/
     d_preRewriteTable[kind::VARIABLE] = rewrite::variable;
     d_preRewriteTable[kind::BOUND_VARIABLE] = rewrite::variable;
@@ -1236,6 +1258,9 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     d_postRewriteTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] = rewrite::identity;
     d_postRewriteTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] = rewrite::identity;
     d_postRewriteTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] = rewrite::identity;
+
+    // ishii
+    d_postRewriteTable[kind::RFP_TO_FP] = rewrite::identity;
 
     /******** Variables ********/
     d_postRewriteTable[kind::VARIABLE] = rewrite::variable;
@@ -1328,6 +1353,10 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
         constantFold::convertToSBVTotal;
     d_constantFoldTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] =
         constantFold::convertToRealTotal;
+
+    // ishii
+    d_constantFoldTable[kind::RFP_TO_FP] =
+        constantFold::convertFromRealFP;
 
     /******** Variables ********/
     d_constantFoldTable[kind::VARIABLE] = rewrite::variable;

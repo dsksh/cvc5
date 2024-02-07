@@ -43,7 +43,8 @@ namespace RFP = cvc5::internal::RealFloatingPoint;
 
 FPToReal::FPToReal(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "fp-to-real"), 
-      d_realblastCache(userContext())
+      d_realblastCache(userContext()),
+      d_rangeAssertions(userContext())
 {
   d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConstReal(0);
@@ -164,14 +165,14 @@ PreprocessingPassResult FPToReal::applyInternal(
     Trace("fp-to-real") << "rw node: " << rwNode << std::endl;
     assertionsToPreprocess->replace(i, rwNode);
   }
-  //addFinalizeAssertions(assertionsToPreprocess, additionalConstraints);
-  //addSkolemDefinitions(skolems);
+  addFinalizeAssertions(assertionsToPreprocess, additionalConstraints);
+  addSkolemDefinitions(skolems);
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
 void FPToReal::addFPRangeConstraint(Node node,
-                                    uint32_t esz,
-                                    uint32_t ssz,
+                                    uint32_t eb,
+                                    uint32_t sb,
                                     std::vector<Node>& lemmas)
 {
   //Node rangeConstraint = mkRangeConstraint(node, esz, ssz);
@@ -184,14 +185,33 @@ void FPToReal::addFPRangeConstraint(Node node,
   //  d_rangeAssertions.insert(rangeConstraint);
   //  lemmas.push_back(rangeConstraint);
   //}
+
+  // TODO
+  Node isNegZero = node.eqNode(d_nm->mkConstReal(RFP::minusZero(eb,sb)));
+  Node isPosZero = node.eqNode(d_nm->mkConstReal(RFP::plusZero(eb,sb)));
+  Node isNegInf  = node.eqNode(d_nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+  Node isPosInf = node.eqNode(d_nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+  Node isNan = node.eqNode(d_nm->mkConstReal(RFP::notANumber(eb,sb)));
+  Node op = d_nm->mkConst(RfpRound(eb, sb));
+  Node rm = d_nm->mkConstInt(0);
+  Node rounded = d_nm->mkNode(kind::RFP_ROUND, op, rm, node);
+  Node isRounded = node.eqNode(rounded);
+  Node constr = isNegZero.orNode(isPosZero)
+    .orNode(isNegInf).orNode(isPosInf)
+    .orNode(isNan).orNode(isRounded);
+  if (d_rangeAssertions.find(constr) == d_rangeAssertions.end())
+  {
+    Trace("fp-to-real")
+      << "range constraint computed: " << constr << std::endl;
+    d_rangeAssertions.insert(constr);
+    lemmas.push_back(constr);
+  }
 }
 
 void FPToReal::addRMRangeConstraint(Node node,
                                     std::vector<Node>& lemmas)
 {
   //Node rangeConstraint = mkRangeConstraint(node, esz, ssz);
-  //Trace("fp-to-real")
-  //    << "range constraint computed: " << rangeConstraint << std::endl;
   //if (d_rangeAssertions.find(rangeConstraint) == d_rangeAssertions.end())
   //{
   //  Trace("fp-to-real")
@@ -199,6 +219,17 @@ void FPToReal::addRMRangeConstraint(Node node,
   //  d_rangeAssertions.insert(rangeConstraint);
   //  lemmas.push_back(rangeConstraint);
   //}
+  
+  Node lower = d_nm->mkNode(kind::LEQ, d_nm->mkConstInt(0), node);
+  Node upper = d_nm->mkNode(kind::LEQ, node, d_nm->mkConstInt(4));
+  Node constr = d_nm->mkNode(kind::AND, lower, upper);
+  if (d_rangeAssertions.find(constr) == d_rangeAssertions.end())
+  {
+    Trace("fp-to-real")
+      << "range constraint computed: " << constr << std::endl;
+    d_rangeAssertions.insert(constr);
+    lemmas.push_back(constr);
+  }
 }
 
 Node FPToReal::translateWithChildren(
@@ -210,9 +241,8 @@ Node FPToReal::translateWithChildren(
 
   // The translation of the original node is determined by the kind of
   // the node.
-  kind::Kind_t newKind = original.getKind();
-
-  switch (newKind)
+  kind::Kind_t newKind;
+  switch (original.getKind())
   {
     case kind::FLOATINGPOINT_IS_NORMAL:
       newKind = kind::RFP_IS_NORMAL; 
@@ -251,7 +281,7 @@ Node FPToReal::translateWithChildren(
       newKind = kind::RFP_NEG; 
       break;
     case kind::FLOATINGPOINT_MULT:
-      newKind = kind::RFP_MUL; 
+      newKind = kind::RFP_MULT; 
       break;
     case kind::FLOATINGPOINT_DIV:
       newKind = kind::RFP_DIV; 
@@ -271,6 +301,8 @@ Node FPToReal::translateWithChildren(
     case kind::FLOATINGPOINT_GEQ:
       newKind = kind::RFP_GEQ; 
       break;
+    default:
+      newKind = original.getKind();
   }
 
   // Store the translated node
@@ -322,7 +354,7 @@ Node FPToReal::translateWithChildren(
     }
     case kind::RFP_ADD:
     case kind::RFP_SUB:
-    case kind::RFP_MUL:
+    case kind::RFP_MULT:
     case kind::RFP_DIV:
     {
       Assert(original.getNumChildren() == 3);
@@ -362,39 +394,20 @@ Node FPToReal::translateWithChildren(
       //  translated_children[0], translated_children[1]);
       Node rel = d_nm->mkNode(newKind, op, 
         translated_children[0], translated_children[1]);
-      Node intZero = d_nm->mkConstInt(Rational(0));
-      returnNode = d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, rel, intZero));
+      //Node intZero = d_nm->mkConstInt(0);
+      //returnNode = d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, rel, intZero));
+      // TODO
+      Node intOne = d_nm->mkConstInt(1);
+      returnNode = d_nm->mkNode(kind::EQUAL, rel, intOne);
 
-      //Node lb = d_nm->mkNode(kind::LEQ, d_nm->mkConstInt(Rational(0)), rel);
-      //Node ub = d_nm->mkNode(kind::LEQ, rel, d_nm->mkConstInt(Rational(1)));
-      //Node rangeConstraint = d_nm->mkNode(kind::AND, lb, ub);
-      //lemmas.push_back(rangeConstraint);
+      // TODO: range constraint
+      Node lb = d_nm->mkNode(kind::LEQ, d_nm->mkConstInt(0), rel);
+      Node ub = d_nm->mkNode(kind::LEQ, rel, d_nm->mkConstInt(1));
+      Node rangeConstraint = d_nm->mkNode(kind::AND, lb, ub);
+      lemmas.push_back(rangeConstraint);
 
       break;
     }
-    //case kind::BITVECTOR_MULT:
-    //{
-    //  Assert(original.getNumChildren() == 2);
-    //  uint32_t bvsize = original[0].getType().getBitVectorSize();
-    //  Node mult = d_nm->mkNode(kind::MULT, translated_children);
-    //  Node p2 = pow2(bvsize);
-    //  returnNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, mult, p2);
-    //  break;
-    //}
-    //case kind::BITVECTOR_UDIV:
-    //{
-    //  // we use an ITE for the case where the second operand is 0.
-    //  uint32_t bvsize = original[0].getType().getBitVectorSize();
-    //  Node pow2BvSize = pow2(bvsize);
-    //  Node divNode =
-    //      d_nm->mkNode(kind::INTS_DIVISION_TOTAL, translated_children);
-    //  returnNode = d_nm->mkNode(
-    //      kind::ITE,
-    //      d_nm->mkNode(kind::EQUAL, translated_children[1], d_zero),
-    //      d_nm->mkNode(kind::SUB, pow2BvSize, d_one),
-    //      divNode);
-    //  break;
-    //}
     case kind::EQUAL:
     {
       returnNode = d_nm->mkNode(kind::EQUAL, translated_children);
@@ -465,9 +478,9 @@ Node FPToReal::translateNoChildren(Node original,
         // we introduce a fresh variable, add range constraints, and save the
         // connection between original and the new variable via realCast
         translation = d_nm->getSkolemManager()->mkPurifySkolem(realCast);
-        uint32_t esz = original.getType().getFloatingPointExponentSize();
-        uint32_t ssz = original.getType().getFloatingPointSignificandSize();
-        addFPRangeConstraint(translation, esz, ssz, lemmas);
+        uint32_t eb = original.getType().getFloatingPointExponentSize();
+        uint32_t sb = original.getType().getFloatingPointSignificandSize();
+        addFPRangeConstraint(translation, eb, sb, lemmas);
         // put new definition of old variable in skolems
         fpCast = castToType(translation, original.getType());
 
@@ -577,6 +590,9 @@ Node FPToReal::castToType(Node n, TypeNode tn)
     Assert(tn.isFloatingPoint());
     Node op = d_nm->mkConst(RfpToFP(tn.getConst<FloatingPointSize>()));
     return d_nm->mkNode(kind::RFP_TO_FP, op, n);
+    //Node op = d_nm->mkConst(FloatingPointToFPReal(tn.getConst<FloatingPointSize>()));
+    //Node rm = d_nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
+    //return d_nm->mkNode(kind::FLOATINGPOINT_TO_FP_FROM_REAL, op, rm, n);
   }
   else if (n.getType().isFloatingPoint())
   {
@@ -656,8 +672,8 @@ Node FPToReal::createFPOperator(kind::Kind_t rfpKind, uint32_t eb, uint32_t sb)
       return d_nm->mkConst(RfpSub(eb, sb));
     case kind::RFP_NEG:
       return d_nm->mkConst(RfpNeg(eb, sb));
-    case kind::RFP_MUL:
-      return d_nm->mkConst(RfpMul(eb, sb));
+    case kind::RFP_MULT:
+      return d_nm->mkConst(RfpMult(eb, sb));
     case kind::RFP_DIV:
       return d_nm->mkConst(RfpDiv(eb, sb));
     case kind::RFP_EQ:
@@ -672,6 +688,40 @@ Node FPToReal::createFPOperator(kind::Kind_t rfpKind, uint32_t eb, uint32_t sb)
       return d_nm->mkConst(RfpGeq(eb, sb));
     default:
       Assert(false);
+  }
+}
+
+void FPToReal::addFinalizeAssertions(
+    AssertionPipeline* assertionsToPreprocess,
+    const std::vector<Node>& additionalConstraints)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node lemmas = nm->mkAnd(additionalConstraints);
+  assertionsToPreprocess->push_back(lemmas);
+  Trace("fp-to-real-debug") << "range constraints: " << lemmas.toString()
+                            << std::endl;
+}
+
+void FPToReal::addSkolemDefinitions(const std::map<Node, Node>& skolems)
+{
+  map<Node, Node>::const_iterator it;
+  for (it = skolems.begin(); it != skolems.end(); it++)
+  {
+    Node originalSkolem = it->first;
+    Node definition = it->second;
+    std::vector<Node> args;
+    Node body;
+    if (definition.getType().isFunction())
+    {
+      args.insert(args.end(), definition[0].begin(), definition[0].end());
+      body = definition[1];
+    }
+    else
+    {
+      body = definition;
+    }
+    Trace("fp-to-real-debug") << "adding substitution: " << "[" << originalSkolem  << "] ----> [" << definition << "]"  << std::endl; 
+    d_preprocContext->addSubstitution(originalSkolem, definition);
   }
 }
 

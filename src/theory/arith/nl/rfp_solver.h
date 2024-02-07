@@ -114,14 +114,16 @@ class RfpSolver : protected EnvObj
   //Node mkIsPosInf(uint32_t eb, uint32_t sb, Node x);
   //Node mkIsNan(uint32_t eb, uint32_t sb, Node x);
 
-  void checkFullRefineValue(TNode n);
+  void checkFullRefineValue(Node n);
 
-  void checkInitialRefineAdd(TNode n);
-  void checkFullRefineAdd(TNode n);
-  void checkInitialRefineLt(TNode n);
-  void checkFullRefineLt(TNode n);
-  void checkInitialRefineLeq(TNode n);
-  void checkFullRefineLeq(TNode n);
+  void checkInitialRefineAdd(Node n);
+  void checkFullRefineAdd(Node n);
+  void checkInitialRefineMult(Node n);
+  void checkFullRefineMult(Node n);
+  void checkInitialRefineLt(Node n);
+  void checkFullRefineLt(Node n);
+  void checkInitialRefineLeq(Node n);
+  void checkFullRefineLeq(Node n);
 
 }; /* class RfpSolver */
 

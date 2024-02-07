@@ -246,7 +246,7 @@ public:
      case kind::RFP_ADD:
      case kind::RFP_SUB:
      case kind::RFP_NEG:
-     case kind::RFP_MUL:
+     case kind::RFP_MULT:
      case kind::RFP_DIV:
      case kind::RFP_EQ:
      case kind::RFP_LT:

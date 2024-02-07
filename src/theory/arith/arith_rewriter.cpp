@@ -244,7 +244,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::RFP_ADD: return RewriteResponse(REWRITE_DONE, t);
       case kind::RFP_SUB: return RewriteResponse(REWRITE_DONE, t);
       case kind::RFP_NEG: return RewriteResponse(REWRITE_DONE, t);
-      case kind::RFP_MUL: return RewriteResponse(REWRITE_DONE, t);
+      case kind::RFP_MULT: return RewriteResponse(REWRITE_DONE, t);
       case kind::RFP_DIV: return RewriteResponse(REWRITE_DONE, t);
       case kind::RFP_EQ: return RewriteResponse(REWRITE_DONE, t);
       case kind::RFP_LT: return RewriteResponse(REWRITE_DONE, t);
@@ -317,7 +317,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::RFP_ADD: return postRewriteRfpAdd(t);
       case kind::RFP_SUB: return postRewriteRfpSub(t);
       case kind::RFP_NEG: return postRewriteRfpNeg(t);
-      case kind::RFP_MUL: return postRewriteRfpMul(t);
+      case kind::RFP_MULT: return postRewriteRfpMult(t);
       case kind::RFP_DIV: return postRewriteRfpDiv(t);
       case kind::RFP_EQ: return postRewriteRfpEq(t);
       case kind::RFP_LT: return postRewriteRfpLt(t);

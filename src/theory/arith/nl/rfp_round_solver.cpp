@@ -22,9 +22,13 @@
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
+#include "util/int_roundingmode.h"
 #include "util/real_floatingpoint.h"
 
 using namespace cvc5::internal::kind;
+
+using IRM = typename cvc5::internal::IntRoundingMode;
+namespace RFP = cvc5::internal::RealFloatingPoint;
 
 namespace cvc5::internal {
 namespace theory {
@@ -72,7 +76,7 @@ void RfpRoundSolver::initLastCall(const std::vector<Node>& assertions,
 void RfpRoundSolver::checkInitialRefine()
 {
   Trace("rfp-round-check") << "RfpRoundSolver::checkInitialRefine" << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  //NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const unsigned, std::vector<Node> >& is : d_terms)
   {
     // the reference bitwidth
@@ -86,13 +90,15 @@ void RfpRoundSolver::checkInitialRefine()
       }
       d_initRefine.insert(node);
 
-      Node op = node.getOperator();
-      // L2-4 w/ same rm
-      Node dbl = nm->mkNode(kind::RFP_ROUND, op, node[0], node);
-      Node lem = nm->mkNode(EQUAL, dbl, node);
-      Trace("rfp-round-lemma") << "RfpRoundSolver::Lemma: " << lem << " ; INIT_REFINE"
-                               << std::endl;
-      d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
+      //Node op = node.getOperator();
+      //// L2-4 w/ same rm
+      //Node dbl = nm->mkNode(kind::RFP_ROUND, op, node[0], node);
+      //Node lem = nm->mkNode(EQUAL, dbl, node);
+      //Trace("rfp-round-lemma") << "RfpRoundSolver::Lemma: " << lem 
+      //                         << " ; INIT_REFINE"
+      //                         << std::endl;
+      //d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE,
+      //  nullptr, true);
     }
   }
 }
@@ -111,6 +117,10 @@ void RfpRoundSolver::checkFullRefine()
          it != ts.second.end(); ++it)
     {
       const Node& node = *it;
+      FloatingPointSize sz = node.getOperator().getConst<RfpRound>().getSize();
+      uint32_t eb = sz.exponentWidth();
+      uint32_t sb = sz.significandWidth();
+
       Node valRound = d_model.computeAbstractModelValue(node);
       Node valRoundC = d_model.computeConcreteModelValue(node);
 
@@ -192,17 +202,76 @@ void RfpRoundSolver::checkFullRefine()
 
           // TODO: L2-10, L2-11, L2-12
         }
-
-        // this is the most naive model-based schema based on model values
-        Node lem = valueBasedLemma(node);
-        Trace("rfp-round-lemma")
-            << "RfpRoundSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
-        // send the value lemma
-        d_im.addPendingLemma(lem,
-                             InferenceId::ARITH_NL_RFP_ROUND_VALUE_REFINE,
-                             nullptr,
-                             true);
       }
+
+      //if (RFP::round(eb,sb, rm.getUnsignedInt(), arg) >= round 
+      //  && arg < RFP::round(eb,sb, IRM::TP, round))
+      //{
+      //  // L2-8 ub
+      //  Node i = nm->mkConstReal(round);
+      //  Node assumption = nm->mkNode(LT, node, i);
+      //  Node op = nm->mkConst(RfpRound(eb,sb));
+      //  Node rmTP = nm->mkConstInt(IntRoundingMode::TP);
+      //  Node ub = nm->mkNode(RFP_ROUND, op, rmTP, i);
+      //  Node conclusion = nm->mkNode(LT, node[1], ub);
+      //  Node lem = assumption.impNode(conclusion);
+      //  Trace("rfp-round-lemma")
+      //    << "RfpRoundSolver::Lemma: " << lem << " ; BOUND_REFINE ub" << std::endl;
+      //  d_im.addPendingLemma(
+      //    lem, InferenceId::ARITH_NL_RFP_ROUND_MONOTONE_REFINE, nullptr, true);
+      //}
+      //if (round >= RFP::round(eb,sb, rm.getUnsignedInt(), arg) 
+      //  && RFP::round(eb,sb, IRM::TN, round) < arg)
+      //{
+      //  // L2-8 lb
+      //  Node i = nm->mkConstReal(round);
+      //  Node assumption = nm->mkNode(LT, i, node);
+      //  Node op = nm->mkConst(RfpRound(eb,sb));
+      //  Node rmTN = nm->mkConstInt(IntRoundingMode::TN);
+      //  Node lb = nm->mkNode(RFP_ROUND, op, rmTN, i);
+      //  Node conclusion = nm->mkNode(LT, lb, node[1]);
+      //  Node lem = assumption.impNode(conclusion);
+      //  Trace("rfp-round-lemma")
+      //    << "RfpRoundSolver::Lemma: " << lem << " ; BOUND_REFINE lb" << std::endl;
+      //  d_im.addPendingLemma(
+      //    lem, InferenceId::ARITH_NL_RFP_ROUND_MONOTONE_REFINE, nullptr, true);
+      //}
+      if (round <= arg && round > RFP::round(eb,sb, IRM::TNS, arg))
+      {
+        // L2-9 ub
+        Node i = nm->mkConstReal(arg);
+        Node assumption = nm->mkNode(LEQ, node, i);
+        Node ub = nm->mkConstReal(RFP::round(eb,sb, IRM::TNS, arg));
+        Node conclusion = nm->mkNode(LEQ, node, ub);
+        Node lem = assumption.impNode(conclusion);
+        Trace("rfp-round-lemma")
+          << "RfpRoundSolver::Lemma: " << lem << " ; BOUND_REFINE ub" << std::endl;
+        d_im.addPendingLemma(
+          lem, InferenceId::ARITH_NL_RFP_ROUND_MONOTONE_REFINE, nullptr, true);
+      }
+      if (arg <= round && RFP::round(eb,sb, IRM::TPS, arg) > round)
+      {
+        // L2-9 lb
+        Node i = nm->mkConstReal(arg);
+        Node assumption = nm->mkNode(LEQ, i, node);
+        Node lb = nm->mkConstReal(RFP::round(eb,sb, IRM::TPS, arg));
+        Node conclusion = nm->mkNode(LEQ, lb, node);
+        Node lem = assumption.impNode(conclusion);
+        Trace("rfp-round-lemma")
+          << "RfpRoundSolver::Lemma: " << lem << " ; BOUND_REFINE lb" << std::endl;
+        d_im.addPendingLemma(
+          lem, InferenceId::ARITH_NL_RFP_ROUND_MONOTONE_REFINE, nullptr, true);
+      }
+
+      // this is the most naive model-based schema based on model values
+      Node lem = valueBasedLemma(node);
+      Trace("rfp-round-lemma")
+          << "RfpRoundSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
+      // send the value lemma
+      d_im.addPendingLemma(lem,
+                           InferenceId::ARITH_NL_RFP_ROUND_VALUE_REFINE,
+                           nullptr,
+                           true);
     }
   }
 }

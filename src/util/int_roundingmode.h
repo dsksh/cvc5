@@ -33,6 +33,8 @@ struct IntRoundingMode
   static const uint8_t TP = 2;
   static const uint8_t TN = 3;
   static const uint8_t TZ = 4;
+  static const uint8_t TPS = 5;
+  static const uint8_t TNS = 6;
 
   static uint8_t convert(const RoundingMode& rm)
   {

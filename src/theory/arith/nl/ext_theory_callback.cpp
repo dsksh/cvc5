@@ -78,6 +78,7 @@ bool NlExtTheoryCallback::isExtfReduced(
     if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND
         && k != POW2
         && k != RFP_ADD
+        && k != RFP_MULT
         && k != RFP_LT
         && k != RFP_LEQ
         )

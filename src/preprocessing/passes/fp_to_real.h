@@ -100,11 +100,20 @@ class FPToReal : public PreprocessingPass
                            std::vector<Node>& lemmas,
                            std::map<Node, Node>& skolems);
 
+  // Add the lemmas in `additionalConstraints` to the assertions pipeline.
+  void addFinalizeAssertions(AssertionPipeline* assertionsToPreprocess,
+                             const std::vector<Node>& additionalConstraints);
+
+  // include the skolem map as substitutions
+  void addSkolemDefinitions(const std::map<Node, Node>& skolems);
+
   /** Node manager that is used throughout the pass */
   NodeManager* d_nm;
 
   /** Caches for the different functions */
   CDNodeMap d_realblastCache;
+
+  context::CDHashSet<Node> d_rangeAssertions;
 
   /** Useful constants */
   Node d_zero;

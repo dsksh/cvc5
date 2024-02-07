@@ -80,6 +80,7 @@ bool isZero(uint32_t eb, uint32_t sb, const Rational& arg);
 //bool inRange(uint32_t eb, uint32_t sb, const Rational& arg);
 bool isFinite(uint32_t eb, uint32_t sb, const Rational& arg);
 bool isInfinite(uint32_t eb, uint32_t sb, const Rational& arg);
+bool isNan(uint32_t eb, uint32_t sb, const Rational& arg);
 bool noOverflow(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg);
 
 /**
@@ -277,7 +278,7 @@ class RfpNeg : public RfpOperation
   std::string getName() const override { return "neg"; }
 };
 
-class RfpMul : public RfpOperation
+class RfpMult : public RfpOperation
 {
   using RfpOperation::RfpOperation;
 

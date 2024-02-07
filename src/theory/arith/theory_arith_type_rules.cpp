@@ -261,7 +261,7 @@ TypeNode RfpBinOpTypeRule::computeType(NodeManager* nodeManager,
                                        std::ostream* errOut)
 {
   if (n.getKind() != kind::RFP_ADD && n.getKind() != kind::RFP_SUB && 
-      n.getKind() != kind::RFP_MUL && n.getKind() != kind::RFP_DIV)
+      n.getKind() != kind::RFP_MULT && n.getKind() != kind::RFP_DIV)
   {
     InternalError() << "RFP_BIN_OP typerule invoked for " << n << " instead of RFP_BIN_OP kind";
   }

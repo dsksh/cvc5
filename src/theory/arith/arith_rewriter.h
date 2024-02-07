@@ -100,8 +100,8 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse postRewriteIlog2(TNode t);
   /** postRewrite IRM */
   static RewriteResponse postRewriteIrm(TNode t, bool to_int);
-  /** postRewrite RFP_TO_FP */
-  static RewriteResponse postRewriteRfpToFP(TNode t);
+  ///** postRewrite RFP_TO_FP */
+  //static RewriteResponse postRewriteRfpToFP(TNode t);
   /** postRewrite RFP_TO_REAL */
   static RewriteResponse postRewriteRfpToReal(TNode t);
   /** postRewrite RFP_IS_NORMAL */
@@ -128,8 +128,8 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse postRewriteRfpSub(TNode t);
   /** postRewrite RFP_NEG */
   static RewriteResponse postRewriteRfpNeg(TNode t);
-  /** postRewrite RFP_MUL */
-  static RewriteResponse postRewriteRfpMul(TNode t);
+  /** postRewrite RFP_MULT */
+  static RewriteResponse postRewriteRfpMult(TNode t);
   /** postRewrite RFP_DIV */
   static RewriteResponse postRewriteRfpDiv(TNode t);
   /** postRewrite RFP_EQ */
