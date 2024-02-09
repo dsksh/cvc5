@@ -212,10 +212,13 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
           Kind k = cur.getKind();
           if (k != MULT && k != ADD && k != NONLINEAR_MULT && k != TO_REAL
               && !isTranscendentalKind(k) && k != IAND && k != POW2
+              // TODO
               && k != RFP_ADD 
               && k != RFP_MULT
               && k != RFP_LT 
               && k != RFP_LEQ
+              && k != RFP_ROUND
+              && k != RFP_TO_RFP_FROM_RFP
               )
           {
             // if we have not set an approximate bound for it

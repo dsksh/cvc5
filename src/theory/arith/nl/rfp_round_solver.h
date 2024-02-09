@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,7 +87,23 @@ class RfpRoundSolver : protected EnvObj
   /** RFP_ROUND terms that have been given initial refinement lemmas */
   NodeSet d_initRefine;
   /** all RFP_ROUND terms */
-  std::map<unsigned, std::vector<Node> > d_terms;
+  std::map<unsigned, std::vector<Node> > d_rounds;
+  /** all RFP_TO_RFP terms */
+  std::map<unsigned, std::vector<Node> > d_toRfps;
+
+  /**
+   * 
+   */
+  void checkFullRefineRound(TNode node, 
+    const Integer& rm, const Rational& arg, const Rational& round);
+
+  /**
+   * 
+   */
+  void checkFullRefineRoundPair(TNode node1, 
+    const Integer& rm1, const Rational& arg1, const Rational& round1,
+    TNode node2, 
+    const Integer& rm2, const Rational& arg2, const Rational& round2);
 
   /**
    * Value-based refinement lemma for t of the form ((_ rfp.round eb sb) rm arg). Returns:

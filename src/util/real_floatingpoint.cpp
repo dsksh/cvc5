@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -106,7 +106,7 @@ Rational minusInfinity(uint32_t eb, uint32_t sb)
   // TODO: should not be the result of normal FPA operation.
   //return -maxValue(eb,sb) - 2;
   Rational v = maxValue(eb,sb);
-  return Rational(-v.getNumerator() * 2 - 2, v.getDenominator() * 2);
+  return Rational(-v.getNumerator() * 3 - 2, 3);
 }
 
 /** Get the possitive infinity.
@@ -116,7 +116,7 @@ Rational plusInfinity(uint32_t eb, uint32_t sb)
   // TODO: should not be the result of normal FPA operation.
   //return maxValue(eb,sb) + 1;
   Rational v = maxValue(eb,sb);
-  return Rational(v.getNumerator() * 2 + 1, v.getDenominator() * 2);
+  return Rational(v.getNumerator() * 3 + 1, 3);
 }
 
 /** Get the NaN.
@@ -126,7 +126,7 @@ Rational notANumber(uint32_t eb, uint32_t sb)
   // TODO: should not be the result of normal FPA operation.
   //return -maxValue(eb,sb) - 1;
   Rational v = maxValue(eb,sb);
-  return Rational(-v.getNumerator() * 2 - 1, v.getDenominator() * 2);
+  return Rational(-v.getNumerator() * 3 - 1, 3);
 }
 
 bool isNormal(uint32_t eb, uint32_t sb, const Rational& arg)
@@ -185,7 +185,7 @@ Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const R
   Rational snMin = Rational(1, Integer::pow2(eMax-2+sb));
 
   //if (value.isZero())
-  if (value.isZero() || isInfinite(eb,sb, value) || isNan(eb,sb, value))
+  if (isZero(eb,sb, value) || isInfinite(eb,sb, value) || isNan(eb,sb, value))
     return value;
   else if (toInt && value == minusZero(eb,sb)) // -0
     return value;
@@ -195,19 +195,21 @@ Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const R
     return value;
   else if (value.abs() > normalMax){
     if (value.sgn() > 0){
-      if (rm == IRM::TN || rm == IRM::TZ)
+      if (rm == IRM::TN || rm == IRM::TNS || rm == IRM::TZ)
         return normalMax;
-      else if (rm == IRM::TPS)
+      else if (rm == IRM::TPS && value > plusInfinity(eb,sb))
         return value;
       else
-        return normalMax+1; //value;
+        //return normalMax+1; //value;
+        return plusInfinity(eb,sb);
     }else{ // value.sgn() < 0
-      if (rm == IRM::TP || rm == IRM::TZ)
+      if (rm == IRM::TP || rm == IRM::TPS || rm == IRM::TZ)
         return -normalMax;
-      else if (rm == IRM::TNS)
+      else if (rm == IRM::TNS && value < minusInfinity(eb,sb))
         return value;
       else
-        return -normalMax-1; //value;
+        //return -normalMax-1; //value;
+        return minusInfinity(eb,sb); //value;
     }
   }else if ( value.sgn() > 0 && (
              (rm == IRM::NE && value <= snMin/2)

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -96,10 +96,10 @@ class RfpSolver : protected EnvObj
 
   /** Value-based refinement lemma for the arithmetic operators.
    */
-  Node opValueBasedLemma(Node i);
+  Node opValueBasedLemma(TNode i);
   /** Value-based refinement lemma for the relational operators.
    */
-  Node relValueBasedLemma(Node i);
+  Node relValueBasedLemma(TNode i);
 
  //private:
   //Node mkFalse(Node i);
@@ -120,8 +120,8 @@ class RfpSolver : protected EnvObj
   void checkFullRefineAdd(Node n);
   void checkInitialRefineMult(Node n);
   void checkFullRefineMult(Node n);
-  void checkInitialRefineLt(Node n);
-  void checkFullRefineLt(Node n);
+  void checkInitialRefineLt(TNode n);
+  void checkFullRefineLt(TNode n);
   void checkInitialRefineLeq(Node n);
   void checkFullRefineLeq(Node n);
 
