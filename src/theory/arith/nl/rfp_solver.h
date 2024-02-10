@@ -118,12 +118,20 @@ class RfpSolver : protected EnvObj
 
   void checkInitialRefineAdd(Node n);
   void checkFullRefineAdd(Node n);
+  void checkInitialRefineNeg(Node n);
+  void checkFullRefineNeg(Node n);
+  void checkInitialRefineSub(Node n);
+  void checkFullRefineSub(Node n);
   void checkInitialRefineMult(Node n);
   void checkFullRefineMult(Node n);
-  void checkInitialRefineLt(TNode n);
-  void checkFullRefineLt(TNode n);
+  void checkInitialRefineDiv(Node n);
+  void checkFullRefineDiv(Node n);
+  void checkInitialRefineLt(Node n);
+  void checkFullRefineLt(Node n);
   void checkInitialRefineLeq(Node n);
   void checkFullRefineLeq(Node n);
+  void checkInitialRefineGt(Node n);
+  void checkInitialRefineGeq(Node n);
 
 }; /* class RfpSolver */
 

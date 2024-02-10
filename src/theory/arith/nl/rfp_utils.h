@@ -28,17 +28,22 @@ namespace RfpUtils {
 Node mkFalse(TNode i);
 Node mkTrue(TNode i);
 Node mkIsFinite(uint32_t eb, uint32_t sb, TNode x);
+Node mkIsNormal(uint32_t eb, uint32_t sb, TNode x);
+Node mkIsSubnormal(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsZero(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsZeroWeak(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsInf(uint32_t eb, uint32_t sb, TNode x);
-Node mkIsPos(uint32_t eb, uint32_t sb, TNode x);
+Node mkIsNan(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsNeg(uint32_t eb, uint32_t sb, TNode x);
-Node mkSameSign(uint32_t eb, uint32_t sb, TNode x, TNode y);
-Node mkDiffSign(uint32_t eb, uint32_t sb, TNode x, TNode y);
+Node mkIsPos(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsNegInf(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsPosInf(uint32_t eb, uint32_t sb, TNode x);
-Node mkIsNan(uint32_t eb, uint32_t sb, TNode x);
+Node mkSameSign(uint32_t eb, uint32_t sb, TNode x, TNode y);
+Node mkDiffSign(uint32_t eb, uint32_t sb, TNode x, TNode y);
 Node mkSignZeroResult(uint32_t eb, uint32_t sb, TNode rm, TNode x);
+
+Node mkRangeConstraint(uint32_t eb, uint32_t sb, TNode x);
+Node mkIsRounded(uint32_t eb, uint32_t sb, TNode x);
 
 }; /* namespace RfpUtils */
 

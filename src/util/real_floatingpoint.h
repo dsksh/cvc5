@@ -54,6 +54,14 @@ inline static Integer minExponent(uint32_t size)
  */
 Integer maxValue(uint32_t eb, uint32_t sb);
 
+/** Return the smallest positive normal number.
+ */
+Rational minNormal(uint32_t eb, uint32_t sb);
+
+/** Return the smallest positive subnormal number.
+ */
+Rational minSubnormal(uint32_t eb, uint32_t sb);
+
 /** Get the negative zero.
  */
 Rational minusZero(uint32_t eb, uint32_t sb);
@@ -339,6 +347,24 @@ inline std::ostream& operator<<(std::ostream& os, const RfpOperation& t)
 {
   return t.print(os);
 }
+
+/**
+ * 
+ */
+class AbstractRFP : public Rational
+{
+ public:
+  AbstractRFP(uint32_t eb, uint32_t sb, const Rational& v) 
+  : Rational(v), d_eb(eb), d_sb(sb) {}
+
+  friend std::ostream& operator<<(std::ostream& os, const AbstractRFP& v);
+
+ private:
+  uint32_t d_eb;
+  uint32_t d_sb;
+};
+
+std::ostream& operator<<(std::ostream& os, const AbstractRFP& v);
 
 }  // namespace cvc5::internal
 

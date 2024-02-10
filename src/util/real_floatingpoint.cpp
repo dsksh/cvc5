@@ -106,7 +106,7 @@ Rational minusInfinity(uint32_t eb, uint32_t sb)
   // TODO: should not be the result of normal FPA operation.
   //return -maxValue(eb,sb) - 2;
   Rational v = maxValue(eb,sb);
-  return Rational(-v.getNumerator() * 3 - 2, 3);
+  return Rational(-v.getNumerator() * 3 - 1, 3);
 }
 
 /** Get the possitive infinity.
@@ -126,7 +126,7 @@ Rational notANumber(uint32_t eb, uint32_t sb)
   // TODO: should not be the result of normal FPA operation.
   //return -maxValue(eb,sb) - 1;
   Rational v = maxValue(eb,sb);
-  return Rational(-v.getNumerator() * 3 - 1, 3);
+  return Rational(-v.getNumerator() * 3 - 2, 3);
 }
 
 bool isNormal(uint32_t eb, uint32_t sb, const Rational& arg)
@@ -350,5 +350,30 @@ FloatingPoint convertToFP(uint32_t eb, uint32_t sb, const Rational& arg)
 }
 
 }  // namespace RealFloatingPoint
+
+namespace RFP = RealFloatingPoint;
+
+std::ostream& operator<<(std::ostream& os, const AbstractRFP& v)
+{
+  if (v == RFP::notANumber(v.d_eb, v.d_sb))
+    return os << "NaN";
+  else
+  {
+    os << (v < 0 ? '-' : '+');
+
+    if (RFP::isInfinite(v.d_eb, v.d_sb, v))
+      return os << "oo";
+    else if (!RFP::isFinite(v.d_eb, v.d_sb, v))
+      return os << "L";
+    else if (v.abs() == RFP::maxValue(v.d_eb, v.d_sb))
+      return os << "M";
+    else if (RFP::isZero(v.d_eb, v.d_sb, v))
+      return os << "0";
+    else if (RFP::isSubnormal(v.d_eb, v.d_sb, v))
+      return os << "SN";
+    else // isNormal
+      return os << "N";
+  }
+}
 
 }  // namespace cvc5::internal

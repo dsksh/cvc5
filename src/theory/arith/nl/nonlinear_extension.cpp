@@ -68,6 +68,8 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
   d_extTheory.addFunctionKind(kind::PI);
   d_extTheory.addFunctionKind(kind::IAND);
   d_extTheory.addFunctionKind(kind::POW2);
+  d_extTheory.addFunctionKind(kind::RFP_ROUND);
+  d_extTheory.addFunctionKind(kind::RFP_TO_RFP_FROM_RFP);
   d_extTheory.addFunctionKind(kind::RFP_ADD);
   d_extTheory.addFunctionKind(kind::RFP_SUB);
   d_extTheory.addFunctionKind(kind::RFP_NEG);
@@ -76,8 +78,8 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
   d_extTheory.addFunctionKind(kind::RFP_EQ);
   d_extTheory.addFunctionKind(kind::RFP_LT);
   d_extTheory.addFunctionKind(kind::RFP_LEQ);
-  d_extTheory.addFunctionKind(kind::RFP_ROUND);
-  d_extTheory.addFunctionKind(kind::RFP_TO_RFP_FROM_RFP);
+  d_extTheory.addFunctionKind(kind::RFP_GT);
+  d_extTheory.addFunctionKind(kind::RFP_GEQ);
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 

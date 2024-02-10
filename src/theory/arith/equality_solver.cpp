@@ -53,6 +53,18 @@ void EqualitySolver::finishInit()
   d_ee->addFunctionKind(kind::SINE);
   d_ee->addFunctionKind(kind::IAND);
   d_ee->addFunctionKind(kind::POW2);
+  // TODO
+  d_ee->addFunctionKind(kind::RFP_ROUND);
+  d_ee->addFunctionKind(kind::RFP_TO_RFP_FROM_RFP);
+  d_ee->addFunctionKind(kind::RFP_ADD);
+  d_ee->addFunctionKind(kind::RFP_NEG);
+  d_ee->addFunctionKind(kind::RFP_SUB);
+  d_ee->addFunctionKind(kind::RFP_MULT);
+  d_ee->addFunctionKind(kind::RFP_DIV);
+  d_ee->addFunctionKind(kind::RFP_LT);
+  d_ee->addFunctionKind(kind::RFP_LEQ);
+  d_ee->addFunctionKind(kind::RFP_GT);
+  d_ee->addFunctionKind(kind::RFP_GEQ);
 }
 
 bool EqualitySolver::preNotifyFact(

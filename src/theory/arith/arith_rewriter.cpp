@@ -990,6 +990,8 @@ RewriteResponse ArithRewriter::postRewriteIlog2(TNode t)
 {
   Trace("ilog2-rewrite") << "Rewrite ILOG2 " << t << " == ";
   Assert(t.getKind() == kind::ILOG2);
+  Assert(t.getType().isInteger());
+  Assert(t[0].getType().isInteger());
   NodeManager* nm = NodeManager::currentNM();
   // if constant, we eliminate
   if (t[0].isConst())
