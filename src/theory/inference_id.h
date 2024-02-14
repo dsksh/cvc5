@@ -163,6 +163,13 @@ enum class InferenceId
   ARITH_NL_POW2_MONOTONE_REFINE,
   // trivial refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_TRIVIAL_CASE_REFINE,
+  //-------------------- nonlinear ilog2 solver
+  // initial refinements (Ilog2Solver::checkInitialRefine)
+  ARITH_NL_ILOG2_INIT_REFINE,
+  // value refinements (Ilog2Solver::checkFullRefine)
+  ARITH_NL_ILOG2_VALUE_REFINE,
+  // monotonicity refinements (Ilog2Solver::checkFullRefine)
+  ARITH_NL_ILOG2_MONOTONE_REFINE,
   //-------------------- rfp.round solver
   // initial refinements (RfpRoundSolver::checkInitialRefine)
   ARITH_NL_RFP_ROUND_INIT_REFINE,

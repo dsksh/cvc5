@@ -53,6 +53,7 @@ void EqualitySolver::finishInit()
   d_ee->addFunctionKind(kind::SINE);
   d_ee->addFunctionKind(kind::IAND);
   d_ee->addFunctionKind(kind::POW2);
+  d_ee->addFunctionKind(kind::ILOG2);
   // TODO
   d_ee->addFunctionKind(kind::RFP_ROUND);
   d_ee->addFunctionKind(kind::RFP_TO_RFP_FROM_RFP);

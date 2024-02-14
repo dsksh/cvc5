@@ -112,24 +112,16 @@ Node mkIsNan(uint32_t eb, uint32_t sb, TNode x)
 Node mkIsNeg(uint32_t eb, uint32_t sb, TNode x)
 {
   NodeManager* nm = NodeManager::currentNM();
-  //Node isFinite = mkIsFinite(eb,sb, x);
-  //Node isInf = mkIsInf(eb,sb, x);
-  //Node finOrInf = nm->mkNode(OR, isFinite, isInf);
   Node isNotNan = mkIsNan(eb,sb, x).notNode();
   Node isNeg = nm->mkNode(LT, x, nm->mkConstReal(Rational(0)));
-  //return nm->mkNode(AND, finOrInf, isNeg);
   return isNotNan.andNode(isNeg);
 }
 
 Node mkIsPos(uint32_t eb, uint32_t sb, TNode x)
 {
   NodeManager* nm = NodeManager::currentNM();
-  //Node isFinite = mkIsFinite(eb,sb, x);
-  //Node isInf = mkIsInf(eb,sb, x);
-  //Node finOrInf = nm->mkNode(OR, isFinite, isInf);
   Node isNotNan = mkIsNan(eb,sb, x).notNode();
   Node isPos = nm->mkNode(GT, x, nm->mkConstReal(Rational(0)));
-  //return nm->mkNode(AND, finOrInf, isPos);
   return isNotNan.andNode(isPos);
 }
 
@@ -185,24 +177,21 @@ Node mkRangeConstraint(uint32_t eb, uint32_t sb, TNode node)
   Node isFinite = mkIsFinite(eb,sb, node);
   Node isNormal = mkIsNormal(eb,sb, node);
   Node isSubnormal = mkIsSubnormal(eb,sb, node);
-  //Node op = nm->mkConst(RfpRound(eb, sb));
-  //Node rm = nm->mkConstInt(0);
-  //Node rounded = nm->mkNode(kind::RFP_ROUND, op, rm, node);
-  //Node eqRounded = node.eqNode(rounded);
   //Node eqRounded = mkIsRounded(eb,sb, node);
   return isNan
     .orNode(isNegInf).orNode(isPosInf)
-    .orNode(isNegZero).orNode(isPosZero)
+    .orNode(isNegZero).orNode(isPosZero);
     // TODO
-    .orNode(isFinite);
-    //.orNode(isNormal).orNode(isSubnormal));
+    //.orNode(isFinite);
+    //.orNode(isNormal).orNode(isSubnormal);
 }
 
 Node mkIsRounded(uint32_t eb, uint32_t sb, TNode node)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node op = nm->mkConst(RfpRound(eb, sb));
-  Node rounded = nm->mkNode(kind::RFP_ROUND, op, nm->mkConstInt(0), node);
+  Node rm = nm->mkConstInt(0);
+  Node rounded = nm->mkNode(kind::RFP_ROUND, op, rm, node);
   return node.eqNode(rounded);
 }
 

@@ -241,6 +241,7 @@ public:
      case kind::DIVISION_TOTAL: return isDivMember(n);
      case kind::IAND:
      case kind::POW2:
+     case kind::ILOG2:
      case kind::RFP_TO_RFP_FROM_RFP:
      case kind::RFP_ROUND:
      case kind::RFP_ADD:

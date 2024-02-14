@@ -31,6 +31,7 @@
 #include "util/floatingpoint.h"
 #include "util/real_floatingpoint.h"
 #include "util/int_roundingmode.h"
+#include "theory/arith/nl/rfp_utils.h"
 
 namespace cvc5::internal {
 namespace preprocessing {
@@ -40,6 +41,7 @@ using namespace std;
 using namespace cvc5::internal::theory;
 
 namespace RFP = cvc5::internal::RealFloatingPoint;
+using namespace cvc5::internal::theory::arith::nl::RfpUtils;
 
 FPToReal::FPToReal(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "fp-to-real"), 
@@ -187,18 +189,19 @@ void FPToReal::addFPRangeConstraint(Node node,
   //}
 
   // TODO
-  Node isNegZero = node.eqNode(d_nm->mkConstReal(RFP::minusZero(eb,sb)));
-  Node isPosZero = node.eqNode(d_nm->mkConstReal(RFP::plusZero(eb,sb)));
-  Node isNegInf  = node.eqNode(d_nm->mkConstReal(RFP::minusInfinity(eb,sb)));
-  Node isPosInf = node.eqNode(d_nm->mkConstReal(RFP::plusInfinity(eb,sb)));
-  Node isNan = node.eqNode(d_nm->mkConstReal(RFP::notANumber(eb,sb)));
-  Node op = d_nm->mkConst(RfpRound(eb, sb));
-  Node rm = d_nm->mkConstInt(0);
-  Node rounded = d_nm->mkNode(kind::RFP_ROUND, op, rm, node);
-  Node isRounded = node.eqNode(rounded);
-  Node constr = isNegZero.orNode(isPosZero)
-    .orNode(isNegInf).orNode(isPosInf)
-    .orNode(isNan).orNode(isRounded);
+  //Node isNegZero = node.eqNode(d_nm->mkConstReal(RFP::minusZero(eb,sb)));
+  //Node isPosZero = node.eqNode(d_nm->mkConstReal(RFP::plusZero(eb,sb)));
+  //Node isNegInf  = node.eqNode(d_nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+  //Node isPosInf = node.eqNode(d_nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+  //Node isNan = node.eqNode(d_nm->mkConstReal(RFP::notANumber(eb,sb)));
+  //Node op = d_nm->mkConst(RfpRound(eb, sb));
+  //Node rm = d_nm->mkConstInt(0);
+  //Node rounded = d_nm->mkNode(kind::RFP_ROUND, op, rm, node);
+  //Node isRounded = node.eqNode(rounded);
+  //Node constr = isNegZero.orNode(isPosZero)
+  //  .orNode(isNegInf).orNode(isPosInf)
+  //  .orNode(isNan).orNode(isRounded);
+  Node constr = mkIsRounded(eb,sb, node);
   if (d_rangeAssertions.find(constr) == d_rangeAssertions.end())
   {
     Trace("fp-to-real")

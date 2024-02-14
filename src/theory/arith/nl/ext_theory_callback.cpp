@@ -77,6 +77,7 @@ bool NlExtTheoryCallback::isExtfReduced(
     Kind k = n.getKind();
     if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND
         && k != POW2
+        && k != ILOG2
         // TODO
         && k != RFP_ROUND
         && k != RFP_TO_RFP_FROM_RFP

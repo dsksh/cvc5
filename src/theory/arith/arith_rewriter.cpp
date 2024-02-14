@@ -990,8 +990,7 @@ RewriteResponse ArithRewriter::postRewriteIlog2(TNode t)
 {
   Trace("ilog2-rewrite") << "Rewrite ILOG2 " << t << " == ";
   Assert(t.getKind() == kind::ILOG2);
-  Assert(t.getType().isInteger());
-  Assert(t[0].getType().isInteger());
+  Assert(t[0].getType().isReal());
   NodeManager* nm = NodeManager::currentNM();
   // if constant, we eliminate
   if (t[0].isConst())
@@ -999,6 +998,7 @@ RewriteResponse ArithRewriter::postRewriteIlog2(TNode t)
     // ilog2 is only supported for reals
     Assert(t[0].getType().isReal());
     Rational r = t[0].getConst<Rational>();
+    // TODO
     if (r <= Rational(0))
     {
       // Todo improve the exception thrown

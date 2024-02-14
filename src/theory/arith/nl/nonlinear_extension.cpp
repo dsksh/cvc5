@@ -59,6 +59,7 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
       d_icpSlv(d_env, d_im),
       d_iandSlv(env, d_im, d_model),
       d_pow2Slv(env, d_im, d_model),
+      d_ilog2Slv(env, d_im, d_model),
       d_rfpRoundSlv(env, d_im, d_model),
       d_rfpSlv(env, d_im, d_model)
 {
@@ -68,6 +69,7 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
   d_extTheory.addFunctionKind(kind::PI);
   d_extTheory.addFunctionKind(kind::IAND);
   d_extTheory.addFunctionKind(kind::POW2);
+  d_extTheory.addFunctionKind(kind::ILOG2);
   d_extTheory.addFunctionKind(kind::RFP_ROUND);
   d_extTheory.addFunctionKind(kind::RFP_TO_RFP_FROM_RFP);
   d_extTheory.addFunctionKind(kind::RFP_ADD);
@@ -462,6 +464,11 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         break;
       case InferStep::POW2_FULL: d_pow2Slv.checkFullRefine(); break;
       case InferStep::POW2_INITIAL: d_pow2Slv.checkInitialRefine(); break;
+      case InferStep::ILOG2_INIT:
+        d_ilog2Slv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::ILOG2_FULL: d_ilog2Slv.checkFullRefine(); break;
+      case InferStep::ILOG2_INITIAL: d_ilog2Slv.checkInitialRefine(); break;
       case InferStep::RFP_ROUND_INIT:
         d_rfpRoundSlv.initLastCall(assertions, false_asserts, xts);
         break;

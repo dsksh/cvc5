@@ -10,19 +10,17 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Solver for real-valued FP rounding operators.
+ * Solver for ilog2 constraints.
  */
 
-#ifndef CVC5__THEORY__ARITH__NL__RFP_ROUND_SOLVER_H
-#define CVC5__THEORY__ARITH__NL__RFP_ROUND_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__NL__ILOG2_SOLVER_H
+#define CVC5__THEORY__ARITH__NL__ILOG2_SOLVER_H
 
-#include <map>
 #include <vector>
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
-#include "theory/theory_state.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -34,16 +32,16 @@ namespace nl {
 
 class NlModel;
 
-/** Real-valued FP round solver class
+/** ilog2 solver class
  *
  */
-class RfpRoundSolver : protected EnvObj
+class Ilog2Solver : protected EnvObj
 {
-  typedef context::CDHashSet<Node> NodeSet;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
-  RfpRoundSolver(Env& env, InferenceManager& im, NlModel& model);
-  ~RfpRoundSolver();
+  Ilog2Solver(Env& env, InferenceManager& im, NlModel& model);
+  ~Ilog2Solver();
 
   /** init last call
    *
@@ -59,7 +57,7 @@ class RfpRoundSolver : protected EnvObj
   //-------------------------------------------- lemma schemas
   /** check initial refine
    *
-   * Returns a set of valid theory lemmas, based on simple facts about RFP_ROUND.
+   * Returns a set of valid theory lemmas, based on simple facts about log2.
    *
    * This should be a heuristic incomplete check that only introduces a
    * small number of new terms in the lemmas it returns.
@@ -72,6 +70,9 @@ class RfpRoundSolver : protected EnvObj
    */
   void checkFullRefine();
 
+  /** sort d_ilog2 according to their values in the current model */
+  void sortIlog2sBasedOnModel();
+
   //-------------------------------------------- end lemma schemas
  private:
   // The inference manager that we push conflicts and lemmas to.
@@ -83,41 +84,25 @@ class RfpRoundSolver : protected EnvObj
   Node d_true;
   Node d_zero;
   Node d_one;
+  Node d_two;
 
-  /** RFP_ROUND terms that have been given initial refinement lemmas */
   NodeSet d_initRefine;
-  /** all RFP_ROUND terms */
-  std::map<unsigned, std::vector<Node> > d_rounds;
-  /** all RFP_TO_RFP terms */
-  std::map<unsigned, std::vector<Node> > d_toRfps;
+  /** all ilog2 terms
+   * Cleared at each last call effort check.
+   * */
+  std::vector<Node> d_ilog2s;
 
   /**
-   * 
-   */
-  void checkFullRefineRound(TNode node, 
-    const Integer& rm, const Rational& arg, 
-    const Rational& round, const Rational& roundC);
-
-  /**
-   * 
-   */
-  void checkFullRefineRoundPair(TNode node1, 
-    const Integer& rm1, const Rational& arg1, const Rational& round1,
-    TNode node2, 
-    const Integer& rm2, const Rational& arg2, const Rational& round2);
-
-  /**
-   * Value-based refinement lemma for t of the form ((_ rfp.round eb sb) rm arg). Returns:
-   *   rm = M(rm) ^ arg = M(arg) =>
-   *     ((_ rfp.round eb sb) rm arg) = rewrite(((_ rfp.round eb sb) M(rm) M(arg)))
+   * Value-based refinement lemma for i of the form (ilog2 x). Returns:
+   *   x = M(x) /\ x>= 0 ---->
+   *     (ilog2 x) = rewrite((ilog2 M(x)))
    */
   Node valueBasedLemma(Node i);
-
-}; /* class RfpRoundSolver */
+}; /* class Ilog2Solver */
 
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__ARITH__RFP_ROUND_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__ILOG2_SOLVER_H */

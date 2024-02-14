@@ -41,6 +41,9 @@ std::ostream& operator<<(std::ostream& os, InferStep step)
     case InferStep::POW2_INIT: return os << "POW2_INIT";
     case InferStep::POW2_FULL: return os << "POW2_FULL";
     case InferStep::POW2_INITIAL: return os << "POW2_INITIAL";
+    case InferStep::ILOG2_INIT: return os << "ILOG2_INIT";
+    case InferStep::ILOG2_FULL: return os << "ILOG2_FULL";
+    case InferStep::ILOG2_INITIAL: return os << "ILOG2_INITIAL";
     case InferStep::RFP_ROUND_INIT: return os << "RFP_ROUND_INIT";
     case InferStep::RFP_ROUND_FULL: return os << "RFP_ROUND_FULL";
     case InferStep::RFP_ROUND_INITIAL: return os << "RFP_ROUND_INITIAL";
@@ -138,6 +141,8 @@ void Strategy::initializeStrategy(const Options& options)
   one << InferStep::IAND_INITIAL << InferStep::BREAK;
   one << InferStep::POW2_INIT;
   one << InferStep::POW2_INITIAL << InferStep::BREAK;
+  one << InferStep::ILOG2_INIT;
+  one << InferStep::ILOG2_INITIAL << InferStep::BREAK;
   one << InferStep::RFP_ROUND_INIT;
   one << InferStep::RFP_ROUND_INITIAL << InferStep::BREAK;
   one << InferStep::RFP_INIT;
@@ -182,6 +187,7 @@ void Strategy::initializeStrategy(const Options& options)
   }
   one << InferStep::IAND_FULL << InferStep::BREAK;
   one << InferStep::POW2_FULL << InferStep::BREAK;
+  one << InferStep::ILOG2_FULL << InferStep::BREAK;
   one << InferStep::RFP_ROUND_FULL << InferStep::BREAK;
   one << InferStep::RFP_FULL << InferStep::BREAK;
   if (options.arith.nlCov)
