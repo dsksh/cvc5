@@ -184,6 +184,9 @@ Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const R
   Rational normalMax = (Rational(2)-Rational(1)/mMax)*eeMax;
   Rational snMin = Rational(1, Integer::pow2(eMax-2+sb));
 
+  Trace("rfp-round-eval") << "rm: " << int(rm) << std::endl;
+  Trace("rfp-round-eval") << "v0: " << value << std::endl;
+
   //if (value.isZero())
   if (isZero(eb,sb, value) || isInfinite(eb,sb, value) || isNan(eb,sb, value))
     return value;
@@ -275,7 +278,8 @@ Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const R
   if (!toInt){
     r /= mMax;
     r *= ee;
-  }else if (toInt && r.isZero() && value.sgn() < 0){
+  // TODO }else if (toInt && r.isZero() && value.sgn() < 0){
+  }else if (r.isZero() && value.sgn() < 0){
     r = minusZero(eb,sb);
   }
   return r;

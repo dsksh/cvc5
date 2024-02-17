@@ -47,7 +47,7 @@ inline static Integer maxExponent(uint32_t size)
  */
 inline static Integer minExponent(uint32_t size)
 {
-  return Integer(Integer(2) - maxExponent(size));
+  return Integer(Integer(1) - maxExponent(size));
 }
 
 /** Get the maximum normal value.

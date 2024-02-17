@@ -137,16 +137,16 @@ void Strategy::initializeStrategy(const Options& options)
     }
     one << InferStep::TRANS_INITIAL << InferStep::BREAK;
   }
-  one << InferStep::IAND_INIT;
-  one << InferStep::IAND_INITIAL << InferStep::BREAK;
-  one << InferStep::POW2_INIT;
-  one << InferStep::POW2_INITIAL << InferStep::BREAK;
-  one << InferStep::ILOG2_INIT;
-  one << InferStep::ILOG2_INITIAL << InferStep::BREAK;
-  one << InferStep::RFP_ROUND_INIT;
-  one << InferStep::RFP_ROUND_INITIAL << InferStep::BREAK;
   one << InferStep::RFP_INIT;
   one << InferStep::RFP_INITIAL << InferStep::BREAK;
+  one << InferStep::RFP_ROUND_INIT;
+  one << InferStep::RFP_ROUND_INITIAL << InferStep::BREAK;
+  one << InferStep::IAND_INIT;
+  one << InferStep::IAND_INITIAL << InferStep::BREAK;
+  one << InferStep::ILOG2_INIT;
+  one << InferStep::ILOG2_INITIAL << InferStep::BREAK;
+  one << InferStep::POW2_INIT;
+  one << InferStep::POW2_INITIAL << InferStep::BREAK;
   if (options.arith.nlExt == options::NlExtMode::FULL
       || options.arith.nlExt == options::NlExtMode::LIGHT)
   {

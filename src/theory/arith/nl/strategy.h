@@ -56,6 +56,13 @@ enum class InferStep
   /** An initial POW2 check */
   POW2_INITIAL,
 
+  /** Initialize the ILOG2 solver */
+  ILOG2_INIT,
+  /** A full ILOG2 check */
+  ILOG2_FULL,
+  /** An initial ILOG2 check */
+  ILOG2_INITIAL,
+
   /** Initialize the RFP_ROUND solver */
   RFP_ROUND_INIT,
   /** A full RFP_ROUND check */

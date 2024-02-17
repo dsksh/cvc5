@@ -123,49 +123,104 @@ void RfpRoundSolver::checkInitialRefine()
         // round_range
         Node lem = mkRangeConstraint(eb,sb, node);
         Trace("rfp-round-lemma") << "RfpRoundSolver::Lemma: " << lem
-                               << " ; round_range ; INIT_REFINE"
-                               << std::endl;
+                                 << " ; round_range ; INIT_REFINE"
+                                 << std::endl;
         d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
       }
       {
-        Node isNormalX = mkIsNormal(eb,sb, node[1]);
-        Node isSubnormalX = mkIsSubnormal(eb,sb, node[1]);
-        Node assumption = isNormalX.orNode(isSubnormalX);
-
-        Node exp = nm->mkConstInt(Integer(sb) - 1 - RFP::minExponent(eb));
-        Node pow2 = nm->mkNode(kind::TO_REAL, nm->mkNode(kind::POW2, exp)); // R
-        Node pow2Inv = nm->mkNode(kind::DIVISION, nm->mkConstReal(1), pow2); // R
-        pow2Inv = rewrite(pow2Inv);
-        Node abs = nm->mkNode(kind::ABS, node[1]); // R
-        Node cond = nm->mkNode(GT, abs, pow2Inv);
-        Node max = nm->mkNode(kind::ITE, cond, abs, pow2Inv);
-        //Node ilog2 = nm->mkNode(kind::ILOG2, max);
+        //Node minNormal = nm->mkConstReal(RFP::minNormal(eb,sb));
+        //Node cond = nm->mkNode(kind::LEQ, mkAbs(node[1]), minNormal);
+        Node diff = nm->mkNode(kind::SUB, node, node[1]);
         {
-          //Node isPosX = nm->mkNode(kind::GT, node[1], nm->mkConstReal(0));
-          //Node cond = nm->mkNode(GT, node[1], pow2Inv);
-          //Node assumption = isPosX.andNode(cond);
-
-          //Node isNegX = nm->mkNode(kind::LT, node[1], nm->mkConstInt(0));
-          //Node assumption = isNegX.andNode(cond);
-
-          //Node assumption = cond.notNode();
-
-          Node ilog2 = nm->mkNode(kind::ILOG2, max);
-          Node alph = nm->mkNode(kind::SUB, ilog2, nm->mkConstInt(sb));
-          Node pow2Alph = nm->mkNode(kind::POW2, alph);
-          pow2Alph = nm->mkNode(kind::TO_REAL, pow2Alph);
-          Node pow2AlphNeg = nm->mkNode(kind::NEG, pow2Alph);
-          Node diff = nm->mkNode(kind::SUB, node, node[1]);
-          Node lb = nm->mkNode(LEQ, pow2AlphNeg, diff);
-          Node ub = nm->mkNode(LEQ, diff, pow2Alph);
-
+          Node assumption = mkIsSubnormalWeak(eb,sb, node[1]);
+          Rational minSN = RFP::minSubnormal(eb,sb);
+          Node lb = nm->mkNode(kind::LEQ, nm->mkConstReal(-minSN), diff);
+          Node ub = nm->mkNode(kind::LEQ, diff, nm->mkConstReal(minSN));
           Node lem = assumption.impNode(lb.andNode(ub));
-          //Node lem = lb.andNode(ub);
           Trace("rfp-round-lemma") << "RfpRoundSolver::Lemma: " << lem
-                                 << " ; round_diff ; INIT_REFINE"
-                                 << std::endl;
+                                   << " ; round_diff1 ; INIT_REFINE"
+                                   << std::endl;
           d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
         }
+        {
+          Node assumption = mkIsNormal(eb,sb, node[1]);
+          Integer d = Integer::pow2(sb-1);
+          Node coeff = nm->mkConstReal(Rational(d).inverse());
+          Node bound = nm->mkNode(kind::MULT, coeff, mkAbs(node[1]));
+          Node lb = nm->mkNode(kind::LEQ, nm->mkNode(NEG, bound), diff);
+          Node ub = nm->mkNode(kind::LEQ, diff, bound);
+          Node lem = assumption.impNode(lb.andNode(ub));
+          Trace("rfp-round-lemma") << "RfpRoundSolver::Lemma: " << lem
+                                   << " ; round_diff2 ; INIT_REFINE"
+                                   << std::endl;
+          d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
+        }
+        {
+          Node max = nm->mkConstReal(RFP::maxValue(eb,sb));
+          Node a1 = nm->mkNode(kind::GT, node[1], max);
+          Node isMax = node.eqNode(max);
+          Node isPosInf = mkIsPosInf(eb,sb, node);
+          Node l1 = a1.impNode(isMax.orNode(isPosInf));
+
+          Node min = nm->mkConstReal(-RFP::maxValue(eb,sb));
+          Node a2 = nm->mkNode(kind::LT, node[1], min);
+          Node isMin = node.eqNode(min);
+          Node isNegInf = mkIsNegInf(eb,sb, node);
+          Node l2 = a2.impNode(isMin.orNode(isNegInf));
+
+          Node lem = l1.andNode(l2);
+          Trace("rfp-round-lemma") << "RfpRoundSolver::Lemma: " << lem
+                                   << " ; round_minmax ; INIT_REFINE"
+                                   << std::endl;
+          d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
+        }
+      }
+      //{
+      //  Node isNormalX = mkIsNormal(eb,sb, node[1]);
+      //  Node isSubnormalX = mkIsSubnormal(eb,sb, node[1]);
+      //  Node assumption = isNormalX.orNode(isSubnormalX);
+
+      //  Node exp = nm->mkConstInt(Integer(sb) - 1 - RFP::minExponent(eb));
+      //  Node pow2 = nm->mkNode(kind::TO_REAL, nm->mkNode(kind::POW2, exp)); // R
+      //  Node pow2Inv = nm->mkNode(kind::DIVISION, nm->mkConstReal(1), pow2); // R
+      //  pow2Inv = rewrite(pow2Inv);
+      //  Node abs = nm->mkNode(kind::ABS, node[1]); // R
+      //  Node cond = nm->mkNode(GT, abs, pow2Inv);
+      //  Node max = nm->mkNode(kind::ITE, cond, abs, pow2Inv);
+      //  //Node ilog2 = nm->mkNode(kind::ILOG2, max);
+      //  {
+      //    //Node isPosX = nm->mkNode(kind::GT, node[1], nm->mkConstReal(0));
+      //    //Node cond = nm->mkNode(GT, node[1], pow2Inv);
+      //    //Node assumption = isPosX.andNode(cond);
+
+      //    //Node isNegX = nm->mkNode(kind::LT, node[1], nm->mkConstInt(0));
+      //    //Node assumption = isNegX.andNode(cond);
+
+      //    //Node assumption = cond.notNode();
+
+      //    Node ilog2 = nm->mkNode(kind::ILOG2, max);
+      //    Node alph = nm->mkNode(kind::SUB, ilog2, nm->mkConstInt(sb));
+      //    Node pow2Alph = nm->mkNode(kind::POW2, alph);
+      //    pow2Alph = nm->mkNode(kind::TO_REAL, pow2Alph);
+      //    Node pow2AlphNeg = nm->mkNode(kind::NEG, pow2Alph);
+      //    Node diff = nm->mkNode(kind::SUB, node, node[1]);
+      //    Node lb = nm->mkNode(LEQ, pow2AlphNeg, diff);
+      //    Node ub = nm->mkNode(LEQ, diff, pow2Alph);
+
+      //    Node lem = assumption.impNode(lb.andNode(ub));
+      //    //Node lem = lb.andNode(ub);
+      //    Trace("rfp-round-lemma") << "RfpRoundSolver::Lemma: " << lem
+      //                           << " ; round_diff ; INIT_REFINE"
+      //                           << std::endl;
+      //    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
+      //  }
+      //}
+      {
+        Node lem = mkRoundCases(eb,sb, node[1], eb,sb, node);
+        Trace("rfp-round-lemma") << "RfpRoundSolver::Lemma: " << lem
+                                 << " ; round_cases ; INIT_REFINE"
+                                 << std::endl;
+        d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
       }
     }
   }
@@ -203,22 +258,9 @@ void RfpRoundSolver::checkInitialRefine()
         d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
       }
       {
-        // special cases
-        Node isZero = mkIsZero(eb,sb, node);
-        Node isZeroX = mkIsZero(eb0,sb0, node[1]);
-        Node l1 = isZero.eqNode(isZeroX);
-        Node isInf = mkIsInf(eb,sb, node);
-        Node isInfX = mkIsInf(eb0,sb0, node[1]);
-        Node l2 = isInfX.impNode(isInf);
-        Node isNan = mkIsNan(eb,sb, node);
-        Node isNanX = mkIsNan(eb0,sb0, node[1]);
-        Node l3 = isNan.eqNode(isNanX);
-        Node isNeg = mkIsNeg(eb,sb, node);
-        Node isNegX = mkIsNeg(eb0,sb0, node[1]);
-        Node l4 = isNeg.eqNode(isNegX);
-        Node lem = l1.andNode(l2).andNode(l3).andNode(l4);
+        Node lem = mkRoundCases(eb0,sb0, node[1], eb,sb, node);
         Trace("rfp-to-rfp-lemma") << "RfpRoundSolver::Lemma: " << lem
-                                  << " ; to_rfp_special ; INIT_REFINE"
+                                  << " ; to_rfp_cases ; INIT_REFINE"
                                   << std::endl;
         d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
       }
@@ -255,6 +297,8 @@ void RfpRoundSolver::checkFullRefine()
       Node valRound = d_model.computeAbstractModelValue(node);
       Node valRoundC = d_model.computeConcreteModelValue(node);
 
+      Node valRmA = d_model.computeAbstractModelValue(node[0]);
+      Node valArgA = d_model.computeAbstractModelValue(node[1]);
       Node valRm = d_model.computeConcreteModelValue(node[0]);
       Node valArg = d_model.computeConcreteModelValue(node[1]);
 
@@ -265,7 +309,11 @@ void RfpRoundSolver::checkFullRefine()
 
       if (TraceIsOn("rfp-round-check"))
       {
-        Trace("rfp-round-check") << "* " << node << ", value = " << valRound 
+        Trace("rfp-round-check") << "* " << node 
+                                 //<< ", value = " << valRound 
+                                 << std::endl;
+        Trace("rfp-round-check") << "  value  (" << valRmA 
+                                 << ", " << valArgA << ") = " << valRound
                                  << std::endl;
         Trace("rfp-round-check") << "  actual (" << rm << ", " << arg
                                  << ") = " << valRoundC << std::endl;
@@ -281,15 +329,7 @@ void RfpRoundSolver::checkFullRefine()
         continue;
       }
 
-      //Trace("rfp-round-check") << RFP::maxValue(eb,sb) << std::endl;
-      //Trace("rfp-round-check") << (arg > RFP::maxValue(eb,sb)) << std::endl;
-      //Trace("rfp-round-check") << (arg <= RFP::plusInfinity(eb,sb)) << std::endl;
-      //Trace("rfp-round-check") << RFP::round(eb,sb, IRM::TNS, arg) << std::endl;
-      //Trace("rfp-round-check") << RFP::round(eb,sb, IRM::TPS, arg) << std::endl;
-
       checkFullRefineRound(node, rm, arg, round, roundC);
-
-      // TODO: interval lemmas
 
       //for (uint64_t j = i + 1; j < size; j++)
       for (std::vector<Node>::const_iterator it1 = it + 1; 
@@ -363,16 +403,24 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
   uint32_t sb = sz.significandWidth();
   NodeManager* nm = NodeManager::currentNM();
 
-  //if (arg >= RFP::round(eb,sb, IRM::TPS, round)
-  //  && roundC < round)
+  ////if (arg >= RFP::round(eb,sb, IRM::TPS, round)
+  ////  && roundC < round)
+  //if (!RFP::isNan(eb,sb, arg) 
+  //  //&& round < roundC
+  //  )
   //{
   //  // L2-8 ub
-  //  Node i = nm->mkConstReal(round);
-  //  Node assumption = nm->mkNode(LT, node, i);
-  //  Node op = nm->mkConst(RfpRound(eb,sb));
-  //  Node rmTPS = nm->mkConstInt(IntRoundingMode::TPS);
-  //  Node ub = nm->mkNode(RFP_ROUND, op, rmTPS, i);
-  //  Node conclusion = nm->mkNode(LT, node[1], ub);
+  //  Rational i = round; // - RFP::minusZero(eb,sb);
+  //  //Node i = nm->mkConstReal(arg);
+  //  //Node assumption = nm->mkNode(LT, node, nm->mkConstReal(i));
+  //  Node conclusion = nm->mkNode(GEQ, node, nm->mkConstReal(i));
+  //  //Node op = nm->mkConst(RfpRound(eb,sb));
+  //  //Node rmTPS = nm->mkConstInt(IntRoundingMode::TPS);
+  //  //Node ub = nm->mkNode(RFP_ROUND, op, rmTPS, i);
+  //  Rational argUp = RFP::round(eb,sb, IRM::TPS, i);
+  //  Node ub = nm->mkConstReal(argUp);
+  //  //Node conclusion = nm->mkNode(LT, node[1], ub);
+  //  Node assumption = nm->mkNode(GEQ, node[1], ub);
   //  Node lem = assumption.impNode(conclusion);
   //  Trace("rfp-round-lemma")
   //    << "RfpRoundSolver::Lemma: " << lem 
@@ -380,16 +428,23 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
   //  d_im.addPendingLemma(
   //    lem, InferenceId::ARITH_NL_RFP_ROUND_MONOTONE_REFINE, nullptr, true);
   //}
-  //if (RFP::round(eb,sb, IRM::TNS, round) >= arg
-  //  && round < roundC)
+  ////if (RFP::round(eb,sb, IRM::TNS, round) >= arg
+  ////  && round < roundC)
+  //if (!RFP::isNan(eb,sb, arg) 
+  //  //&& round > roundC
+  //  )
   //{
   //  // L2-8 lb
-  //  Node i = nm->mkConstReal(round);
-  //  Node assumption = nm->mkNode(LT, i, node);
-  //  Node op = nm->mkConst(RfpRound(eb,sb));
-  //  Node rmTNS = nm->mkConstInt(IntRoundingMode::TNS);
-  //  Node lb = nm->mkNode(RFP_ROUND, op, rmTNS, i);
-  //  Node conclusion = nm->mkNode(LT, lb, node[1]);
+  //  Rational i = round; // + RFP::minusZero(eb,sb);
+  //  //Node assumption = nm->mkNode(LT, nm->mkConstReal(i), node);
+  //  Node conclusion = nm->mkNode(GEQ, nm->mkConstReal(i), node);
+  //  //Node op = nm->mkConst(RfpRound(eb,sb));
+  //  //Node rmTNS = nm->mkConstInt(IntRoundingMode::TNS);
+  //  //Node lb = nm->mkNode(RFP_ROUND, op, rmTNS, i);
+  //  Rational argDn = RFP::round(eb,sb, IRM::TNS, i);
+  //  Node lb = nm->mkConstReal(argDn);
+  //  //Node conclusion = nm->mkNode(LT, lb, node[1]);
+  //  Node assumption = nm->mkNode(GEQ, lb, node[1]);
   //  Node lem = assumption.impNode(conclusion);
   //  Trace("rfp-round-lemma")
   //    << "RfpRoundSolver::Lemma: " << lem 
@@ -397,13 +452,17 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
   //  d_im.addPendingLemma(
   //    lem, InferenceId::ARITH_NL_RFP_ROUND_MONOTONE_REFINE, nullptr, true);
   //}
-  if (!RFP::isNan(eb,sb, arg) && round <= arg 
-    && round  >  RFP::round(eb,sb, IRM::TNS, arg)
-    && roundC <= RFP::round(eb,sb, IRM::TNS, arg)
+
+  if (!RFP::isNan(eb,sb, arg) 
+    //&& round <= arg 
+    //&& round  >  RFP::round(eb,sb, IRM::TNS, arg)
+    //&& roundC <= RFP::round(eb,sb, IRM::TNS, arg)
     )
   {
     // L2-9 ub
-    Node i = nm->mkConstReal(arg);
+    //Node i = nm->mkConstReal(arg);
+    Node i = nm->mkConstReal(
+      arg >= RFP::minusInfinity(eb,sb) ? arg : RFP::minusInfinity(eb,sb));
     Node assumption = nm->mkNode(LEQ, node, i);
     Rational argDn = RFP::round(eb,sb, IRM::TNS, arg);
     Node ub = nm->mkConstReal(argDn);
@@ -414,6 +473,26 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
       Node nan = nm->mkConstReal(RFP::notANumber(eb,sb));
       Node isNan = nm->mkNode(EQUAL, node, nan);
       conclusion = isNinf.orNode(isNan);
+    }else if (argDn == RFP::minSubnormal(eb,sb)){
+      Node isPosMinSN = nm->mkNode(EQUAL, node, ub);
+      Node isPosZero = mkIsPosZero(eb,sb, node);
+      Node isNegZero = mkIsNegZero(eb,sb, node);
+      Node leqNegMinSN = nm->mkNode(LEQ, node,
+        nm->mkConstReal(-RFP::minSubnormal(eb,sb)));
+      conclusion = isPosMinSN.orNode(isPosZero).orNode(isNegZero)
+        .orNode(leqNegMinSN);
+    }else if (argDn == RFP::plusZero(eb,sb)){
+      Node isPosZero = mkIsPosZero(eb,sb, node);
+      Node isNegZero = mkIsNegZero(eb,sb, node);
+      Node leqNegMinSN = nm->mkNode(LEQ, node,
+        nm->mkConstReal(-RFP::minSubnormal(eb,sb)));
+      conclusion = isPosZero.orNode(isNegZero)
+        .orNode(leqNegMinSN);
+    }else if (argDn == RFP::minusZero(eb,sb)){
+      Node isNegZero = mkIsNegZero(eb,sb, node);
+      Node leqNegMinSN = nm->mkNode(LEQ, node,
+        nm->mkConstReal(-RFP::minSubnormal(eb,sb)));
+      conclusion = isNegZero.orNode(leqNegMinSN);
     }else{
       conclusion = nm->mkNode(LEQ, node, ub);
     }
@@ -423,18 +502,47 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
     d_im.addPendingLemma(
       lem, InferenceId::ARITH_NL_RFP_ROUND_MONOTONE_REFINE, nullptr, true);
   }
-  if (!RFP::isNan(eb,sb, arg) && arg <= round 
-    && RFP::round(eb,sb, IRM::TPS, arg) >  round
-    && RFP::round(eb,sb, IRM::TPS, arg) <= roundC
+  if (!RFP::isNan(eb,sb, arg) 
+    //&& arg <= round 
+    //&& RFP::round(eb,sb, IRM::TPS, arg) >  round
+    //&& RFP::round(eb,sb, IRM::TPS, arg) <= roundC
     )
   {
     // L2-9 lb
-    Node i = nm->mkConstReal(arg);
+    //Node i = nm->mkConstReal(arg);
+    Node i = nm->mkConstReal(
+      arg <= RFP::plusInfinity(eb,sb) ? arg : RFP::plusInfinity(eb,sb));
     Node assumption = nm->mkNode(LEQ, i, node);
     Rational argUp = RFP::round(eb,sb, IRM::TPS, arg);
     Node lb = nm->mkConstReal(argUp);
-    Kind lbOp = (argUp == RFP::plusInfinity(eb,sb)) ? EQUAL : LEQ;
-    Node conclusion = nm->mkNode(lbOp, lb, node);
+    //Kind lbOp = (argUp == RFP::plusInfinity(eb,sb)) ? EQUAL : LEQ;
+    Node conclusion;
+    if (argUp == RFP::plusInfinity(eb,sb)){
+      Node isPinf = nm->mkNode(EQUAL, node, lb);
+      conclusion = isPinf;
+    }else if (argUp == -RFP::minSubnormal(eb,sb)){
+      Node isNegMinSN = nm->mkNode(EQUAL, node, lb);
+      Node isNegZero = mkIsNegZero(eb,sb, node);
+      Node isPosZero = mkIsPosZero(eb,sb, node);
+      Node geqPosMinSN = nm->mkNode(GEQ, node, 
+        nm->mkConstReal(RFP::minSubnormal(eb,sb)));
+      conclusion = isNegMinSN.orNode(isNegZero).orNode(isPosZero)
+        .orNode(geqPosMinSN);
+    }else if (argUp == RFP::minusZero(eb,sb)){
+      Node isNegZero = mkIsNegZero(eb,sb, node);
+      Node isPosZero = mkIsPosZero(eb,sb, node);
+      Node geqPosMinSN = nm->mkNode(GEQ, node, 
+        nm->mkConstReal(RFP::minSubnormal(eb,sb)));
+      conclusion = isNegZero.orNode(isPosZero)
+        .orNode(geqPosMinSN);
+    }else if (argUp == RFP::plusZero(eb,sb)){
+      Node isPosZero = mkIsPosZero(eb,sb, node);
+      Node geqPosMinSN = nm->mkNode(GEQ, node, 
+        nm->mkConstReal(RFP::minSubnormal(eb,sb)));
+      conclusion = isPosZero.orNode(geqPosMinSN);
+    }else{
+      conclusion = nm->mkNode(LEQ, lb, node);
+    }
     Node lem = assumption.impNode(conclusion);
     Trace("rfp-round-lemma")
       << "RfpRoundSolver::Lemma: " << lem << " ; BOUND_REFINE lb" << std::endl;
@@ -458,17 +566,25 @@ void RfpRoundSolver::checkFullRefineRoundPair(TNode node1,
   TNode node2,
   const Integer& rm2, const Rational& arg2, const Rational& round2)
 {
+  FloatingPointSize sz1 = node1.getOperator().getConst<RfpRound>().getSize();
+  FloatingPointSize sz2 = node2.getOperator().getConst<RfpRound>().getSize();
+  uint32_t eb = sz1.exponentWidth();
+  uint32_t sb = sz1.significandWidth();
   NodeManager* nm = NodeManager::currentNM();
 
   // monotone lemmas
-  if (rm1 == rm2)
+  if (rm1 == rm2 && sz1 == sz2)
   {
     if (arg1 <= arg2 && round1 > round2){
       // L2-5
       Node a1 = nm->mkNode(EQUAL, node1[0], node2[0]);
-      Node a2 = nm->mkNode(LEQ, node1[1], node2[1]);
+      Node isFinite1 = mkIsFinite(eb,sb, node1[1]);
+      Node isFinite2 = mkIsFinite(eb,sb, node2[1]);
+      Node a2 = isFinite1.andNode(isFinite2).andNode(
+        nm->mkNode(LEQ, node1[1], node2[1]));
       Node assumption = nm->mkNode(AND, a1, a2);
-      Node conclusion = nm->mkNode(LEQ, node1, node2);
+      Node op = nm->mkConst(RfpLeq(eb,sb));
+      Node conclusion = mkTrue(nm->mkNode(RFP_LEQ, op, node1, node2));
       Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
       Trace("rfp-round-lemma")
           << "RfpRoundSolver::Lemma: " << lem << " ; MONOTONE_REFINE" << std::endl;
@@ -478,9 +594,10 @@ void RfpRoundSolver::checkFullRefineRoundPair(TNode node1,
     if (round1 < round2 && arg1 >= round2){
       // L2-6
       Node a1 = nm->mkNode(EQUAL, node1[0], node2[0]);
-      Node a2 = nm->mkNode(LT, node1, node2);
+      Node op = nm->mkConst(RfpLt(eb,sb));
+      Node a2 = mkTrue(nm->mkNode(RFP_LT, op, node1, node2));
       Node assumption = nm->mkNode(AND, a1, a2);
-      Node conclusion = nm->mkNode(LT, node1[1], node2);
+      Node conclusion = mkTrue(nm->mkNode(RFP_LT, op, node1[1], node2));
       Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
       Trace("rfp-round-lemma")
           << "RfpRoundSolver::Lemma: " << lem << " ; MONOTONE_REFINE" << std::endl;
@@ -490,9 +607,10 @@ void RfpRoundSolver::checkFullRefineRoundPair(TNode node1,
     if (round1 < round2 && round1 >= arg2){
       // L2-7
       Node a1 = nm->mkNode(EQUAL, node1[0], node2[0]);
-      Node a2 = nm->mkNode(LT, node1, node2);
+      Node op = nm->mkConst(RfpLt(eb,sb));
+      Node a2 = mkTrue(nm->mkNode(RFP_LT, op, node1, node2));
       Node assumption = nm->mkNode(AND, a1, a2);
-      Node conclusion = nm->mkNode(LT, node1, node2[1]);
+      Node conclusion = mkTrue(nm->mkNode(RFP_LT, op, node1, node2[1]));
       Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
       Trace("rfp-round-lemma")
           << "RfpRoundSolver::Lemma: " << lem << " ; MONOTONE_REFINE" << std::endl;
