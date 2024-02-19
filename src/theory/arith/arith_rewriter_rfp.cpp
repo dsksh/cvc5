@@ -362,7 +362,7 @@ RewriteResponse ArithRewriter::postRewriteRfpAdd(TNode t)
     // finite case
     if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) &&
         RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y) &&
-        RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x + y)))
+        RFP::noOverflow(eb,sb, rm, RFP::round(eb,sb, rm, x + y)))
     {
       Node op = nm->mkConst(RfpRound(eb, sb));
       Node sum = nm->mkNode(kind::ADD, t[1], t[2]);
@@ -431,7 +431,7 @@ RewriteResponse ArithRewriter::postRewriteRfpAdd(TNode t)
         return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
     }
     if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
-        !RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x + y)))
+        !RFP::noOverflow(eb,sb, rm, RFP::round(eb,sb, rm, x + y)))
     {
       if (x + y < 0)
         return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
@@ -469,7 +469,7 @@ RewriteResponse ArithRewriter::postRewriteRfpSub(TNode t)
     // finite case
     if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) &&
         RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y) &&
-        RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x - y)))
+        RFP::noOverflow(eb,sb, rm, RFP::round(eb,sb, rm, x - y)))
     {
       Node op = nm->mkConst(RfpRound(eb, sb));
       Node sub = nm->mkNode(kind::SUB, t[1], t[2]);
@@ -525,7 +525,7 @@ RewriteResponse ArithRewriter::postRewriteRfpSub(TNode t)
         return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
     }
     if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
-        !RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x - y)))
+        !RFP::noOverflow(eb,sb, rm, RFP::round(eb,sb, rm, x - y)))
     {
       if (x - y < 0)
         return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
@@ -618,7 +618,7 @@ RewriteResponse ArithRewriter::postRewriteRfpMult(TNode t)
     // finite case
     if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) &&
         RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y) &&
-        RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x * y)))
+        RFP::noOverflow(eb,sb, rm, RFP::round(eb,sb, rm, x * y)))
     {
       Node op = nm->mkConst(RfpRound(eb, sb));
       Node mult = nm->mkNode(kind::MULT, t[1], t[2]);
@@ -673,7 +673,7 @@ RewriteResponse ArithRewriter::postRewriteRfpMult(TNode t)
         return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::minusInfinity(eb,sb)));
     }
     if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
-        !RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x * y)))
+        !RFP::noOverflow(eb,sb, rm, RFP::round(eb,sb, rm, x * y)))
     {
       if (sameSign(x, y))
         return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
@@ -711,7 +711,7 @@ RewriteResponse ArithRewriter::postRewriteRfpDiv(TNode t)
     // finite case
     if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) &&
         RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y) &&
-        RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x / y)))
+        RFP::noOverflow(eb,sb, rm, RFP::round(eb,sb, rm, x / y)))
     {
       Node op = nm->mkConst(RfpRound(eb, sb));
       Node div = nm->mkNode(kind::DIVISION, t[1], t[2]);
@@ -754,7 +754,7 @@ RewriteResponse ArithRewriter::postRewriteRfpDiv(TNode t)
       return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::notANumber(eb,sb)));
     }
     if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y) &&
-        !RFP::isFinite(eb,sb, RFP::round(eb,sb, rm, x / y)))
+        !RFP::noOverflow(eb,sb, rm, RFP::round(eb,sb, rm, x / y)))
     {
       if (sameSign(x, y))
         return RewriteResponse(REWRITE_DONE, nm->mkConstReal(RFP::plusInfinity(eb,sb)));

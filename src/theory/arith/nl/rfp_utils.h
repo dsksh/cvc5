@@ -29,6 +29,7 @@ Node mkAbs(TNode x);
 Node mkFalse(TNode i);
 Node mkTrue(TNode i);
 Node mkIsFinite(uint32_t eb, uint32_t sb, TNode x);
+Node mkNoOverflow(uint32_t eb, uint32_t sb, TNode rm, TNode x);
 Node mkIsNormal(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsSubnormal(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsSubnormalWeak(uint32_t eb, uint32_t sb, TNode x);
@@ -47,6 +48,8 @@ Node mkDiffSign(uint32_t eb, uint32_t sb, TNode x, TNode y);
 Node mkSignZeroResult(uint32_t eb, uint32_t sb, TNode rm, TNode x);
 Node mkProductSign(uint32_t eb, uint32_t sb, TNode z, TNode x, TNode y);
 Node mkIsOverflowValue(uint32_t eb, uint32_t sb, TNode rm, TNode x);
+
+Node mkIsToNearest(TNode rm);
 
 Node mkRangeConstraint(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsRounded(uint32_t eb, uint32_t sb, TNode x);

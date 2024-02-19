@@ -54,6 +54,8 @@ inline static Integer minExponent(uint32_t size)
  */
 Integer maxValue(uint32_t eb, uint32_t sb);
 
+Integer maxValueExt(uint32_t eb, uint32_t sb);
+
 /** Return the smallest positive normal number.
  */
 Rational minNormal(uint32_t eb, uint32_t sb);

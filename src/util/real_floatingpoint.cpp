@@ -46,6 +46,21 @@ Integer maxValue(uint32_t eb, uint32_t sb)
   if (!cache.count(h)){
     uint64_t emax = maxExponent(eb).getUnsigned64();
     cache[h] = (Integer::pow2(sb)-1) * Integer::pow2(emax-sb+1);
+    // = (2-pow2(1-sb) * pow2(emax)
+  }
+  return cache[h];
+}
+
+// Cf. HoFPA Prop. 2.1
+Integer maxValueExt(uint32_t eb, uint32_t sb)
+{
+  static std::unordered_map<uint32_t, Integer> cache;
+
+  uint32_t h = hash(eb, sb);
+  if (!cache.count(h)){
+    uint64_t emax = maxExponent(eb).getUnsigned64();
+    cache[h] = (Integer::pow2(sb+1)-1) * Integer::pow2(emax-sb);
+    // = (2-pow2(1-sb-1) * pow2(emax)
   }
   return cache[h];
 }
