@@ -94,6 +94,11 @@ class RfpRoundSolver : protected EnvObj
   /**
    * 
    */
+  void checkInitRefineRound(TNode node);
+
+  /**
+   * 
+   */
   void checkFullRefineRound(TNode node, 
     const Integer& rm, const Rational& arg, 
     const Rational& round, const Rational& roundC);

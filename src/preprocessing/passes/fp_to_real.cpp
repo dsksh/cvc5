@@ -177,14 +177,15 @@ void FPToReal::addFPRangeConstraint(Node node,
                                     uint32_t sb,
                                     std::vector<Node>& lemmas)
 {
-  Node constr = mkIsRounded(eb,sb, node);
-  if (d_rangeAssertions.find(constr) == d_rangeAssertions.end())
-  {
-    Trace("fp-to-real") << "range constraint computed: " << constr 
-                        << std::endl;
-    d_rangeAssertions.insert(constr);
-    lemmas.push_back(constr);
-  }
+  //// TODO
+  //Node constr = mkIsRounded(eb,sb, node);
+  //if (d_rangeAssertions.find(constr) == d_rangeAssertions.end())
+  //{
+  //  Trace("fp-to-real") << "range constraint computed: " << constr 
+  //                      << std::endl;
+  //  d_rangeAssertions.insert(constr);
+  //  lemmas.push_back(constr);
+  //}
 }
 
 void FPToReal::addRMRangeConstraint(Node node,

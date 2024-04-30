@@ -173,6 +173,8 @@ enum class InferenceId
   //-------------------- rfp.round solver
   // initial refinements (RfpRoundSolver::checkInitialRefine)
   ARITH_NL_RFP_ROUND_INIT_REFINE,
+  // bound refinements (RfpRoundSolver::checkFullRefine)
+  ARITH_NL_RFP_ROUND_BOUND_REFINE,
   // monotonicity refinements (RfpRoundSolver::checkFullRefine)
   ARITH_NL_RFP_ROUND_MONOTONE_REFINE,
   // interval refinements (RfpRoundSolver::checkFullRefine)

@@ -110,6 +110,25 @@ Rational Rational::pow2Lower() const
 }
 
 
+size_t Rational::ilog2Lower() const
+{
+  size_t l2_num = getNumerator().length();
+  size_t l2_den = getDenominator().length();
+  size_t res;
+  if (isZero()){
+    res = -1;
+  }else if (l2_num == l2_den){
+    Assert(sgn() != 0);
+    res = 0;
+  }else if (l2_num > l2_den){
+    res = l2_num - l2_den - 1;
+  }else{ // l2_num < l2_den
+    res = l2_den - l2_num + 1;
+  }
+  return res;
+}
+
+
 /** Return an exact rational for a double d. */
 std::optional<Rational> Rational::fromDouble(double d)
 {
