@@ -94,6 +94,7 @@ RewriteResponse ArithRewriter::postRewriteRfpIsNormal(TNode t)
     // rfp.isNormal is only supported for real values
     Assert(t[0].getType().isReal());
     Rational x = t[0].getConst<Rational>();
+    // TODO
     x = RFP::round(eb,sb, 0, x);
     Node ret = nm->mkConst(RFP::isNormal(eb,sb, x));
     return RewriteResponse(REWRITE_DONE, ret);
@@ -115,6 +116,7 @@ RewriteResponse ArithRewriter::postRewriteRfpIsSubnormal(TNode t)
     // rfp.isSubnormal is only supported for real values
     Assert(t[0].getType().isReal());
     Rational x = t[0].getConst<Rational>();
+    // TODO
     x = RFP::round(eb,sb, 0, x);
     Node ret = nm->mkConst(RFP::isSubnormal(eb,sb, x));
     return RewriteResponse(REWRITE_DONE, ret);
@@ -136,6 +138,7 @@ RewriteResponse ArithRewriter::postRewriteRfpIsZero(TNode t)
     // rfp.isZero is only supported for real values
     Assert(t[0].getType().isReal());
     Rational x = t[0].getConst<Rational>();
+    // TODO
     x = RFP::round(eb,sb, 0, x);
     Node ret = nm->mkConst(RFP::isZero(eb,sb, x));
     return RewriteResponse(REWRITE_DONE, ret);
@@ -157,6 +160,7 @@ RewriteResponse ArithRewriter::postRewriteRfpIsInf(TNode t)
     // rfp.isInfiniteis only supported for real values
     Assert(t[0].getType().isReal());
     Rational x = t[0].getConst<Rational>();
+    // TODO
     x = RFP::round(eb,sb, 0, x);
     Node ret = nm->mkConst(RFP::isInfinite(eb,sb, x));
     return RewriteResponse(REWRITE_DONE, ret);
@@ -178,6 +182,7 @@ RewriteResponse ArithRewriter::postRewriteRfpIsNan(TNode t)
     // rfp.isNaN is only supported for real values
     Assert(t[0].getType().isReal());
     Rational x = t[0].getConst<Rational>();
+    // TODO
     x = RFP::round(eb,sb, 0, x);
     Node ret = nm->mkConst(x == RFP::notANumber(eb,sb));
     return RewriteResponse(REWRITE_DONE, ret);
@@ -244,6 +249,7 @@ RewriteResponse ArithRewriter::postRewriteRfpToRfpFromRfp(TNode t)
     Assert(t[1].getType().isReal());
     Integer rm = t[0].getConst<Rational>().getNumerator();
     Rational x = t[1].getConst<Rational>();
+    // TODO
     x = RFP::round(eb0,sb0, 0, x);
 
     // finite case
@@ -354,7 +360,6 @@ RewriteResponse ArithRewriter::postRewriteRfpAdd(TNode t)
     uint8_t rm = t[0].getConst<Rational>().getNumerator().getUnsignedInt();
     Rational x = t[1].getConst<Rational>();
     Rational y = t[2].getConst<Rational>();
-
     // TODO
     x = RFP::round(eb,sb, 0, x);
     y = RFP::round(eb,sb, 0, y);
@@ -463,6 +468,7 @@ RewriteResponse ArithRewriter::postRewriteRfpSub(TNode t)
     uint8_t rm = t[0].getConst<Rational>().getNumerator().getUnsignedInt();
     Rational x = t[1].getConst<Rational>();
     Rational y = t[2].getConst<Rational>();
+    // TODO
     x = RFP::round(eb,sb, 0, x);
     y = RFP::round(eb,sb, 0, y);
 
@@ -553,6 +559,7 @@ RewriteResponse ArithRewriter::postRewriteRfpNeg(TNode t)
     // rfp.neg is only supported real values
     Assert(t[0].getType().isReal());
     Rational x = t[0].getConst<Rational>();
+    // TODO
     x = RFP::round(eb,sb, 0, x);
 
     // finite case
@@ -612,6 +619,7 @@ RewriteResponse ArithRewriter::postRewriteRfpMult(TNode t)
     uint8_t rm = t[0].getConst<Rational>().getNumerator().getUnsignedInt();
     Rational x = t[1].getConst<Rational>();
     Rational y = t[2].getConst<Rational>();
+    // TODO
     x = RFP::round(eb,sb, 0, x);
     y = RFP::round(eb,sb, 0, y);
 
@@ -705,6 +713,7 @@ RewriteResponse ArithRewriter::postRewriteRfpDiv(TNode t)
     uint8_t rm = t[0].getConst<Rational>().getNumerator().getUnsignedInt();
     Rational x = t[1].getConst<Rational>();
     Rational y = t[2].getConst<Rational>();
+    // TODO
     x = RFP::round(eb,sb, 0, x);
     y = RFP::round(eb,sb, 0, y);
 
@@ -795,6 +804,7 @@ RewriteResponse ArithRewriter::postRewriteRfpEq(TNode t)
     Assert(t[1].getType().isReal());
     Rational x = t[0].getConst<Rational>();
     Rational y = t[1].getConst<Rational>();
+    // TODO
     x = RFP::round(eb,sb, 0, x);
     y = RFP::round(eb,sb, 0, y);
 
@@ -847,6 +857,7 @@ RewriteResponse ArithRewriter::postRewriteRfpLt(TNode t)
     Assert(t[1].getType().isReal());
     Rational x = t[0].getConst<Rational>();
     Rational y = t[1].getConst<Rational>();
+    // TODO
     x = RFP::round(eb,sb, 0, x);
     y = RFP::round(eb,sb, 0, y);
 
@@ -890,6 +901,7 @@ RewriteResponse ArithRewriter::postRewriteRfpLeq(TNode t)
     Assert(t[1].getType().isReal());
     Rational x = t[0].getConst<Rational>();
     Rational y = t[1].getConst<Rational>();
+    // TODO
     x = RFP::round(eb,sb, 0, x);
     y = RFP::round(eb,sb, 0, y);
 

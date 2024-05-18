@@ -239,33 +239,35 @@ Node mkIsToNearest(TNode rm)
 Node mkRangeConstraint(uint32_t eb, uint32_t sb, TNode node)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node isNan = mkIsNan(eb,sb, node);
-  //Node isInf  = mkIsInf(eb,sb, node);
-  Node isNegInf  = node.eqNode(nm->mkConstReal(RFP::minusInfinity(eb,sb)));
-  Node isPosInf = node.eqNode(nm->mkConstReal(RFP::plusInfinity(eb,sb)));
-  //Node isZero = mkIsZero(eb,sb, node);
-  Node isNegZero = node.eqNode(nm->mkConstReal(RFP::minusZero(eb,sb)));
-  Node isPosZero = node.eqNode(nm->mkConstReal(RFP::plusZero(eb,sb)));
-  Node isFinite = mkIsFinite(eb,sb, node);
-  Node isNormal = mkIsNormal(eb,sb, node);
-  Node isSubnormal = mkIsSubnormal(eb,sb, node);
-  //Node eqRounded = mkIsRounded(eb,sb, node);
-  return 
-    isNan
-    .orNode(isNegZero).orNode(isPosZero)
-    .orNode(isNegInf).orNode(isPosInf)
-    .orNode(isNormal)
-    .orNode(isSubnormal)
-    ;
+  //Node isNan = mkIsNan(eb,sb, node);
+  ////Node isInf  = mkIsInf(eb,sb, node);
+  //Node isNegInf  = node.eqNode(nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+  //Node isPosInf = node.eqNode(nm->mkConstReal(RFP::plusInfinity(eb,sb)));
+  ////Node isZero = mkIsZero(eb,sb, node);
+  //Node isNegZero = node.eqNode(nm->mkConstReal(RFP::minusZero(eb,sb)));
+  //Node isPosZero = node.eqNode(nm->mkConstReal(RFP::plusZero(eb,sb)));
+  //Node isFinite = mkIsFinite(eb,sb, node);
+  //Node isNormal = mkIsNormal(eb,sb, node);
+  //Node isSubnormal = mkIsSubnormal(eb,sb, node);
+  ////Node eqRounded = mkIsRounded(eb,sb, node);
+  //return 
+  //  isNan
+  //  .orNode(isNegZero).orNode(isPosZero)
+  //  .orNode(isNegInf).orNode(isPosInf)
+  //  .orNode(isNormal)
+  //  .orNode(isSubnormal)
+  //  ;
+  return nm->mkConst(true);
 }
 
 Node mkIsRounded(uint32_t eb, uint32_t sb, TNode node)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node op = nm->mkConst(RfpRound(eb, sb));
-  Node rm = nm->mkConstInt(0);
-  Node rounded = nm->mkNode(kind::RFP_ROUND, op, rm, node);
-  return node.eqNode(rounded);
+  //Node op = nm->mkConst(RfpRound(eb, sb));
+  //Node rm = nm->mkConstInt(0);
+  //Node rounded = nm->mkNode(kind::RFP_ROUND, op, rm, node);
+  //return node.eqNode(rounded);
+  return nm->mkConst(true);
 }
 
 /** Relation between node1 and node2, where node2 = round(node1).

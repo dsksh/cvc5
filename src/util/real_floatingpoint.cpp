@@ -183,7 +183,7 @@ bool isNan(uint32_t eb, uint32_t sb, const Rational& arg)
 bool noOverflow(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg)
 {
   // TODO
-  return false;
+  return isFinite(eb,sb, arg);
 }
 
 //
