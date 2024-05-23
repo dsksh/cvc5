@@ -109,21 +109,25 @@ Rational Rational::pow2Lower() const
   return res;
 }
 
-
-size_t Rational::ilog2Lower() const
+int Rational::ilog2() const
 {
-  size_t l2_num = getNumerator().length();
-  size_t l2_den = getDenominator().length();
-  size_t res;
+  // TODO
+  int l2_num = getNumerator().length();
+  int l2_n_ = (getNumerator()-1).length();
+  int l2_den = getDenominator().length();
+  int l2_d_ = (getDenominator()-1).length();
+  int res;
   if (isZero()){
     res = -1;
-  }else if (l2_num == l2_den){
+  }else if (getNumerator() == getDenominator()){
     Assert(sgn() != 0);
     res = 0;
-  }else if (l2_num > l2_den){
-    res = l2_num - l2_den - 1;
+  }else if (l2_num >= l2_den){
+    // return the upper bound.
+    res = l2_n_ - l2_den + 1;
   }else{ // l2_num < l2_den
-    res = l2_den - l2_num + 1;
+    // return the lower bound.
+    res = l2_num - l2_d_ - 1;
   }
   return res;
 }

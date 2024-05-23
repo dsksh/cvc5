@@ -315,8 +315,8 @@ class Rational
   /** Power of radix 2 rounded downward. */
   Rational pow2Lower() const;
 
-  /** Logarithm with base 2 rounded downward. */
-  size_t ilog2Lower() const;
+  /** Logarithm with base 2. */
+  int ilog2() const;
 
  private:
   /**
