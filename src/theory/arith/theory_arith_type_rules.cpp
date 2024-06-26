@@ -225,8 +225,7 @@ TypeNode RfpUnOpTypeRule::computeType(NodeManager* nodeManager,
 {
   if (n.getKind() != kind::RFP_TO_RFP_FROM_RFP 
       && n.getKind() != kind::RFP_ROUND
-      && n.getKind() != kind::RFP_NEG
-      && n.getKind() != kind::RFP_TO_REAL)
+      && n.getKind() != kind::RFP_NEG)
   {
     InternalError() << "RFP_UN_OP typerule invoked for " << n << " instead of RFP_UN_OP kind";
   }
@@ -275,6 +274,28 @@ TypeNode RfpBinOpTypeRule::computeType(NodeManager* nodeManager,
     if (!arg1.isReal())
       throw TypeCheckingExceptionPrivate(n, "expecting a real term");
     if (!arg2.isReal())
+      throw TypeCheckingExceptionPrivate(n, "expecting a real term");
+  }
+  return nodeManager->realType();
+}
+
+TypeNode RfpToRealTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->realType();
+}
+TypeNode RfpToRealTypeRule::computeType(NodeManager* nodeManager,
+                                        TNode n,
+                                        bool check,
+                                        std::ostream* errOut)
+{
+  if (n.getKind() != kind::RFP_TO_REAL)
+  {
+    InternalError() << "RFP_TO_REAL typerule invoked for " << n << " instead of RFP_TO_REAL kind";
+  }
+  if (check)
+  {
+    TypeNode arg1 = n[0].getType(check);
+    if (!arg1.isReal())
       throw TypeCheckingExceptionPrivate(n, "expecting a real term");
   }
   return nodeManager->realType();

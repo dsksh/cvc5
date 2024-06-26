@@ -81,6 +81,7 @@ bool NlExtTheoryCallback::isExtfReduced(
         // TODO
         && k != RFP_ROUND
         && k != RFP_TO_RFP_FROM_RFP
+        && k != RFP_TO_REAL
         && k != RFP_ADD
         && k != RFP_NEG
         && k != RFP_SUB

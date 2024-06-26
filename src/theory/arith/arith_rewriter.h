@@ -102,6 +102,8 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse postRewriteIrm(TNode t, bool to_int);
   ///** postRewrite RFP_TO_FP */
   //static RewriteResponse postRewriteRfpToFP(TNode t);
+  /** postRewrite FP_TO_RFP */
+  static RewriteResponse postRewriteFpToRfp(TNode t);
   /** postRewrite RFP_TO_REAL */
   static RewriteResponse postRewriteRfpToReal(TNode t);
   /** postRewrite RFP_IS_NORMAL */

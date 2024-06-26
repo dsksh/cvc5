@@ -64,9 +64,9 @@ namespace arith {
 //  return RewriteResponse(REWRITE_DONE, t);
 //}
 
-RewriteResponse ArithRewriter::postRewriteRfpToReal(TNode t)
+RewriteResponse ArithRewriter::postRewriteFpToRfp(TNode t)
 {
-  Assert(t.getKind() == kind::RFP_TO_REAL);
+  Assert(t.getKind() == kind::FP_TO_RFP);
   NodeManager* nm = NodeManager::currentNM();
   // if constant, can be eliminated
   if (t[0].isConst())
@@ -76,6 +76,29 @@ RewriteResponse ArithRewriter::postRewriteRfpToReal(TNode t)
     FloatingPoint v = t[0].getConst<FloatingPoint>();
     Node ret = nm->mkConstReal(RFP::convertFPToReal(v));
     return RewriteResponse(REWRITE_DONE, ret);
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpToReal(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_TO_REAL);
+  FloatingPointSize sz = t.getOperator().getConst<RfpIsNormal>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, can be eliminated
+  if (t[0].isConst())
+  {
+    // rfp.to_real is only supported for floating-point numbers
+    Assert(t[0].getType().isReal());
+    Rational v = t[0].getConst<Rational>();
+    if (!RFP::isNan(eb,sb, v) && !RFP::isInfinite(eb,sb, v))
+    {
+      Node ret = nm->mkConstReal(v);
+      return RewriteResponse(REWRITE_DONE, ret);
+    }
   }
 
   return RewriteResponse(REWRITE_DONE, t);
@@ -305,8 +328,8 @@ RewriteResponse ArithRewriter::postRewriteRfpRound(TNode t)
     Rational v = t[1].getConst<Rational>();
     Rational rounded = RFP::round(eb,sb, rm.getUnsignedInt(), v);
     Node ret = nm->mkConstReal(rounded);
-    //return RewriteResponse(REWRITE_DONE, ret);
-    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    return RewriteResponse(REWRITE_DONE, ret);
+    //return RewriteResponse(REWRITE_AGAIN_FULL, ret);
   }
 
   return RewriteResponse(REWRITE_DONE, t);
@@ -619,6 +642,7 @@ RewriteResponse ArithRewriter::postRewriteRfpMult(TNode t)
     uint8_t rm = t[0].getConst<Rational>().getNumerator().getUnsignedInt();
     Rational x = t[1].getConst<Rational>();
     Rational y = t[2].getConst<Rational>();
+
     // TODO
     x = RFP::round(eb,sb, 0, x);
     y = RFP::round(eb,sb, 0, y);

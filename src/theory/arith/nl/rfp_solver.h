@@ -116,6 +116,8 @@ class RfpSolver : protected EnvObj
 
   void checkFullRefineValue(Node n);
 
+  void checkInitialRefineToReal(Node n);
+  void checkFullRefineToReal(Node n);
   void checkInitialRefineAdd(Node n);
   void checkFullRefineAdd(Node n);
   void checkInitialRefineNeg(Node n);

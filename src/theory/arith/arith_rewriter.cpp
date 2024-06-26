@@ -232,6 +232,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::POW2: return RewriteResponse(REWRITE_DONE, t);
       case kind::MAX3: return RewriteResponse(REWRITE_DONE, t);
       case kind::ILOG2: return RewriteResponse(REWRITE_DONE, t);
+      case kind::RFP_TO_REAL: return RewriteResponse(REWRITE_DONE, t);
       case kind::RFP_IS_NORMAL: return RewriteResponse(REWRITE_DONE, t);
       case kind::RFP_IS_SUBNORMAL: return RewriteResponse(REWRITE_DONE, t);
       case kind::RFP_IS_ZERO: return RewriteResponse(REWRITE_DONE, t);
@@ -253,7 +254,6 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::RFP_GEQ: return RewriteResponse(REWRITE_DONE, t);
       case kind::IRM_TO_INT: return RewriteResponse(REWRITE_DONE, t);
       case kind::IRM_TO_RM: return RewriteResponse(REWRITE_DONE, t);
-      case kind::RFP_TO_REAL: return RewriteResponse(REWRITE_DONE, t);
       case kind::EXPONENTIAL:
       case kind::SINE:
       case kind::COSINE:
@@ -305,6 +305,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::POW2: return postRewritePow2(t);
       case kind::MAX3: return postRewriteMax3(t);
       case kind::ILOG2: return postRewriteIlog2(t);
+      case kind::FP_TO_RFP: return postRewriteFpToRfp(t);
+      case kind::RFP_TO_REAL: return postRewriteRfpToReal(t);
       case kind::RFP_IS_NORMAL: return postRewriteRfpIsNormal(t);
       case kind::RFP_IS_SUBNORMAL: return postRewriteRfpIsSubnormal(t);
       case kind::RFP_IS_ZERO: return postRewriteRfpIsZero(t);
@@ -326,7 +328,6 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::RFP_GEQ: return postRewriteRfpGeq(t);
       case kind::IRM_TO_INT: return postRewriteIrm(t, true);
       case kind::IRM_TO_RM: return postRewriteIrm(t, false);
-      case kind::RFP_TO_REAL: return postRewriteRfpToReal(t);
       case kind::EXPONENTIAL:
       case kind::SINE:
       case kind::COSINE:

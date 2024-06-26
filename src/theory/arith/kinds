@@ -272,8 +272,7 @@ parameterized RFP_IS_POS RFP_IS_POS_OP 1 "real version of fp.isPositive; first p
 typerule RFP_IS_POS_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule RFP_IS_POS ::cvc5::internal::theory::arith::RfpPropTypeRule
 
-# Real version of the FP rounding operator, which is parameterized by 
-# the precision.
+# Real version of the FP rounding operator.
 # ((_ rfp.to_rfp eb sb) irm v) is equivalent to:
 # ((_ to_fp eb sb) rm v) 
 # for all FP numbers v.
@@ -288,6 +287,20 @@ parameterized RFP_TO_RFP_FROM_RFP RFP_TO_RFP_FROM_RFP_OP 2 "real version of FP r
 typerule RFP_TO_RFP_FROM_RFP_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule RFP_TO_RFP_FROM_RFP ::cvc5::internal::theory::arith::RfpUnOpTypeRule
 
+# Real version of the FP to_real operator.
+constant RFP_TO_REAL_OP \
+    class \
+    RfpToReal \
+    "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::RfpToReal >" \
+    "util/real_floatingpoint.h" \
+    "operator for rfp.to_real"
+parameterized RFP_TO_REAL RFP_TO_REAL_OP 1 "Operator to convert RFP reals to reals; first parameter is an RFP_TO_REAL_OP, and second is a real term"
+
+typerule RFP_TO_REAL_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule RFP_TO_REAL ::cvc5::internal::theory::arith::RfpToRealTypeRule
+
+# Real version of the FP rounding operator, which is parameterized by 
+# the precision.
 constant RFP_ROUND_OP \
   class \
   RfpRound \

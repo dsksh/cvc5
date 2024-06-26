@@ -815,6 +815,8 @@ void Smt2State::setLogic(std::string name)
 
       // conversion between RFP and FP values
       addOperator(Kind::RFP_ROUND, "rfp.to_fp");
+
+      // real version of fp.to_real
       addOperator(Kind::RFP_TO_REAL, "rfp.to_real");
 
       // real version of fp.isNormal

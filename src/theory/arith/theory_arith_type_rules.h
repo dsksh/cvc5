@@ -163,8 +163,22 @@ class Pow2TypeRule
 //};
 
 /**
- * Type rule for the RFP unary operators.
+ * Type rule for the RFP to_real operators.
  * Always returns realType.
+ */
+class RfpToRealTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
+/**
+ * Type rule for the RFP unary operators.
+ * Always returns boolType.
  */
 class RfpUnOpTypeRule
 {

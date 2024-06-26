@@ -57,6 +57,7 @@ void EqualitySolver::finishInit()
   // TODO
   d_ee->addFunctionKind(kind::RFP_ROUND);
   d_ee->addFunctionKind(kind::RFP_TO_RFP_FROM_RFP);
+  d_ee->addFunctionKind(kind::RFP_TO_REAL);
   d_ee->addFunctionKind(kind::RFP_ADD);
   d_ee->addFunctionKind(kind::RFP_NEG);
   d_ee->addFunctionKind(kind::RFP_SUB);

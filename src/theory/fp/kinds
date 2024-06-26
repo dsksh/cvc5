@@ -315,8 +315,8 @@ typerule RFP_TO_FP_OP "SimpleTypeRule<RBuiltinOperator>"
 parameterized RFP_TO_FP RFP_TO_FP_OP 1 "Operator to convert RFP reals to FloatingPoint values; first parameter is an RFP_TO_FP_OP, second is a real term"
 typerule RFP_TO_FP ::cvc5::internal::theory::fp::RfpToFPTypeRule
 
-operator RFP_TO_REAL 1 "Convert FloatingPoint values to RFP reals"
-typerule RFP_TO_REAL   ::cvc5::internal::theory::fp::FloatingPointToRealTypeRule
+operator FP_TO_RFP 1 "Convert FloatingPoint values to RFP reals"
+typerule FP_TO_RFP   ::cvc5::internal::theory::fp::FloatingPointToRealTypeRule
 
 operator IRM_TO_INT 1 "Convert rounding modes to integers"
 typerule IRM_TO_INT   "SimpleTypeRule<RInteger, ARoundingMode>"

@@ -177,15 +177,15 @@ void FPToReal::addFPRangeConstraint(Node node,
                                     uint32_t sb,
                                     std::vector<Node>& lemmas)
 {
-  //// TODO
-  //Node constr = mkIsRounded(eb,sb, node);
-  //if (d_rangeAssertions.find(constr) == d_rangeAssertions.end())
-  //{
-  //  Trace("fp-to-real") << "range constraint computed: " << constr 
-  //                      << std::endl;
-  //  d_rangeAssertions.insert(constr);
-  //  lemmas.push_back(constr);
-  //}
+  // TODO
+  Node constr = mkIsRounded(eb,sb, node);
+  if (d_rangeAssertions.find(constr) == d_rangeAssertions.end())
+  {
+    Trace("fp-to-real") << "range constraint computed: " << constr 
+                        << std::endl;
+    d_rangeAssertions.insert(constr);
+    lemmas.push_back(constr);
+  }
 }
 
 void FPToReal::addRMRangeConstraint(Node node,
@@ -308,6 +308,16 @@ Node FPToReal::translateWithChildren(
       returnNode = createPropertyNode(newKind, eb, sb, translated_children[0]);
       break;
     }
+    case kind::FLOATINGPOINT_TO_REAL:
+    case kind::FLOATINGPOINT_TO_REAL_TOTAL:
+    {
+      Assert(original.getNumChildren() == 1);
+      uint32_t eb = original[0].getType().getFloatingPointExponentSize();
+      uint32_t sb = original[0].getType().getFloatingPointSignificandSize();
+      Node op = d_nm->mkConst(RfpToReal(eb, sb));
+      returnNode = d_nm->mkNode(kind::RFP_TO_REAL, op, translated_children[0]);
+      break;
+    }
     case kind::RFP_TO_RFP_FROM_RFP:
     {
       Assert(original.getNumChildren() == 2);
@@ -425,6 +435,7 @@ Node FPToReal::translateWithChildren(
       break;
     }
   }
+
   Trace("fp-to-real") << "original: " << original << std::endl;
   Trace("fp-to-real") << "returnNode: " << returnNode << std::endl;
   return returnNode;
@@ -463,6 +474,7 @@ Node FPToReal::translateNoChildren(Node original,
         // we introduce a fresh variable, add range constraints, and save the
         // connection between original and the new variable via realCast
         translation = d_nm->getSkolemManager()->mkPurifySkolem(realCast);
+        Trace("fp-to-real") << "addRC for " << translation << std::endl;
         uint32_t eb = original.getType().getFloatingPointExponentSize();
         uint32_t sb = original.getType().getFloatingPointSignificandSize();
         addFPRangeConstraint(translation, eb, sb, lemmas);
@@ -514,7 +526,7 @@ Node FPToReal::translateNoChildren(Node original,
         }
       }
     }
-    // TODO
+    //// TODO
     //else if (original.getType().isFunction())
     //{
     //  // translate function symbol
@@ -583,7 +595,7 @@ Node FPToReal::castToType(Node n, TypeNode tn)
   {
     // Casting FP numbers to reals.
     Assert(tn.isReal());
-    return d_nm->mkNode(kind::RFP_TO_REAL, n);
+    return d_nm->mkNode(kind::FP_TO_RFP, n);
   }
   else if (n.getType().isInteger())
   {
@@ -650,6 +662,8 @@ Node FPToReal::createFPOperator(kind::Kind_t rfpKind, uint32_t eb, uint32_t sb)
 {
   switch (rfpKind)
   {
+    case kind::RFP_TO_REAL:
+      return d_nm->mkConst(RfpToReal(eb, sb));
     case kind::RFP_IS_NORMAL:
       return d_nm->mkConst(RfpIsNormal(eb, sb));
     case kind::RFP_IS_SUBNORMAL:

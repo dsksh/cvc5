@@ -72,6 +72,7 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
   d_extTheory.addFunctionKind(kind::ILOG2);
   d_extTheory.addFunctionKind(kind::RFP_ROUND);
   d_extTheory.addFunctionKind(kind::RFP_TO_RFP_FROM_RFP);
+  d_extTheory.addFunctionKind(kind::RFP_TO_REAL);
   d_extTheory.addFunctionKind(kind::RFP_ADD);
   d_extTheory.addFunctionKind(kind::RFP_SUB);
   d_extTheory.addFunctionKind(kind::RFP_NEG);

@@ -200,6 +200,14 @@ class RfpToFP : public RfpOperation
   std::string getName() const override { return "to_fp"; }
 };
 
+class RfpToReal : public RfpOperation
+{
+  using RfpOperation::RfpOperation;
+
+  /** Return the name. */
+  std::string getName() const override { return "to_real"; }
+};
+
 class RfpIsNormal : public RfpOperation
 {
   using RfpOperation::RfpOperation;

@@ -738,6 +738,11 @@ void Smt2Printer::toStream(std::ostream& out,
       stillNeedToPrintParams = false;
       break;
 
+    case kind::RFP_TO_REAL:
+      n.getOperator().getConst<RfpToReal>().print(out);
+      stillNeedToPrintParams = false;
+      break;
+
     case kind::RFP_IS_NORMAL:
       n.getOperator().getConst<RfpIsNormal>().print(out);
       stillNeedToPrintParams = false;
@@ -1179,6 +1184,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::POW2: return "int.pow2";
     case kind::MAX3: return "real.max3";
     case kind::ILOG2: return "real.ilog2";
+    case kind::RFP_TO_REAL: return "rfp.to_real";
     case kind::RFP_IS_NORMAL: return "rfp.isNormal";
     case kind::RFP_IS_SUBNORMAL: return "rfp.isSubnormal";
     case kind::RFP_IS_ZERO: return "rfp.isZero";
@@ -1198,7 +1204,6 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::RFP_LEQ: return "rfp.leq";
     case kind::RFP_GT: return "rfp.gt";
     case kind::RFP_GEQ: return "rfp.geq";
-    case kind::RFP_TO_REAL: return "rfp.to_real";
     case kind::IRM_TO_INT: return "irm.to_int";
     case kind::IRM_TO_RM: return "irm.to_rm";
     case kind::EXPONENTIAL: return "exp";

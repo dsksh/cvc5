@@ -558,6 +558,10 @@ enum ENUM(Kind) : int32_t
   /**
    * Convert FloatingPoint values to RFP reals.
    */
+  EVALUE(FP_TO_RFP),
+  /**
+   * Real version of fp.to_real.
+   */
   EVALUE(RFP_TO_REAL),
   /**
    * Real version of fp.isNormal.

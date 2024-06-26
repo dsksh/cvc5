@@ -46,7 +46,11 @@ Node mkTrue(TNode i)
 Node mkIsFinite(uint32_t eb, uint32_t sb, TNode x)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(LEQ, mkAbs(x), nm->mkConstReal(RFP::maxValue(eb,sb)));
+  Node maxP = nm->mkConstReal(RFP::maxValue(eb,sb));
+  Node maxN = nm->mkConstReal(-RFP::maxValue(eb,sb));
+  Node maxPB = nm->mkNode(LEQ, x, maxP);
+  Node maxNB = nm->mkNode(LEQ, maxN, x);
+  return maxPB.andNode(maxNB);
 }
 
 Node mkNoOverflow(uint32_t eb, uint32_t sb, TNode rm, TNode x)
@@ -81,35 +85,46 @@ Node mkIsNormal(uint32_t eb, uint32_t sb, TNode x)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node isFinite = mkIsFinite(eb,sb, x);
-  Node minNormal = nm->mkConstReal(RFP::minNormal(eb,sb));
-  Node lbAbs = nm->mkNode(kind::LEQ, minNormal, mkAbs(x));
-  return isFinite.andNode(lbAbs);
+  Node minNormalP = nm->mkConstReal(RFP::minNormal(eb,sb));
+  Node minNormalN = nm->mkConstReal(-RFP::minNormal(eb,sb));
+  Node minNPB = nm->mkNode(kind::LEQ, minNormalP, x);
+  Node minNNB = nm->mkNode(kind::LEQ, x, minNormalN);
+  return isFinite.andNode( minNPB.orNode(minNNB) );
 }
 
 Node mkIsSubnormal(uint32_t eb, uint32_t sb, TNode x)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node minSubnormal = nm->mkConstReal(RFP::minSubnormal(eb,sb));
-  Node minNormal = nm->mkConstReal(RFP::minNormal(eb,sb));
-  Node abs = mkAbs(x);
-  Node lbAbs = nm->mkNode(LEQ, minSubnormal, abs);
-  Node ubAbs = nm->mkNode(LT, abs, minNormal);
-  return lbAbs.andNode(ubAbs);
+  Node minSubnormalP = nm->mkConstReal(RFP::minSubnormal(eb,sb));
+  Node minSubnormalN = nm->mkConstReal(-RFP::minSubnormal(eb,sb));
+  Node minSPB = nm->mkNode(LEQ, minSubnormalP, x);
+  Node minSNB = nm->mkNode(LEQ, x, minSubnormalN);
+  Node minSB = minSPB.orNode(minSNB);
+
+  Node minNormalP = nm->mkConstReal(RFP::minNormal(eb,sb));
+  Node minNormalN = nm->mkConstReal(-RFP::minNormal(eb,sb));
+  Node minNPB = nm->mkNode(LT, x, minNormalP);
+  Node minNNB = nm->mkNode(LT, minNormalN, x);
+  Node minNP = minNPB.orNode(minNNB);
+
+  return minSB.andNode(minNP);
 }
 
 Node mkIsSubnormalWeak(uint32_t eb, uint32_t sb, TNode x)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node minNormal = nm->mkConstReal(RFP::minNormal(eb,sb));
-  Node abs = mkAbs(x);
-  return nm->mkNode(LT, abs, minNormal);
+  Node minNormalP = nm->mkConstReal(RFP::minNormal(eb,sb));
+  Node minNormalN = nm->mkConstReal(-RFP::minNormal(eb,sb));
+  Node minNPB = nm->mkNode(LT, x, minNormalP);
+  Node minNNB = nm->mkNode(LT, minNormalN, x);
+  return minNPB.andNode(minNNB);
 }
 
 Node mkIsZero(uint32_t eb, uint32_t sb, TNode x)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node nz = nm->mkNode(EQUAL, x, nm->mkConstReal(RFP::minusZero(eb,sb)));
-  Node pz = nm->mkNode(EQUAL, x, nm->mkConstReal(RFP::plusZero(eb,sb)));
+  Node nz = x.eqNode(nm->mkConstReal(RFP::minusZero(eb,sb)));
+  Node pz = x.eqNode(nm->mkConstReal(RFP::plusZero(eb,sb)));
   return nm->mkNode(OR, nz, pz);
 }
 
@@ -177,7 +192,7 @@ Node mkIsPosInf(uint32_t eb, uint32_t sb, TNode x)
 
 Node mkSameSign(uint32_t eb, uint32_t sb, TNode x, TNode y)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  //NodeManager* nm = NodeManager::currentNM();
   Node isPosPos = mkIsPos(eb,sb, x).andNode(mkIsPos(eb,sb, y));
   Node isNegNeg = mkIsNeg(eb,sb, x).andNode(mkIsNeg(eb,sb, y));
   return isPosPos.orNode(isNegNeg);
@@ -185,7 +200,7 @@ Node mkSameSign(uint32_t eb, uint32_t sb, TNode x, TNode y)
 
 Node mkDiffSign(uint32_t eb, uint32_t sb, TNode x, TNode y)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  //NodeManager* nm = NodeManager::currentNM();
   Node isPosNeg = mkIsPos(eb,sb, x).andNode(mkIsNeg(eb,sb, y));
   Node isNegPos = mkIsNeg(eb,sb, x).andNode(mkIsPos(eb,sb, y));
   return isPosNeg.orNode(isNegPos);
@@ -202,7 +217,7 @@ Node mkSignZeroResult(uint32_t eb, uint32_t sb, TNode rm, TNode x)
 
 Node mkProductSign(uint32_t eb, uint32_t sb, TNode z, TNode x, TNode y)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  //NodeManager* nm = NodeManager::currentNM();
   Node l1 = mkSameSign(eb,sb, x, y).impNode(mkIsPos(eb,sb, z));
   Node l2 = mkDiffSign(eb,sb, x, y).impNode(mkIsNeg(eb,sb, z));
   return l1.andNode(l2);
@@ -239,6 +254,7 @@ Node mkIsToNearest(TNode rm)
 Node mkRangeConstraint(uint32_t eb, uint32_t sb, TNode node)
 {
   NodeManager* nm = NodeManager::currentNM();
+
   //Node isNan = mkIsNan(eb,sb, node);
   ////Node isInf  = mkIsInf(eb,sb, node);
   //Node isNegInf  = node.eqNode(nm->mkConstReal(RFP::minusInfinity(eb,sb)));
@@ -255,19 +271,25 @@ Node mkRangeConstraint(uint32_t eb, uint32_t sb, TNode node)
   //  .orNode(isNegZero).orNode(isPosZero)
   //  .orNode(isNegInf).orNode(isPosInf)
   //  .orNode(isNormal)
-  //  .orNode(isSubnormal)
-  //  ;
+  //  .orNode(isSubnormal);
+
   return nm->mkConst(true);
 }
 
 Node mkIsRounded(uint32_t eb, uint32_t sb, TNode node)
 {
   NodeManager* nm = NodeManager::currentNM();
-  //Node op = nm->mkConst(RfpRound(eb, sb));
-  //Node rm = nm->mkConstInt(0);
-  //Node rounded = nm->mkNode(kind::RFP_ROUND, op, rm, node);
-  //return node.eqNode(rounded);
-  return nm->mkConst(true);
+
+  Node op = nm->mkConst(RfpRound(eb, sb));
+  Node rm1 = nm->mkConstInt(IRM::TN);
+  Node rd1 = nm->mkNode(kind::RFP_ROUND, op, rm1, node);
+  return node.eqNode(rd1);
+
+  //Node rm2 = nm->mkConstInt(IRM::TP);
+  //Node rd2 = nm->mkNode(kind::RFP_ROUND, op, rm2, node);
+  //return node.eqNode(rd1).andNode(node.eqNode(rd2));
+
+  //return nm->mkConst(true);
 }
 
 /** Relation between node1 and node2, where node2 = round(node1).
@@ -284,7 +306,7 @@ Node mkRoundCases(uint32_t eb1, uint32_t sb1, TNode node1,
   Node l2 = isInf1.impNode(isInf2);
   Node isNan1 = mkIsNan(eb1,sb1, node1);
   Node isNan2 = mkIsNan(eb2,sb2, node2);
-  Node l3 = isNan1.eqNode(isNan2);
+  Node l3 = isNan1.impNode(isNan2);
   Node isNeg1 = mkIsNeg(eb1,sb1, node1);
   Node isNeg2 = mkIsNeg(eb2,sb2, node2);
   Node l4 = isNeg1.eqNode(isNeg2);
