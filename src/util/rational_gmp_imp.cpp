@@ -109,27 +109,35 @@ Rational Rational::pow2Lower() const
   return res;
 }
 
+
 int Rational::ilog2() const
 {
-  // TODO
-  int l2_num = getNumerator().length();
-  int l2_n_ = (getNumerator()-1).length();
-  int l2_den = getDenominator().length();
-  int l2_d_ = (getDenominator()-1).length();
-  int res;
+  Integer num = getNumerator().abs();
+  Integer den = getDenominator().abs();
+  int l2_num = num.length();
+  int l2_den = den.length();
+  int res = 0;
   if (isZero()){
-    res = -1;
-  }else if (getNumerator() == getDenominator()){
-    Assert(sgn() != 0);
-    res = 0;
+    // TODO
+    return 0;
+  //}else if (getNumerator() == getDenominator()){
+  //  Assert(sgn() != 0);
+  //  res = 0;
   }else if (l2_num >= l2_den){
-    // return the upper bound.
-    res = l2_n_ - l2_den + 1;
+    res = l2_num - l2_den;
+    //if (*this >= Integer::pow2(uint32_t(res)))
+    if (Rational(num)/Integer::pow2(uint32_t(res)) >= den)
+      return res;
+    else
+      return res - 1;
   }else{ // l2_num < l2_den
-    // return the lower bound.
-    res = l2_num - l2_d_ - 1;
+    res = l2_den - l2_num;
+    //if (this->inverse() > Integer::pow2(uint32_t(res)))
+    if (Rational(den)/Integer::pow2(uint32_t(res)) > num)
+      return -res - 1;
+    else
+      return -res;
   }
-  return res;
 }
 
 

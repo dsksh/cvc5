@@ -112,6 +112,14 @@ class RfpRoundSolver : protected EnvObj
     const Integer& rm2, const Rational& arg2, const Rational& round2);
 
   /**
+   * 
+   */
+  void checkRoundError(Rational err0, bool isNearest, 
+                       Integer rm, Rational arg, Rational round, 
+                       Node node, Node aRange,
+                       bool isRelational = false);
+
+  /**
    * Value-based refinement lemma for t of the form ((_ rfp.round eb sb) rm arg). Returns:
    *   rm = M(rm) ^ arg = M(arg) =>
    *     ((_ rfp.round eb sb) rm arg) = rewrite(((_ rfp.round eb sb) M(rm) M(arg)))
