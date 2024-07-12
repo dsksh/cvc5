@@ -40,7 +40,20 @@ Node mkFalse(TNode i)
 Node mkTrue(TNode i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return i.eqNode(nm->mkConstInt(0)).notNode();
+  return (i.eqNode(nm->mkConstInt(0))).notNode();
+  //return i.eqNode(nm->mkConstInt(1));
+}
+
+Node mkBoolIntConstraint(TNode i)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  //Node lb = nm->mkNode(kind::LEQ, nm->mkConstInt(0), i);
+  //Node ub = nm->mkNode(kind::LEQ, i, nm->mkConstInt(1));
+  //return lb.andNode(ub);
+  //Node zero = i.eqNode(nm->mkConstInt(0));
+  //Node one = i.eqNode(nm->mkConstInt(1));
+  //return zero.orNode(one);
+  return nm->mkConst(true);
 }
 
 Node mkIsFinite(uint32_t eb, uint32_t sb, TNode x)

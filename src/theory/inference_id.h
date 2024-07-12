@@ -188,6 +188,8 @@ enum class InferenceId
   //-------------------- rfp solver
   // initial refinements (RfpSolver::checkInitialRefine)
   ARITH_NL_RFP_INIT_REFINE,
+  // lemmas for comparison operators (RfpSolver::checkFullRefine)
+  ARITH_NL_RFP_COMP,
   // additional refinements (RfpSolver::checkFullRefine)
   ARITH_NL_RFP_AUX_REFINE,
   // value refinements (RfpSolver::checkFullRefine)
@@ -199,6 +201,9 @@ enum class InferenceId
   ARITH_NL_RFP_ADD_AUX_REFINE,
   // value refinements (RfpAddSolver::checkFullRefine)
   ARITH_NL_RFP_ADD_VALUE_REFINE,
+  //-------------------- rfp.mult solver
+  // additional comparison lemmas (MonomialCheck::checkCompRounds)
+  ARITH_NL_RFP_MULT_COMP,
   //-------------------- nonlinear coverings solver
   // conflict / infeasible subset obtained from coverings
   ARITH_NL_COVERING_CONFLICT,

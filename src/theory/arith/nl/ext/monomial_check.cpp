@@ -25,6 +25,12 @@
 #include "theory/arith/nl/nl_model.h"
 #include "util/rational.h"
 
+// for rfp
+#include "util/int_roundingmode.h"
+#include "util/real_floatingpoint.h"
+#include "theory/arith/nl/rfp_utils.h"
+using namespace cvc5::internal::theory::arith::nl::RfpUtils;
+
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
@@ -43,6 +49,10 @@ void MonomialCheck::init(const std::vector<Node>& xts)
   d_ms_proc.clear();
   d_m_nconst_factor.clear();
 
+  // for rfp
+  d_ms_rounds.clear();
+  d_ms_round_lits.clear();
+
   for (unsigned i = 0, xsize = xts.size(); i < xsize; i++)
   {
     Node a = xts[i];
@@ -56,6 +66,17 @@ void MonomialCheck::init(const std::vector<Node>& xts)
         {
           d_m_nconst_factor[a] = true;
         }
+      }
+    }
+
+    // for rfp
+    else if (a.getKind() == Kind::RFP_ROUND &&
+             a[1].getKind() == Kind::NONLINEAR_MULT)
+    {
+      if (d_ms_rounds.find(a[1]) == d_ms_rounds.end())
+      {
+        //Trace("rfp-mult-comp-debug") << "register a round term: " << a << std::endl;
+        d_ms_rounds[a[1]] = a;
       }
     }
   }
@@ -425,12 +446,18 @@ bool MonomialCheck::compareMonomial(
           exp.push_back(v.eqNode(mkZero(v.getType())).negate());
         }
       }
+      Node lit = mkLit(oa, ob, status, true);
       Node clem = nm->mkNode(
-          Kind::IMPLIES, nm->mkAnd(exp), mkLit(oa, ob, status, true));
+          Kind::IMPLIES, nm->mkAnd(exp), lit);
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
       lem.emplace_back(
           InferenceId::ARITH_NL_COMPARISON, clem, LemmaProperty::NONE, nullptr);
       cmp_infers[status][oa][ob] = clem;
+
+      // for rfp
+      if (status == 1 || status == 2){
+        checkCompRounds(lit, oa, ob, status, true);
+      }
     }
     return true;
   }
@@ -504,7 +531,12 @@ bool MonomialCheck::compareMonomial(
       Trace("nl-ext-comp-debug") << "...take leading " << bv << std::endl;
       // can multiply b by <=1
       Node one = mkOne(bv.getType());
-      exp.push_back(mkLit(one, bv, bvo == ovo ? 0 : 2, true));
+      Node lit = mkLit(one, bv, bvo == ovo ? 0 : 2, true);
+      exp.push_back(lit);
+      // for rfp
+      if (bvo != ovo){
+        checkCompRounds(lit, one, bv, 2, true);
+      }
       return compareMonomial(oa,
                              a,
                              a_index,
@@ -529,7 +561,12 @@ bool MonomialCheck::compareMonomial(
       Trace("nl-ext-comp-debug") << "...take leading " << av << std::endl;
       // can multiply a by >=1
       Node one = mkOne(av.getType());
-      exp.push_back(mkLit(av, one, avo == ovo ? 0 : 2, true));
+      Node lit = mkLit(av, one, avo == ovo ? 0 : 2, true);
+      exp.push_back(lit);
+      // for rfp
+      if (avo != ovo){
+        checkCompRounds(lit, av, one, 2, true);
+      }
       return compareMonomial(oa,
                              a,
                              a_index + 1,
@@ -555,7 +592,12 @@ bool MonomialCheck::compareMonomial(
       Trace("nl-ext-comp-debug") << "...take leading " << av << std::endl;
       // do avo>=1 instead
       Node one = mkOne(av.getType());
-      exp.push_back(mkLit(av, one, avo == ovo ? 0 : 2, true));
+      Node lit = mkLit(av, one, avo == ovo ? 0 : 2, true);
+      exp.push_back(lit);
+      // for rfp
+      if (avo != ovo){
+        checkCompRounds(lit, av, one, 2, true);
+      }
       return compareMonomial(oa,
                              a,
                              a_index + 1,
@@ -574,7 +616,12 @@ bool MonomialCheck::compareMonomial(
     b_exp_proc[bv] += min_exp;
     Trace("nl-ext-comp-debug") << "...take leading " << min_exp << " from "
                                << av << " and " << bv << std::endl;
-    exp.push_back(mkLit(av, bv, avo == bvo ? 0 : 2, true));
+    Node lit = mkLit(av, bv, avo == bvo ? 0 : 2, true);
+    exp.push_back(lit);
+    // for rfp
+    if (avo != bvo){
+      checkCompRounds(lit, av, bv, 2, true);
+    }
     bool ret = compareMonomial(oa,
                                a,
                                a_index,
@@ -595,7 +642,12 @@ bool MonomialCheck::compareMonomial(
   {
     Trace("nl-ext-comp-debug") << "...take leading " << bv << std::endl;
     // try multiply b <= 1
-    exp.push_back(mkLit(d_data->d_one, bv, bvo == ovo ? 0 : 2, true));
+    Node lit = mkLit(d_data->d_one, bv, bvo == ovo ? 0 : 2, true);
+    exp.push_back(lit);
+    // for rfp
+    if (bvo != ovo){
+      checkCompRounds(lit, d_data->d_one, bv, 2, true);
+    }
     return compareMonomial(oa,
                            a,
                            a_index,
@@ -765,6 +817,105 @@ void MonomialCheck::setMonomialFactor(Node a,
     Trace("nl-ext-mono-factor")
         << "Set monomial factor for " << a << "/" << b << std::endl;
     mono_diff_a[b] = d_data->d_mdb.mkMonomialRemFactor(a, common);
+  }
+}
+
+// for rfp
+void MonomialCheck::checkCompRounds(Node lit, Node a, Node b, 
+                                    int status, bool isAbsolute)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Assert(status == 1 || status == 2);
+  std::map<Node, Node>::const_iterator it = d_ms_rounds.find(a);
+  if (it != d_ms_rounds.end())
+  {
+    if (d_ms_round_lits.find(lit) == d_ms_round_lits.end()) 
+    {
+      Trace("rfp-mult-comp-debug") << "found (a): |" << a 
+        << (status == 1 ? "| >= |" : "| > |") 
+        << b  << "|" << std::endl;
+      d_ms_round_lits[lit] = true;
+
+      Node aRnd = it->second;
+      Node op = aRnd.getOperator();
+      FloatingPointSize sz = op.getConst<RfpRound>().getSize();
+      uint32_t eb = sz.exponentWidth();
+      uint32_t sb = sz.significandWidth();
+      if (b.getType().isInteger()){
+        b = nm->mkNode(Kind::TO_REAL, b);
+      }
+      Node bRnd = nm->mkNode(Kind::RFP_ROUND, op, aRnd[0], b);
+      Node a1 = mkIsFinite(eb,sb, aRnd);
+      Node a2 = mkIsFinite(eb,sb, bRnd);
+
+      if (status == 1)
+      {
+        Node a3 = mkLit(a, b, 1, isAbsolute);
+        Node assumption = a1.andNode(a2).andNode(a3);
+        Node conclusion = mkLit(aRnd, bRnd, 1, isAbsolute);
+        Node lem = assumption.impNode(conclusion);
+        Trace("rfp-mult-comp-lemma") << "RfpMonomialCheck::Lemma: " << lem
+                                     << std::endl;
+        d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_COMP);
+      }
+      else // status == 2
+      {
+        Node a3 = mkLit(aRnd, bRnd, 2, isAbsolute);
+        Node assumption = a1.andNode(a2).andNode(a3);
+        Node c1 = mkLit(a, bRnd, 2, isAbsolute);
+        Node c2 = mkLit(aRnd, b, 2, isAbsolute);
+        Node conclusion = c1.andNode(c2);
+        Node lem = assumption.impNode(conclusion);
+        Trace("rfp-mult-comp-lemma") << "RfpMonomialCheck::Lemma: " << lem
+                                     << std::endl;
+        d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_COMP);
+      }
+    }
+  }
+
+  it = d_ms_rounds.find(b);
+  if (it != d_ms_rounds.end() && 
+      d_ms_round_lits.find(lit) == d_ms_round_lits.end())
+  {
+    Trace("rfp-mult-comp-debug") << "found (b): |" << a 
+      << (status == 1 ? "| >= |" : "| > |") 
+      << b  << "|" << std::endl;
+    d_ms_round_lits[lit] = true;
+
+    Node bRnd = it->second;
+    Node op = bRnd.getOperator();
+    FloatingPointSize sz = op.getConst<RfpRound>().getSize();
+    uint32_t eb = sz.exponentWidth();
+    uint32_t sb = sz.significandWidth();
+    if (a.getType().isInteger()){
+      a = nm->mkNode(Kind::TO_REAL, a);
+    }
+    Node aRnd = nm->mkNode(Kind::RFP_ROUND, op, bRnd[0], a);
+    Node a1 = mkIsFinite(eb,sb, aRnd);
+    Node a2 = mkIsFinite(eb,sb, bRnd);
+
+    if (status == 1)
+    {
+      Node a3 = mkLit(a, b, 1, isAbsolute);
+      Node assumption = a1.andNode(a2).andNode(a3);
+      Node conclusion = mkLit(aRnd, bRnd, 1, isAbsolute);
+      Node lem = assumption.impNode(conclusion);
+      Trace("rfp-mult-comp-lemma") << "RfpMonomialCheck::Lemma: " << lem
+                                   << std::endl;
+      d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_COMP);
+    }
+    else // status == 2
+    {
+      Node a3 = mkLit(aRnd, bRnd, 2, isAbsolute);
+      Node assumption = a1.andNode(a2).andNode(a3);
+      Node c1 = mkLit(a, bRnd, 2, isAbsolute);
+      Node c2 = mkLit(aRnd, b, 2, isAbsolute);
+      Node conclusion = c1.andNode(c2);
+      Node lem = assumption.impNode(conclusion);
+      Trace("rfp-mult-comp-lemma") << "RfpMonomialCheck::Lemma: " << lem
+                                   << std::endl;
+      d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_COMP);
+    }
   }
 }
 

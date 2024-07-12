@@ -191,6 +191,13 @@ class MonomialCheck : protected EnvObj
   // list of monomials with factors whose model value is non-constant in model
   //  e.g. y*cos( x )
   std::map<Node, bool> d_m_nconst_factor;
+
+  // for rfp
+  // Map from nl mult nodes to their rounding terms.
+  std::map<Node, Node> d_ms_rounds;
+  std::map<Node, bool> d_ms_round_lits;
+
+  void checkCompRounds(Node lit, Node a, Node b, int status, bool isAbsolute = false);
 };
 
 }  // namespace nl

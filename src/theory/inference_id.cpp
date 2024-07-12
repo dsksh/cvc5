@@ -126,6 +126,8 @@ const char* toString(InferenceId i)
       return "ARITH_NL_RFP_ROUND_VALUE_REFINE";
     case InferenceId::ARITH_NL_RFP_INIT_REFINE:
       return "ARITH_NL_RFP_INIT_REFINE";
+    case InferenceId::ARITH_NL_RFP_COMP:
+      return "ARITH_NL_RFP_COMP";
     case InferenceId::ARITH_NL_RFP_AUX_REFINE:
       return "ARITH_NL_RFP_AUX_REFINE";
     case InferenceId::ARITH_NL_RFP_VALUE_REFINE:
@@ -136,6 +138,8 @@ const char* toString(InferenceId i)
       return "ARITH_NL_RFP_ADD_AUX_REFINE";
     case InferenceId::ARITH_NL_RFP_ADD_VALUE_REFINE:
       return "ARITH_NL_RFP_ADD_VALUE_REFINE";
+    case InferenceId::ARITH_NL_RFP_MULT_COMP:
+      return "ARITH_NL_RFP_MULT_COMP";
     case InferenceId::ARITH_NL_COVERING_CONFLICT: return "ARITH_NL_COVERING_CONFLICT";
     case InferenceId::ARITH_NL_COVERING_EXCLUDED_INTERVAL:
       return "ARITH_NL_COVERING_EXCLUDED_INTERVAL";

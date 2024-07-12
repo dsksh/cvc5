@@ -318,6 +318,12 @@ RewriteResponse ArithRewriter::postRewriteRfpRound(TNode t)
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
   NodeManager* nm = NodeManager::currentNM();
+
+  if (t[1].getKind() == kind::RFP_ROUND)
+  {
+    return RewriteResponse(REWRITE_AGAIN_FULL, t[1]);
+  }
+
   // if constant, can be eliminated
   if (t[0].isConst() && t[1].isConst())
   {
@@ -844,7 +850,7 @@ RewriteResponse ArithRewriter::postRewriteRfpEq(TNode t)
              RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y))
     {
       //Node ret = nm->mkConst(x == y);
-      Node ret = x == y ? nm->mkConstInt(1) : nm->mkConstInt(0);
+      Node ret = nm->mkConstInt(x == y ? 1 : 0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
     //// zero cases
@@ -858,7 +864,7 @@ RewriteResponse ArithRewriter::postRewriteRfpEq(TNode t)
     {
       double dx = toDouble(eb,sb, x);
       double dy = toDouble(eb,sb, y);
-      Node ret = nm->mkConstInt(dx == dy);
+      Node ret = nm->mkConstInt(dx == dy ? 1 : 0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
   }
@@ -889,7 +895,7 @@ RewriteResponse ArithRewriter::postRewriteRfpLt(TNode t)
     if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
         (!RFP::isZero(eb,sb, x) || !RFP::isZero(eb,sb, y)))
     {
-      Node ret = x < y ? nm->mkConstInt(1): nm->mkConstInt(0);
+      Node ret = nm->mkConstInt(x < y ? 1 : 0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
     // zero cases
@@ -902,7 +908,7 @@ RewriteResponse ArithRewriter::postRewriteRfpLt(TNode t)
     {
       double dx = toDouble(eb,sb, x);
       double dy = toDouble(eb,sb, y);
-      Node ret = dx < dy ? nm->mkConstInt(1) : nm->mkConstInt(0);
+      Node ret = nm->mkConstInt(dx < dy ? 1 : 0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
   }
@@ -933,7 +939,7 @@ RewriteResponse ArithRewriter::postRewriteRfpLeq(TNode t)
     if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
         (!RFP::isZero(eb,sb, x) || !RFP::isZero(eb,sb, y))) 
     {
-      Node ret = x <= y ? nm->mkConstInt(1) : nm->mkConstInt(0);
+      Node ret = nm->mkConstInt(x <= y ? 1 : 0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
     // zero cases
@@ -946,7 +952,7 @@ RewriteResponse ArithRewriter::postRewriteRfpLeq(TNode t)
     {
       double dx = toDouble(eb,sb, x);
       double dy = toDouble(eb,sb, y);
-      Node ret = dx <= dy ? nm->mkConstInt(1) : nm->mkConstInt(0);
+      Node ret = nm->mkConstInt(dx <= dy ? 1 : 0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
   }

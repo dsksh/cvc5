@@ -503,12 +503,13 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::NL_MONOMIAL_MAGNITUDE0:
         d_monomialSlv.checkMagnitude(0);
         break;
-      case InferStep::NL_MONOMIAL_MAGNITUDE1:
-        d_monomialSlv.checkMagnitude(1);
-        break;
-      case InferStep::NL_MONOMIAL_MAGNITUDE2:
-        d_monomialSlv.checkMagnitude(2);
-        break;
+      //case InferStep::NL_MONOMIAL_MAGNITUDE1:
+      //  d_monomialSlv.checkMagnitude(1);
+      //  break;
+      // for rfp
+      //case InferStep::NL_MONOMIAL_MAGNITUDE2:
+      //  d_monomialSlv.checkMagnitude(2);
+      //  break;
       case InferStep::NL_MONOMIAL_SIGN: d_monomialSlv.checkSign(); break;
       case InferStep::NL_RESOLUTION_BOUNDS:
         d_monomialBoundsSlv.checkResBounds();
