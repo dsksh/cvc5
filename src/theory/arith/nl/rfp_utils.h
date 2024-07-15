@@ -28,6 +28,7 @@ namespace RfpUtils {
 Node mkAbs(TNode x);
 Node mkFalse(TNode i);
 Node mkTrue(TNode i);
+Node mkIsOne(TNode i);
 Node mkBoolIntConstraint(TNode i);
 Node mkIsFinite(uint32_t eb, uint32_t sb, TNode x);
 Node mkNoOverflow(uint32_t eb, uint32_t sb, TNode rm, TNode x);

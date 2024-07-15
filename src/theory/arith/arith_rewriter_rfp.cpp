@@ -879,10 +879,34 @@ RewriteResponse ArithRewriter::postRewriteRfpLt(TNode t)
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
   NodeManager* nm = NodeManager::currentNM();
+  Node op = nm->mkConst(RfpGt(eb, sb));
+  Node ret = nm->mkNode(kind::RFP_GT, op, t[1], t[0]);
+  return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpLeq(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_LEQ);
+  FloatingPointSize sz = t.getOperator().getConst<RfpLeq>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
+  Node op = nm->mkConst(RfpGeq(eb, sb));
+  Node ret = nm->mkNode(kind::RFP_GEQ, op, t[1], t[0]);
+  return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+}
+
+RewriteResponse ArithRewriter::postRewriteRfpGt(TNode t)
+{
+  Assert(t.getKind() == kind::RFP_GT);
+  FloatingPointSize sz = t.getOperator().getConst<RfpGt>().getSize();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+  NodeManager* nm = NodeManager::currentNM();
   // if constant, can be eliminated
   if (t[0].isConst() && t[1].isConst())
   {
-    // rfp.lt is only supported for real values
+    // rfp.gt is only supported for real values
     Assert(t[0].getType().isReal());
     Assert(t[1].getType().isReal());
     Rational x = t[0].getConst<Rational>();
@@ -895,7 +919,7 @@ RewriteResponse ArithRewriter::postRewriteRfpLt(TNode t)
     if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
         (!RFP::isZero(eb,sb, x) || !RFP::isZero(eb,sb, y)))
     {
-      Node ret = nm->mkConstInt(x < y ? 1 : 0);
+      Node ret = nm->mkConstInt(x > y ? 1 : 0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
     // zero cases
@@ -908,7 +932,7 @@ RewriteResponse ArithRewriter::postRewriteRfpLt(TNode t)
     {
       double dx = toDouble(eb,sb, x);
       double dy = toDouble(eb,sb, y);
-      Node ret = nm->mkConstInt(dx < dy ? 1 : 0);
+      Node ret = nm->mkConstInt(dx > dy ? 1 : 0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
   }
@@ -916,17 +940,17 @@ RewriteResponse ArithRewriter::postRewriteRfpLt(TNode t)
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-RewriteResponse ArithRewriter::postRewriteRfpLeq(TNode t)
+RewriteResponse ArithRewriter::postRewriteRfpGeq(TNode t)
 {
-  Assert(t.getKind() == kind::RFP_LEQ);
-  FloatingPointSize sz = t.getOperator().getConst<RfpLeq>().getSize();
+  Assert(t.getKind() == kind::RFP_GEQ);
+  FloatingPointSize sz = t.getOperator().getConst<RfpGeq>().getSize();
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
   NodeManager* nm = NodeManager::currentNM();
   // if constant, can be eliminated
   if (t[0].isConst() && t[1].isConst())
   {
-    // rfp.leq is only supported for real values
+    // rfp.geq is only supported for real values
     Assert(t[0].getType().isReal());
     Assert(t[1].getType().isReal());
     Rational x = t[0].getConst<Rational>();
@@ -939,7 +963,7 @@ RewriteResponse ArithRewriter::postRewriteRfpLeq(TNode t)
     if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
         (!RFP::isZero(eb,sb, x) || !RFP::isZero(eb,sb, y))) 
     {
-      Node ret = nm->mkConstInt(x <= y ? 1 : 0);
+      Node ret = nm->mkConstInt(x >= y ? 1 : 0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
     // zero cases
@@ -952,36 +976,12 @@ RewriteResponse ArithRewriter::postRewriteRfpLeq(TNode t)
     {
       double dx = toDouble(eb,sb, x);
       double dy = toDouble(eb,sb, y);
-      Node ret = nm->mkConstInt(dx <= dy ? 1 : 0);
+      Node ret = nm->mkConstInt(dx >= dy ? 1 : 0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
   }
 
   return RewriteResponse(REWRITE_DONE, t);
-}
-
-RewriteResponse ArithRewriter::postRewriteRfpGt(TNode t)
-{
-  Assert(t.getKind() == kind::RFP_GT);
-  FloatingPointSize sz = t.getOperator().getConst<RfpGt>().getSize();
-  uint32_t eb = sz.exponentWidth();
-  uint32_t sb = sz.significandWidth();
-  NodeManager* nm = NodeManager::currentNM();
-  Node op = nm->mkConst(RfpLt(eb, sb));
-  Node ret = nm->mkNode(kind::RFP_LT, op, t[1], t[0]);
-  return RewriteResponse(REWRITE_AGAIN_FULL, ret);
-}
-
-RewriteResponse ArithRewriter::postRewriteRfpGeq(TNode t)
-{
-  Assert(t.getKind() == kind::RFP_GEQ);
-  FloatingPointSize sz = t.getOperator().getConst<RfpGeq>().getSize();
-  uint32_t eb = sz.exponentWidth();
-  uint32_t sb = sz.significandWidth();
-  NodeManager* nm = NodeManager::currentNM();
-  Node op = nm->mkConst(RfpLeq(eb, sb));
-  Node ret = nm->mkNode(kind::RFP_LEQ, op, t[1], t[0]);
-  return RewriteResponse(REWRITE_AGAIN_FULL, ret);
 }
 
 }  // namespace arith

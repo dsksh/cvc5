@@ -101,19 +101,6 @@ class RfpSolver : protected EnvObj
    */
   Node relValueBasedLemma(TNode i);
 
- //private:
-  //Node mkFalse(Node i);
-  //Node mkTrue(Node i);
-  //Node mkIsFinite(uint32_t eb, uint32_t sb, Node x);
-  //Node mkIsInf(uint32_t eb, uint32_t sb, Node x);
-  //Node mkIsPos(uint32_t eb, uint32_t sb, Node x);
-  //Node mkIsNeg(uint32_t eb, uint32_t sb, Node x);
-  //Node mkSameSign(uint32_t eb, uint32_t sb, Node x, Node y);
-  //Node mkDiffSign(uint32_t eb, uint32_t sb, Node x, Node y);
-  //Node mkIsNegInf(uint32_t eb, uint32_t sb, Node x);
-  //Node mkIsPosInf(uint32_t eb, uint32_t sb, Node x);
-  //Node mkIsNan(uint32_t eb, uint32_t sb, Node x);
-
   void checkFullRefineValue(Node n);
 
   void checkInitialRefineToReal(Node n);
@@ -128,12 +115,14 @@ class RfpSolver : protected EnvObj
   void checkFullRefineMult(Node n);
   void checkInitialRefineDiv(Node n);
   void checkFullRefineDiv(Node n);
-  void checkInitialRefineLt(Node n);
-  void checkFullRefineLt(Node n);
-  void checkInitialRefineLeq(Node n);
-  void checkFullRefineLeq(Node n);
+  //void checkInitialRefineLt(Node n);
+  //void checkFullRefineLt(Node n);
+  //void checkInitialRefineLeq(Node n);
+  //void checkFullRefineLeq(Node n);
   void checkInitialRefineGt(Node n);
+  void checkFullRefineGt(Node n);
   void checkInitialRefineGeq(Node n);
+  void checkFullRefineGeq(Node n);
 
 }; /* class RfpSolver */
 
