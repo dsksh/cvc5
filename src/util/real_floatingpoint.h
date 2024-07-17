@@ -89,7 +89,20 @@ bool isSubnormal(uint32_t eb, uint32_t sb, const Rational& arg);
 bool isZero(uint32_t eb, uint32_t sb, const Rational& arg);
 //bool inRange(uint32_t eb, uint32_t sb, const Rational& arg);
 bool isFinite(uint32_t eb, uint32_t sb, const Rational& arg);
+
+/** Check if the infinity values.
+ */
 bool isInfinite(uint32_t eb, uint32_t sb, const Rational& arg);
+bool isInfiniteWeak(uint32_t eb, uint32_t sb, const Rational& arg);
+
+/** Check weakly if the negative infinity.
+ */
+bool isNegInfWeak(uint32_t eb, uint32_t sb, const Rational& arg);
+
+/** Check weakly if the possitive infinity.
+ */
+bool isPosInfWeak(uint32_t eb, uint32_t sb, const Rational& arg);
+
 bool isNan(uint32_t eb, uint32_t sb, const Rational& arg);
 bool noOverflow(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg);
 

@@ -78,6 +78,7 @@ Node mkNoOverflow(uint32_t eb, uint32_t sb, TNode rm, TNode x)
   NodeManager* nm = NodeManager::currentNM();
   //Node op = nm->mkConst(RfpRound(eb, sb));
   //Node rounded = nm->mkNode(kind::RFP_ROUND, op, rm, x);
+  //return mkIsFinite(eb,sb, rounded);
 
   Node isTN = rm.eqNode(nm->mkConstInt(IRM::TN));
   Node isTP = rm.eqNode(nm->mkConstInt(IRM::TP));
@@ -89,8 +90,9 @@ Node mkNoOverflow(uint32_t eb, uint32_t sb, TNode rm, TNode x)
   Node lTN = isTN.impNode(bTN);
   Node bTP = nm->mkNode(LEQ, x, nm->mkConstReal(max));
   Node lTP = isTP.impNode(bTP);
-  Node bN = nm->mkNode(LEQ, mkAbs(x), 
-    nm->mkConstReal(RFP::maxValueExt(eb,sb)));
+  Node bN = nm->mkNode(AND,
+    nm->mkNode(LT, nm->mkConstReal(-RFP::maxValueExt(eb,sb)), x),
+    nm->mkNode(LT, x, nm->mkConstReal(RFP::maxValueExt(eb,sb))));
   Node lN = (isNE.orNode(isNA)).impNode(bN);
   return lTN.andNode(lTP).andNode(lN);
 }
@@ -174,6 +176,12 @@ Node mkIsInf(uint32_t eb, uint32_t sb, TNode x)
   Node isNinf = x.eqNode(nm->mkConstReal(RFP::minusInfinity(eb,sb)));
   Node isPinf = x.eqNode(nm->mkConstReal(RFP::plusInfinity(eb,sb)));
   return isNinf.orNode(isPinf);
+}
+Node mkIsInfWeak(uint32_t eb, uint32_t sb, TNode x)
+{
+  Node c1 = mkIsFinite(eb,sb, x).notNode();
+  Node c2 = mkIsNan(eb,sb, x).notNode();
+  return c1.andNode(c2);
 }
 
 Node mkIsNan(uint32_t eb, uint32_t sb, TNode x)
@@ -301,14 +309,9 @@ Node mkIsRounded(uint32_t eb, uint32_t sb, TNode node)
   NodeManager* nm = NodeManager::currentNM();
 
   Node op = nm->mkConst(RfpRound(eb, sb));
-  Node rm1 = nm->mkConstInt(IRM::TN);
+  Node rm1 = nm->mkConstInt(IRM::NE);
   Node rd1 = nm->mkNode(kind::RFP_ROUND, op, rm1, node);
   return node.eqNode(rd1);
-
-  //Node rm2 = nm->mkConstInt(IRM::TP);
-  //Node rd2 = nm->mkNode(kind::RFP_ROUND, op, rm2, node);
-  //return node.eqNode(rd1).andNode(node.eqNode(rd2));
-
   //return nm->mkConst(true);
 }
 

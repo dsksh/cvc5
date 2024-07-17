@@ -389,7 +389,8 @@ Node FPToReal::translateWithChildren(
         translated_children[0], translated_children[1]);
       rel = rewrite(rel);
 
-      returnNode = mkTrue(rel);
+      //returnNode = mkTrue(rel);
+      returnNode = mkIsOne(rel);
 
       // TODO: range constraint
       lemmas.push_back(mkBoolIntConstraint(rel));

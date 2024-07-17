@@ -506,7 +506,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       //case InferStep::NL_MONOMIAL_MAGNITUDE1:
       //  d_monomialSlv.checkMagnitude(1);
       //  break;
-      // for rfp
+      //// for rfp
       //case InferStep::NL_MONOMIAL_MAGNITUDE2:
       //  d_monomialSlv.checkMagnitude(2);
       //  break;

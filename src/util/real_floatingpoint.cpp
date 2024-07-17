@@ -51,7 +51,7 @@ Integer maxValue(uint32_t eb, uint32_t sb)
   return cache[h];
 }
 
-// Cf. HoFPA Prop. 2.1
+// Cf. HoFPA(2nd) Prop. 2.1
 Integer maxValueExt(uint32_t eb, uint32_t sb)
 {
   static std::unordered_map<uint32_t, Integer> cache;
@@ -169,10 +169,33 @@ bool isFinite(uint32_t eb, uint32_t sb, const Rational& arg)
   return Rational(-maxValue(eb,sb)) <= arg && arg <= Rational(maxValue(eb,sb));
 }
 
+/** Check if the infinity values.
+ */
 bool isInfinite(uint32_t eb, uint32_t sb, const Rational& arg)
 {
-  //return arg <= minusInfinity(eb,sb) || plusInfinity(eb,sb) <= arg;
   return arg == minusInfinity(eb,sb) || plusInfinity(eb,sb) == arg;
+}
+
+/** Check weakly if the infinity values.
+ */
+bool isInfiniteWeak(uint32_t eb, uint32_t sb, const Rational& arg)
+{
+  return (arg < Rational(maxValue(eb,sb)) || Rational(maxValue(eb,sb)) < arg)
+    && arg != notANumber(eb,sb);
+}
+
+/** Check weakly if the negative infinity.
+ */
+bool isNegInfWeak(uint32_t eb, uint32_t sb, const Rational& arg)
+{
+  return arg < Rational(-maxValue(eb,sb)) && arg != notANumber(eb,sb);
+}
+
+/** Check weakly if the possitive infinity.
+ */
+bool isPosInfWeak(uint32_t eb, uint32_t sb, const Rational& arg)
+{
+  return arg > Rational(maxValue(eb,sb)) && arg != notANumber(eb,sb);
 }
 
 bool isNan(uint32_t eb, uint32_t sb, const Rational& arg)
@@ -183,7 +206,21 @@ bool isNan(uint32_t eb, uint32_t sb, const Rational& arg)
 bool noOverflow(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg)
 {
   // TODO
-  return isFinite(eb,sb, arg);
+  //return isFinite(eb,sb, round(eb,sb, rm, arg));
+
+  if (arg == notANumber(eb,sb)){
+    return false;
+  } else if (rm == IRM::TN){
+    return Rational(-maxValue(eb,sb)) <= arg;
+  } else if (rm == IRM::TP){
+    return arg <= Rational(maxValue(eb,sb));
+  } else if (rm == IRM::NE || rm == IRM::NA){
+    Rational max = maxValueExt(eb,sb);
+    return -max < arg && arg < max;
+  } else if (rm == IRM::TZ){
+    return true;
+  }
+  Assert(false) << "unreachable branch";
 }
 
 //

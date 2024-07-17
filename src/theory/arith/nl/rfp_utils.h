@@ -40,6 +40,7 @@ Node mkIsZeroWeak(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsNegZero(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsPosZero(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsInf(uint32_t eb, uint32_t sb, TNode x);
+Node mkIsInfWeak(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsNan(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsNeg(uint32_t eb, uint32_t sb, TNode x);
 Node mkIsPos(uint32_t eb, uint32_t sb, TNode x);
