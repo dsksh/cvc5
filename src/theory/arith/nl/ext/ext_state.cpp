@@ -53,6 +53,9 @@ void ExtState::init(const std::vector<Node>& xts)
   d_mterms.clear();
   d_tplane_refine.clear();
 
+  // for rfp
+  d_ms_rounds.clear();
+
   Trace("nl-ext-mv") << "Extended terms : " << std::endl;
   // for computing congruence
   std::map<Kind, ArgTrie> argTrie;
@@ -79,6 +82,17 @@ void ExtState::init(const std::vector<Node>& xts)
         }
       }
       // mark processed if has a "one" factor (will look at reduced monomial)?
+    }
+
+    // for rfp
+    else if (a.getKind() == Kind::RFP_ROUND &&
+             a[1].getKind() == Kind::NONLINEAR_MULT)
+    {
+      if (d_ms_rounds.find(a[1]) == d_ms_rounds.end())
+      {
+        //Trace("rfp-mult-comp-debug") << "register a round term: " << a << std::endl;
+        d_ms_rounds[a[1]] = a;
+      }
     }
   }
 

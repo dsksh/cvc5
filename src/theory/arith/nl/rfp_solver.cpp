@@ -449,21 +449,21 @@ void RfpSolver::checkInitialRefineAdd(Node node) {
                            << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
   }
-  {
-    // add_rounded
-    Node lem = mkIsRounded(eb,sb, node);
+  //{
+  //  // add_rounded
+  //  Node lem = mkIsRounded(eb,sb, node);
 
-    //Node range = mkRangeConstraint(eb,sb, node);
-    ////Node rangeX = mkRangeConstraint(eb,sb, node[1]);
-    ////Node rangeY = mkRangeConstraint(eb,sb, node[2]);
-    ////Node lem = range.andNode(rangeX).andNode(rangeY);
-    //Node lem = range;
+  //  //Node range = mkRangeConstraint(eb,sb, node);
+  //  ////Node rangeX = mkRangeConstraint(eb,sb, node[1]);
+  //  ////Node rangeY = mkRangeConstraint(eb,sb, node[2]);
+  //  ////Node lem = range.andNode(rangeX).andNode(rangeY);
+  //  //Node lem = range;
 
-    Trace("rfp-add-lemma") << "RfpSolver::Lemma: " << lem
-                           << " ; add_rounded ; INIT_REFINE"
-                           << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
-  }
+  //  Trace("rfp-add-lemma") << "RfpSolver::Lemma: " << lem
+  //                         << " ; add_rounded ; INIT_REFINE"
+  //                         << std::endl;
+  //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
+  //}
 }
 
 void RfpSolver::checkFullRefineAdd(Node node)
@@ -718,17 +718,17 @@ void RfpSolver::checkInitialRefineNeg(Node node) {
                            << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
   }
-  {
-    // neg_rounded
-    Node lem = mkIsRounded(eb,sb, node);
-    //Node range = mkRangeConstraint(eb,sb, node);
-    //Node rangeX = mkRangeConstraint(eb,sb, node[0]);
-    //Node lem = range;
-    Trace("rfp-neg-lemma") << "RfpSolver::Lemma: " << lem
-                           << " ; neg_range ; INIT_REFINE"
-                           << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
-  }
+  //{
+  //  // neg_rounded
+  //  Node lem = mkIsRounded(eb,sb, node);
+  //  //Node range = mkRangeConstraint(eb,sb, node);
+  //  //Node rangeX = mkRangeConstraint(eb,sb, node[0]);
+  //  //Node lem = range;
+  //  Trace("rfp-neg-lemma") << "RfpSolver::Lemma: " << lem
+  //                         << " ; neg_range ; INIT_REFINE"
+  //                         << std::endl;
+  //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
+  //}
 }
 
 void RfpSolver::checkFullRefineNeg(Node node)
@@ -881,15 +881,15 @@ void RfpSolver::checkInitialRefineSub(Node node) {
                            << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
   }
-  {
-    // sub_rounded
-    Node lem = mkIsRounded(eb,sb, node);
-    //Node lem = mkRangeConstraint(eb,sb, node);
-    Trace("rfp-sub-lemma") << "RfpSolver::Lemma: " << lem
-                           << " ; sub_rounded ; INIT_REFINE"
-                           << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
-  }
+  //{
+  //  // sub_rounded
+  //  Node lem = mkIsRounded(eb,sb, node);
+  //  //Node lem = mkRangeConstraint(eb,sb, node);
+  //  Trace("rfp-sub-lemma") << "RfpSolver::Lemma: " << lem
+  //                         << " ; sub_rounded ; INIT_REFINE"
+  //                         << std::endl;
+  //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
+  //}
 }
 
 void RfpSolver::checkFullRefineSub(Node node)
@@ -1059,15 +1059,15 @@ void RfpSolver::checkInitialRefineMult(Node node)
                             << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
   }
-  {
-    // mul_rounded
-    Node lem = mkIsRounded(eb,sb, node);
-    //Node lem = mkRangeConstraint(eb,sb, node);
-    Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem
-                           << " ; mul_range ; INIT_REFINE"
-                           << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
-  }
+  //{
+  //  // mul_rounded
+  //  Node lem = mkIsRounded(eb,sb, node);
+  //  //Node lem = mkRangeConstraint(eb,sb, node);
+  //  Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem
+  //                         << " ; mul_range ; INIT_REFINE"
+  //                         << std::endl;
+  //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
+  //}
 }
 
 void RfpSolver::checkFullRefineMult(Node node)
@@ -1188,6 +1188,33 @@ void RfpSolver::checkFullRefineMult(Node node)
   //                         << std::endl;
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
   //}
+
+  if (x == Rational(1) && RFP::isFinite(eb,sb, y) &&
+      mult != y)
+  {
+    // mul_one1
+    Node isOneX = node[1].eqNode(nm->mkConstReal(1));
+    Node isFiniteY = mkIsFinite(eb,sb, node[2]);
+    Node assumption = isOneX.andNode(isFiniteY);
+    Node conclusion = node.eqNode(node[2]);
+    Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+    Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem << " ; AUX_REFINE"
+                            << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
+  }
+  if (RFP::isFinite(eb,sb, x) && y == Rational(1) &&
+      mult != x)
+  {
+    // mul_one2
+    Node isFiniteX = mkIsFinite(eb,sb, node[1]);
+    Node isOneY = node[2].eqNode(nm->mkConstReal(1));
+    Node assumption = isFiniteX.andNode(isOneY);
+    Node conclusion = node.eqNode(node[1]);
+    Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+    Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem << " ; AUX_REFINE"
+                            << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
+  }
 
   //// mul_special 1-2,4,6: delegate to VALUE_REFINE. 
 
@@ -1384,15 +1411,15 @@ void RfpSolver::checkInitialRefineDiv(Node node) {
                            << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
   }
-  {
-    // div_rounded
-    Node lem = mkIsRounded(eb,sb, node);
-    //Node lem = mkRangeConstraint(eb,sb, node);
-    Trace("rfp-div-lemma") << "RfpSolver::Lemma: " << lem
-                           << " ; div_rounded ; INIT_REFINE"
-                           << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
-  }
+  //{
+  //  // div_rounded
+  //  Node lem = mkIsRounded(eb,sb, node);
+  //  //Node lem = mkRangeConstraint(eb,sb, node);
+  //  Trace("rfp-div-lemma") << "RfpSolver::Lemma: " << lem
+  //                         << " ; div_rounded ; INIT_REFINE"
+  //                         << std::endl;
+  //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
+  //}
 }
 
 void RfpSolver::checkFullRefineDiv(Node node)

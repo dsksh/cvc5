@@ -194,7 +194,8 @@ class MonomialCheck : protected EnvObj
 
   // for rfp
   // Map from nl mult nodes to their rounding terms.
-  std::map<Node, Node> d_ms_rounds;
+  //std::map<Node, Node> d_ms_rounds;
+  // To record processed literals.
   std::map<Node, bool> d_ms_round_lits;
 
   void checkCompRounds(Node lit, Node a, Node b, int status, bool isAbsolute = false);

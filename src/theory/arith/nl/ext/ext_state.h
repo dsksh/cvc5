@@ -79,6 +79,10 @@ class ExtState : protected EnvObj
   std::map<Node, std::map<Node, Node> > d_mono_diff;
   /** the set of monomials we should apply tangent planes to */
   std::unordered_set<Node> d_tplane_refine;
+
+  // for rfp
+  // Map from nl mult nodes to their rounding terms.
+  std::map<Node, Node> d_ms_rounds;
 };
 
 }  // namespace nl

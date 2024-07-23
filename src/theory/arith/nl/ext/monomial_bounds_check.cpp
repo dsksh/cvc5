@@ -103,6 +103,8 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
   Trace("nl-ext-debug") << "Register bound constraints..." << std::endl;
   for (const Node& lit : asserts)
   {
+    //Trace("nl-ext-bound-debug3") << "C: " << lit << std::endl;
+
     bool polarity = lit.getKind() != Kind::NOT;
     Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
     d_cdb.registerConstraint(atom);
@@ -150,6 +152,16 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           type = negateKind(type);
         }
       }
+
+      // rhs
+      // do not process the constraints (= x ((_ rfp.round e s) m x).
+      if (type == Kind::EQUAL && exp.getNumChildren() >= 2 && 
+          exp[1].getKind() == Kind::RFP_ROUND && exp[1][1] == x)
+      {
+        //Trace("nl-ext-bound-debug3") << "found" << std::endl;
+        continue;
+      }
+
       // add to status if maximal degree
       d_ci_max[x][coeff][rhs] = d_cdb.isMaximal(atom, x);
       if (TraceIsOn("nl-ext-bound-debug2"))
@@ -410,6 +422,34 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                                          InferenceId::ARITH_NL_INFER_BOUNDS_NT,
                                          proof,
                                          introNewTerms);
+
+            // rfp
+            std::map<Node, Node>::const_iterator it = d_data->d_ms_rounds.find(infer_lhs);
+            if (it != d_data->d_ms_rounds.end())
+            {
+              if (type == Kind::GEQ || type == Kind::LEQ || type == Kind::EQUAL)
+              {
+                Node lhsRnd = it->second;
+                Node rop = lhsRnd.getOperator();
+                Node rhsRnd = nm->mkNode(Kind::RFP_ROUND, rop, lhsRnd[0], infer_rhs);
+                Node infer = nm->mkNode(type, lhsRnd, rhsRnd);
+                Node lemma = exp.impNode(infer);
+                d_data->d_im.addPendingLemma(lemma,
+                                             InferenceId::ARITH_NL_INFER_BOUNDS_NT);
+              }
+              else if (type == Kind::GT || type == Kind::LT)
+              {
+                Node lhsRnd = it->second;
+                Node rop = lhsRnd.getOperator();
+                Node rhsRnd = nm->mkNode(Kind::RFP_ROUND, rop, lhsRnd[0], infer_rhs);
+                Node assumption = nm->mkNode(type, lhsRnd, rhsRnd);
+                Node infer1 = nm->mkNode(type, lhsRnd, infer_rhs);
+                Node infer2 = nm->mkNode(type, infer_lhs, rhsRnd);
+                Node lemma = assumption.impNode(infer1.andNode(infer2));
+                d_data->d_im.addPendingLemma(lemma,
+                                             InferenceId::ARITH_NL_INFER_BOUNDS_NT);
+              }
+            }
           }
         }
       }

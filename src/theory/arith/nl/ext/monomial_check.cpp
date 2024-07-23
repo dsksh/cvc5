@@ -50,7 +50,7 @@ void MonomialCheck::init(const std::vector<Node>& xts)
   d_m_nconst_factor.clear();
 
   // for rfp
-  d_ms_rounds.clear();
+  //d_ms_rounds.clear();
   d_ms_round_lits.clear();
 
   for (unsigned i = 0, xsize = xts.size(); i < xsize; i++)
@@ -69,16 +69,16 @@ void MonomialCheck::init(const std::vector<Node>& xts)
       }
     }
 
-    // for rfp
-    else if (a.getKind() == Kind::RFP_ROUND &&
-             a[1].getKind() == Kind::NONLINEAR_MULT)
-    {
-      if (d_ms_rounds.find(a[1]) == d_ms_rounds.end())
-      {
-        //Trace("rfp-mult-comp-debug") << "register a round term: " << a << std::endl;
-        d_ms_rounds[a[1]] = a;
-      }
-    }
+    //// for rfp
+    //else if (a.getKind() == Kind::RFP_ROUND &&
+    //         a[1].getKind() == Kind::NONLINEAR_MULT)
+    //{
+    //  if (d_ms_rounds.find(a[1]) == d_ms_rounds.end())
+    //  {
+    //    //Trace("rfp-mult-comp-debug") << "register a round term: " << a << std::endl;
+    //    d_ms_rounds[a[1]] = a;
+    //  }
+    //}
   }
 
   for (unsigned j = 0; j < d_order_points.size(); j++)
@@ -826,8 +826,8 @@ void MonomialCheck::checkCompRounds(Node lit, Node a, Node b,
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(status == 1 || status == 2);
-  std::map<Node, Node>::const_iterator it = d_ms_rounds.find(a);
-  if (it != d_ms_rounds.end())
+  std::map<Node, Node>::const_iterator it = d_data->d_ms_rounds.find(a);
+  if (it != d_data->d_ms_rounds.end())
   {
     if (d_ms_round_lits.find(lit) == d_ms_round_lits.end()) 
     {
@@ -873,8 +873,8 @@ void MonomialCheck::checkCompRounds(Node lit, Node a, Node b,
     }
   }
 
-  it = d_ms_rounds.find(b);
-  if (it != d_ms_rounds.end() && 
+  it = d_data->d_ms_rounds.find(b);
+  if (it != d_data->d_ms_rounds.end() && 
       d_ms_round_lits.find(lit) == d_ms_round_lits.end())
   {
     Trace("rfp-mult-comp-debug") << "found (b): |" << a 
