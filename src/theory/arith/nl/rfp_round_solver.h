@@ -33,6 +33,7 @@ class InferenceManager;
 namespace nl {
 
 class NlModel;
+class ExtState;
 
 /** Real-valued FP round solver class
  *
@@ -42,7 +43,7 @@ class RfpRoundSolver : protected EnvObj
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  RfpRoundSolver(Env& env, InferenceManager& im, NlModel& model);
+  RfpRoundSolver(Env& env, InferenceManager& im, NlModel& model, ExtState* data);
   ~RfpRoundSolver();
 
   /** init last call
@@ -83,6 +84,9 @@ class RfpRoundSolver : protected EnvObj
   Node d_true;
   Node d_zero;
   Node d_one;
+
+  /** Basic data of monomials shared with other checks */
+  ExtState* d_data;
 
   /** RFP_ROUND terms that have been given initial refinement lemmas */
   NodeSet d_initRefine;

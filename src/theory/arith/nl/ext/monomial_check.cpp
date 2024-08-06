@@ -362,6 +362,22 @@ int MonomialCheck::compareSign(
         proof->addStep(lemma, PfRule::SCOPE, {conc}, {prem});
       }
       d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
+
+      //// for rfp
+      //std::map<Node, Node>::const_iterator it = d_data->d_ms_rounds.find(a);
+      //if (it != d_data->d_ms_rounds.end())
+      //{
+      //  Node premR = prem;
+      //  Node oaRnd = it->second;
+      //  FloatingPointSize sz = oaRnd.getOperator().getConst<RfpRound>().getSize();
+      //  uint32_t eb = sz.exponentWidth();
+      //  uint32_t sb = sz.significandWidth();
+      //  Node concR = mkIsZero(eb,sb, oaRnd);
+      //  Node lem = premR.impNode(concR);
+      //  Trace("rfp-mult-comp-lemma") << "RfpMonomialCheck::Lemma: " << lem
+      //                               << std::endl;
+      //  d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_COMP);
+      //}
     }
     return 0;
   }
@@ -533,10 +549,10 @@ bool MonomialCheck::compareMonomial(
       Node one = mkOne(bv.getType());
       Node lit = mkLit(one, bv, bvo == ovo ? 0 : 2, true);
       exp.push_back(lit);
-      // for rfp
-      if (bvo != ovo){
-        checkCompRounds(lit, one, bv, 2, true);
-      }
+      //// for rfp
+      //if (bvo != ovo){
+      //  checkCompRounds(lit, one, bv, 2, true);
+      //}
       return compareMonomial(oa,
                              a,
                              a_index,
@@ -563,10 +579,10 @@ bool MonomialCheck::compareMonomial(
       Node one = mkOne(av.getType());
       Node lit = mkLit(av, one, avo == ovo ? 0 : 2, true);
       exp.push_back(lit);
-      // for rfp
-      if (avo != ovo){
-        checkCompRounds(lit, av, one, 2, true);
-      }
+      //// for rfp
+      //if (avo != ovo){
+      //  checkCompRounds(lit, av, one, 2, true);
+      //}
       return compareMonomial(oa,
                              a,
                              a_index + 1,
@@ -594,10 +610,10 @@ bool MonomialCheck::compareMonomial(
       Node one = mkOne(av.getType());
       Node lit = mkLit(av, one, avo == ovo ? 0 : 2, true);
       exp.push_back(lit);
-      // for rfp
-      if (avo != ovo){
-        checkCompRounds(lit, av, one, 2, true);
-      }
+      //// for rfp
+      //if (avo != ovo){
+      //  checkCompRounds(lit, av, one, 2, true);
+      //}
       return compareMonomial(oa,
                              a,
                              a_index + 1,
@@ -644,10 +660,10 @@ bool MonomialCheck::compareMonomial(
     // try multiply b <= 1
     Node lit = mkLit(d_data->d_one, bv, bvo == ovo ? 0 : 2, true);
     exp.push_back(lit);
-    // for rfp
-    if (bvo != ovo){
-      checkCompRounds(lit, d_data->d_one, bv, 2, true);
-    }
+    //// for rfp
+    //if (bvo != ovo){
+    //  checkCompRounds(lit, d_data->d_one, bv, 2, true);
+    //}
     return compareMonomial(oa,
                            a,
                            a_index,
@@ -845,8 +861,9 @@ void MonomialCheck::checkCompRounds(Node lit, Node a, Node b,
         b = nm->mkNode(Kind::TO_REAL, b);
       }
       Node bRnd = nm->mkNode(Kind::RFP_ROUND, op, aRnd[0], b);
-      Node a1 = mkIsFinite(eb,sb, aRnd);
-      Node a2 = mkIsFinite(eb,sb, bRnd);
+      //Node a1 = mkIsFinite(eb,sb, aRnd);
+      Node a1 = mkIsNan(eb,sb, aRnd).notNode();
+      Node a2 = mkIsNan(eb,sb, bRnd).notNode();
 
       if (status == 1)
       {

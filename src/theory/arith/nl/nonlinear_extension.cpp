@@ -60,7 +60,7 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
       d_iandSlv(env, d_im, d_model),
       d_pow2Slv(env, d_im, d_model),
       d_ilog2Slv(env, d_im, d_model),
-      d_rfpRoundSlv(env, d_im, d_model),
+      d_rfpRoundSlv(env, d_im, d_model, &d_extState),
       d_rfpSlv(env, d_im, d_model)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
@@ -455,38 +455,38 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::NL_FACTORING:
         d_factoringSlv.check(assertions, false_asserts);
         break;
-      //case InferStep::IAND_INIT:
-      //  d_iandSlv.initLastCall(assertions, false_asserts, xts);
-      //  break;
-      //case InferStep::IAND_FULL: d_iandSlv.checkFullRefine(); break;
-      //case InferStep::IAND_INITIAL: d_iandSlv.checkInitialRefine(); break;
-      //case InferStep::POW2_INIT:
-      //  d_pow2Slv.initLastCall(assertions, false_asserts, xts);
-      //  break;
-      //case InferStep::POW2_FULL: d_pow2Slv.checkFullRefine(); break;
-      //case InferStep::POW2_INITIAL: d_pow2Slv.checkInitialRefine(); break;
-      //case InferStep::ILOG2_INIT:
-      //  d_ilog2Slv.initLastCall(assertions, false_asserts, xts);
-      //  break;
-      //case InferStep::ILOG2_FULL: d_ilog2Slv.checkFullRefine(); break;
-      //case InferStep::ILOG2_INITIAL: d_ilog2Slv.checkInitialRefine(); break;
+      case InferStep::IAND_INIT:
+        d_iandSlv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::IAND_FULL: d_iandSlv.checkFullRefine(); break;
+      case InferStep::IAND_INITIAL: d_iandSlv.checkInitialRefine(); break;
+      case InferStep::POW2_INIT:
+        d_pow2Slv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::POW2_FULL: d_pow2Slv.checkFullRefine(); break;
+      case InferStep::POW2_INITIAL: d_pow2Slv.checkInitialRefine(); break;
+      case InferStep::ILOG2_INIT:
+        d_ilog2Slv.initLastCall(assertions, false_asserts, xts);
+        break;
+      case InferStep::ILOG2_FULL: d_ilog2Slv.checkFullRefine(); break;
+      case InferStep::ILOG2_INITIAL: d_ilog2Slv.checkInitialRefine(); break;
       case InferStep::RFP_ROUND_INIT:
         d_rfpRoundSlv.initLastCall(assertions, false_asserts, xts);
-        break;
-      case InferStep::RFP_ROUND_FULL: 
-        d_rfpRoundSlv.checkFullRefine(); 
         break;
       case InferStep::RFP_ROUND_INITIAL:
         d_rfpRoundSlv.checkInitialRefine();
         break;
+      case InferStep::RFP_ROUND_FULL: 
+        d_rfpRoundSlv.checkFullRefine(); 
+        break;
       case InferStep::RFP_INIT:
         d_rfpSlv.initLastCall(assertions, false_asserts, xts);
         break;
-      case InferStep::RFP_FULL: 
-        d_rfpSlv.checkFullRefine(); 
-        break;
       case InferStep::RFP_INITIAL:
         d_rfpSlv.checkInitialRefine();
+        break;
+      case InferStep::RFP_FULL: 
+        d_rfpSlv.checkFullRefine(); 
         break;
       case InferStep::ICP:
         d_icpSlv.reset(assertions);
@@ -503,13 +503,12 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::NL_MONOMIAL_MAGNITUDE0:
         d_monomialSlv.checkMagnitude(0);
         break;
-      //case InferStep::NL_MONOMIAL_MAGNITUDE1:
-      //  d_monomialSlv.checkMagnitude(1);
-      //  break;
-      //// for rfp
-      //case InferStep::NL_MONOMIAL_MAGNITUDE2:
-      //  d_monomialSlv.checkMagnitude(2);
-      //  break;
+      case InferStep::NL_MONOMIAL_MAGNITUDE1:
+        d_monomialSlv.checkMagnitude(1);
+        break;
+      case InferStep::NL_MONOMIAL_MAGNITUDE2:
+        d_monomialSlv.checkMagnitude(2);
+        break;
       case InferStep::NL_MONOMIAL_SIGN: d_monomialSlv.checkSign(); break;
       case InferStep::NL_RESOLUTION_BOUNDS:
         d_monomialBoundsSlv.checkResBounds();

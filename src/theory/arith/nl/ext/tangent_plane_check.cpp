@@ -27,6 +27,14 @@
 
 using namespace cvc5::internal::kind;
 
+// for rfp
+#include "util/int_roundingmode.h"
+#include "util/real_floatingpoint.h"
+#include "theory/arith/nl/rfp_utils.h"
+using IRM = typename cvc5::internal::IntRoundingMode;
+namespace RFP = cvc5::internal::RealFloatingPoint;
+using namespace cvc5::internal::theory::arith::nl::RfpUtils;
+
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
@@ -71,6 +79,23 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
         Assert(!tc_diff.isNull());
         Node a = tc < tc_diff ? tc : tc_diff;
         Node b = tc < tc_diff ? tc_diff : tc;
+
+        //// rfp
+        //std::map<Node, std::pair<Node,uint> >::const_iterator rit = d_data->d_rounds.find(a);
+        //if (rit != d_data->d_rounds.end())
+        //{
+        //  int n = rit->second.second;
+        //  if (n <= 0){
+        //    Trace("rfp-round-prune-debug") << "reset: " << a << std::endl;
+        //    d_data->d_rounds[a].second = ExtState::RFP_ROUND_CMAX;
+        //    continue;
+        //  }else{
+        //    Trace("rfp-round-prune-debug") << "skipped: " << a << std::endl;
+        //    d_data->d_rounds[a].second--;
+        //    //continue;
+        //  }
+        //}
+
         if (dproc[a].find(b) == dproc[a].end())
         {
           dproc[a][b] = true;
@@ -120,6 +145,103 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
             Node a_v = pts[0][p];
             Node b_v = pts[1][p];
 
+            // for rfp
+            Trace("rfp-round-prune") << "tp: " << a << ", " << a_v << std::endl;
+            Trace("rfp-round-prune") << "tp: " << b << ", " << b_v << std::endl;
+
+            //Trace("rfp-round-prune") << d_data->d_rounds.size() << std::endl;
+            //for (std::map<Node, Node>::const_iterator it1 = d_data->d_rounds.begin();
+            //     it1 != d_data->d_rounds.end();
+            //     ++it1)
+            //{
+            //  Trace("rfp-round-prune") << it1->first << ", " << it1->second << std::endl;
+            //}
+
+            //bool doSkip = false;
+            //{
+            //  std::map<Node, std::pair<Node,uint> >::const_iterator it = d_data->d_rounds.find(a);
+            //  if (it != d_data->d_rounds.end())
+            //  {
+            //    int n = it->second.second;
+            //    if (n <= 0){
+            //      Trace("rfp-round-prune-debug") << "reset: " << a << std::endl;
+            //      d_data->d_rounds[a].second = ExtState::RFP_ROUND_CMAX;
+            //    }else{
+            //      Trace("rfp-round-prune-debug") << "skipped: " << a << std::endl;
+            //      d_data->d_rounds[a].second--;
+            //      doSkip = true;
+            //    }
+            //    //if (n < ExtState::RFP_ROUND_CMAX){
+            //    //  d_data->d_rounds[a].second++;
+            //    //}else{
+            //    //  d_data->d_rounds[a].second = 0;
+            //    //  continue;
+            //    //}
+
+            //    //Node aRnd = it->second->first;
+            //    //Node rop = aRnd.getOperator();
+            //    //FloatingPointSize sz = rop.getConst<RfpRound>().getSize();
+            //    //uint32_t eb = sz.exponentWidth();
+            //    //uint32_t sb = sz.significandWidth();
+
+            //    //Rational v = a_v.getConst<Rational>();
+            //    //Node a_v_r_tn = nm->mkConstReal(RFP::round(eb,sb, IRM::TN, v));
+            //    //Node a_v_r_tp = nm->mkConstReal(RFP::round(eb,sb, IRM::TP, v));
+
+            //    //Trace("rfp-round-prune") << "aRndTN: " << a_v_r_tn << std::endl;
+            //    //Trace("rfp-round-prune") << "aRndTP: " << a_v_r_tp << std::endl;
+
+            //    //if (d_data->d_ms_prune_vs[std::pair(a, a_v_r_tn)] ||
+            //    //    d_data->d_ms_prune_vs[std::pair(a, a_v_r_tp)]){
+            //    //  Trace("rfp-round-prune") << "skipped" << std::endl;
+            //    //  continue;
+            //    //}else{
+            //    //  a_v = a_v_r_tp;
+            //    //}
+            //  }
+            //  else
+            //    Trace("rfp-round-prune") << "not found: " << a << std::endl;
+            //}
+            //if (a != b){
+            //  std::map<Node, std::pair<Node,uint> >::const_iterator it = d_data->d_rounds.find(b);
+            //  if (it != d_data->d_rounds.end())
+            //  {
+            //    int n = it->second.second;
+            //    if (n <= 0){
+            //      d_data->d_rounds[b].second = ExtState::RFP_ROUND_CMAX;
+            //    }else{
+            //      d_data->d_rounds[b].second--;
+            //      continue;
+            //    }
+
+            //    //Node bRnd = it->second;
+            //    //Node rop = bRnd.getOperator();
+            //    //FloatingPointSize sz = rop.getConst<RfpRound>().getSize();
+            //    //uint32_t eb = sz.exponentWidth();
+            //    //uint32_t sb = sz.significandWidth();
+
+            //    //Rational v = b_v.getConst<Rational>();
+            //    //Node b_v_r_tn = nm->mkConstReal(RFP::round(eb,sb, IRM::TN, v));
+            //    //Node b_v_r_tp = nm->mkConstReal(RFP::round(eb,sb, IRM::TP, v));
+
+            //    //Trace("rfp-round-prune") << "bRndTN: " << b_v_r_tn << std::endl;
+            //    //Trace("rfp-round-prune") << "bRndTP: " << b_v_r_tp << std::endl;
+
+            //    //if (d_data->d_ms_prune_vs[std::pair(b, b_v_r_tn)] ||
+            //    //    d_data->d_ms_prune_vs[std::pair(b, b_v_r_tp)]){
+            //    //  Trace("rfp-round-prune") << "skipped" << std::endl;
+            //    //  continue;
+            //    //}else{
+            //    //  b_v = b_v_r_tp;
+            //    //}
+            //  }
+            //  else
+            //    Trace("rfp-round-prune") << "not found: " << b << std::endl;
+            //}
+
+            //// for rfp
+            //if (doSkip) continue;
+
             // tangent plane
             Node tplane = nm->mkNode(Kind::SUB,
                                      nm->mkNode(Kind::ADD,
@@ -162,6 +284,13 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
                                            InferenceId::ARITH_NL_TANGENT_PLANE,
                                            proof,
                                            asWaitingLemmas);
+
+              // for rfp
+              d_data->checkRfpComp(Kind::GEQ, b, b_v, asWaitingLemmas);
+              d_data->checkRfpComp(Kind::LEQ, b, b_v, asWaitingLemmas);
+              //d_data->checkRfpComp(d == 0 ? Kind::LEQ : Kind::GEQ, t, tplane, asWaitingLemmas);
+              d_data->checkRfpComp(Kind::GEQ, a, a_v, asWaitingLemmas);
+              d_data->checkRfpComp(Kind::LEQ, a, a_v, asWaitingLemmas);
             }
           }
         }

@@ -35,7 +35,7 @@
 #include "theory/theory.h"
 #include "util/floatingpoint.h"
 #include "util/real_floatingpoint.h"
-#include "util/real_floatingpoint.h"
+#include "theory/arith/nl/rfp_utils.h"
 
 using namespace cvc5::internal::kind;
 
@@ -44,6 +44,8 @@ namespace RFP = cvc5::internal::RealFloatingPoint;
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
+
+using namespace cvc5::internal::theory::arith::nl::RfpUtils;
 
 //RewriteResponse ArithRewriter::postRewriteRfpToFP(TNode t)
 //{
@@ -329,7 +331,7 @@ RewriteResponse ArithRewriter::postRewriteRfpRound(TNode t)
 
   if (t[1].getKind() == kind::RFP_ROUND)
   {
-    return RewriteResponse(REWRITE_AGAIN_FULL, t[1]);
+    return RewriteResponse(REWRITE_DONE, t[1]);
   }
 
   // if constant, can be eliminated
@@ -655,6 +657,23 @@ RewriteResponse ArithRewriter::postRewriteRfpMult(TNode t)
   uint32_t sb = sz.significandWidth();
   NodeManager* nm = NodeManager::currentNM();
   // if constant, can be eliminated
+  // one cases
+  if (t[1].isConst())
+  {
+    Assert(t[1].getType().isReal());
+    Rational x = t[1].getConst<Rational>();
+    if (x == Rational(1)){
+      return RewriteResponse(REWRITE_DONE, t[2]);
+    }
+  }
+  if (t[2].isConst())
+  {
+    Assert(t[2].getType().isReal());
+    Rational y = t[2].getConst<Rational>();
+    if (y == Rational(1)){
+      return RewriteResponse(REWRITE_DONE, t[1]);
+    }
+  }
   if (t[0].isConst() && t[1].isConst() && t[2].isConst())
   {
     // rfp.mul is only supported for integer rms and real values
@@ -668,6 +687,20 @@ RewriteResponse ArithRewriter::postRewriteRfpMult(TNode t)
     // TODO
     //x = RFP::round(eb,sb, 0, x);
     //y = RFP::round(eb,sb, 0, y);
+
+    // neg one cases
+    if (x == Rational(-1) && !RFP::isNan(eb,sb, y))
+    {
+      Node negOp = nm->mkConst(RfpNeg(eb,sb));
+      Node neg = nm->mkNode(kind::RFP_NEG, negOp, t[2]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, neg);
+    }
+    if (!RFP::isNan(eb,sb, x) && y == Rational(-1))
+    {
+      Node negOp = nm->mkConst(RfpNeg(eb,sb));
+      Node neg = nm->mkNode(kind::RFP_NEG, negOp, t[1]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, neg);
+    }
 
     // finite case
     if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x) &&
@@ -1015,6 +1048,44 @@ RewriteResponse ArithRewriter::postRewriteRfpGeq(TNode t)
       Node ret = nm->mkConstInt(dx >= dy ? 1 : 0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
+  }
+  else if (t[0].isConst())
+  {
+    // rfp.geq is only supported for real values
+    Assert(t[0].getType().isReal());
+    Rational x = t[0].getConst<Rational>();
+
+    // finite case
+    if (RFP::isFinite(eb,sb, x) && !RFP::isZero(eb,sb, x))
+    {
+      Trace("rfp-rewrite-debug") << "geq xc" << std::endl;
+
+      Node c1 = mkIsNan(eb,sb, t[1]).notNode();
+      Node c2 = nm->mkNode(GEQ, nm->mkConstReal(x), t[1]);
+      Node ret = (c1.andNode(c2)).iteNode(nm->mkConstInt(1), nm->mkConstInt(0));
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+
+    // TODO: other cases
+  }
+  else if (t[1].isConst())
+  {
+    // rfp.geq is only supported for real values
+    Assert(t[1].getType().isReal());
+    Rational y = t[1].getConst<Rational>();
+
+    // finite case
+    if (RFP::isFinite(eb,sb, y) && !RFP::isZero(eb,sb, y))
+    {
+      Trace("rfp-rewrite-debug") << "geq yc" << std::endl;
+
+      Node c1 = mkIsNan(eb,sb, t[0]).notNode();
+      Node c2 = nm->mkNode(GEQ, t[0], nm->mkConstReal(y));
+      Node ret = (c1.andNode(c2)).iteNode(nm->mkConstInt(1), nm->mkConstInt(0));
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+
+    // TODO: other cases
   }
 
   return RewriteResponse(REWRITE_DONE, t);

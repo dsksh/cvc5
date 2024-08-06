@@ -25,6 +25,12 @@
 #include "theory/arith/nl/nl_model.h"
 #include "util/rational.h"
 
+// for rfp
+#include "util/int_roundingmode.h"
+#include "util/real_floatingpoint.h"
+#include "theory/arith/nl/rfp_utils.h"
+using namespace cvc5::internal::theory::arith::nl::RfpUtils;
+
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
@@ -55,6 +61,9 @@ void ExtState::init(const std::vector<Node>& xts)
 
   // for rfp
   d_ms_rounds.clear();
+  d_ms_round_lits.clear();
+  //d_ms_prune_vs.clear();
+  Trace("rfp-mult-comp-debug3") << "clear" << std::endl;
 
   Trace("nl-ext-mv") << "Extended terms : " << std::endl;
   // for computing congruence
@@ -90,7 +99,7 @@ void ExtState::init(const std::vector<Node>& xts)
     {
       if (d_ms_rounds.find(a[1]) == d_ms_rounds.end())
       {
-        //Trace("rfp-mult-comp-debug") << "register a round term: " << a << std::endl;
+        Trace("rfp-mult-comp-debug3") << "register a round term: " << a << std::endl;
         d_ms_rounds[a[1]] = a;
       }
     }
@@ -119,6 +128,56 @@ CDProof* ExtState::getProof()
 {
   Assert(isProofEnabled());
   return d_proof->allocateProof(d_env.getUserContext());
+}
+
+// for rfp
+void ExtState::checkRfpComp(Kind type, Node lhs, Node rhs, bool doWait)
+{
+  NodeManager* nm = NodeManager::currentNM();
+
+  Node lit = nm->mkNode(type, lhs, rhs);
+  lit = rewrite(lit);
+  if (d_ms_round_lits.find(lit) != d_ms_round_lits.end()){ return; }
+  d_ms_round_lits[lit] = true;
+
+  std::map<Node, Node>::const_iterator it = d_ms_rounds.find(lhs);
+  if (it != d_ms_rounds.end())
+  {
+    Node lhsRnd = it->second;
+    Node rop = lhsRnd.getOperator();
+    Node rhsRnd = nm->mkNode(Kind::RFP_ROUND, rop, lhsRnd[0], rhs);
+
+    FloatingPointSize sz = rop.getConst<RfpRound>().getSize();
+    uint32_t eb = sz.exponentWidth();
+    uint32_t sb = sz.significandWidth();
+    Node a1 = mkIsNan(eb,sb, lhsRnd).notNode();
+    Node a2 = mkIsNan(eb,sb, rhsRnd).notNode();
+
+    if (type == Kind::GEQ || type == Kind::LEQ || type == Kind::EQUAL)
+    {
+      Node assumption = a1.andNode(a2).andNode(lit);
+
+      Node inferRnd = nm->mkNode(type, lhsRnd, rhsRnd);
+      Node lemma = assumption.impNode(inferRnd);
+      Trace("rfp-mult-comp-lemma") << "RfpCompCheck::Lemma: " << lemma
+                                   << std::endl;
+      d_im.addPendingLemma(lemma,
+                           InferenceId::ARITH_NL_RFP_MULT_COMP, nullptr, doWait);
+    }
+    else if (type == Kind::GT || type == Kind::LT)
+    {
+      Node a3 = nm->mkNode(type, lhsRnd, rhsRnd);
+      Node assumption = a1.andNode(a2).andNode(a3);
+
+      Node infer1 = nm->mkNode(type, lhsRnd, rhs);
+      Node infer2 = nm->mkNode(type, lhs, rhsRnd);
+      Node lemma = assumption.impNode(infer1.andNode(infer2));
+      Trace("rfp-mult-comp-lemma") << "RfpCompCheck::Lemma: " << lemma
+                                   << std::endl;
+      d_im.addPendingLemma(lemma,
+                           InferenceId::ARITH_NL_RFP_MULT_COMP, nullptr, doWait);
+    }
+  }
 }
 
 }  // namespace nl

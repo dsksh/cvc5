@@ -119,6 +119,12 @@ bool Strategy::isStrategyInit() const { return !d_interleaving.empty(); }
 void Strategy::initializeStrategy(const Options& options)
 {
   StepSequence one;
+
+  one << InferStep::RFP_INIT;
+  one << InferStep::RFP_INITIAL << InferStep::BREAK;
+  one << InferStep::RFP_ROUND_INIT;
+  one << InferStep::RFP_ROUND_INITIAL << InferStep::BREAK;
+
   if (options.arith.nlICP)
   {
     one << InferStep::ICP << InferStep::BREAK;
@@ -137,16 +143,17 @@ void Strategy::initializeStrategy(const Options& options)
     }
     one << InferStep::TRANS_INITIAL << InferStep::BREAK;
   }
-  one << InferStep::RFP_INIT;
-  one << InferStep::RFP_INITIAL << InferStep::BREAK;
-  one << InferStep::RFP_ROUND_INIT;
-  one << InferStep::RFP_ROUND_INITIAL << InferStep::BREAK;
-  one << InferStep::IAND_INIT;
-  one << InferStep::IAND_INITIAL << InferStep::BREAK;
-  one << InferStep::ILOG2_INIT;
-  one << InferStep::ILOG2_INITIAL << InferStep::BREAK;
-  one << InferStep::POW2_INIT;
-  one << InferStep::POW2_INITIAL << InferStep::BREAK;
+
+  //one << InferStep::IAND_INIT;
+  //one << InferStep::IAND_INITIAL << InferStep::BREAK;
+  //one << InferStep::ILOG2_INIT;
+  //one << InferStep::ILOG2_INITIAL << InferStep::BREAK;
+  //one << InferStep::POW2_INIT;
+  //one << InferStep::POW2_INITIAL << InferStep::BREAK;
+
+  one << InferStep::RFP_FULL << InferStep::BREAK;
+  one << InferStep::RFP_ROUND_FULL << InferStep::BREAK;
+
   if (options.arith.nlExt == options::NlExtMode::FULL
       || options.arith.nlExt == options::NlExtMode::LIGHT)
   {
@@ -157,7 +164,7 @@ void Strategy::initializeStrategy(const Options& options)
   {
     one << InferStep::TRANS_MONOTONIC << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_MAGNITUDE1 << InferStep::BREAK;
-    one << InferStep::NL_MONOMIAL_MAGNITUDE2 << InferStep::BREAK;
+    //one << InferStep::NL_MONOMIAL_MAGNITUDE2 << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_INFER_BOUNDS;
     if (options.arith.nlExtTangentPlanes
         && options.arith.nlExtTangentPlanesInterleave)
@@ -185,16 +192,15 @@ void Strategy::initializeStrategy(const Options& options)
     }
     one << InferStep::BREAK;
   }
-  one << InferStep::IAND_FULL << InferStep::BREAK;
-  one << InferStep::POW2_FULL << InferStep::BREAK;
-  one << InferStep::ILOG2_FULL << InferStep::BREAK;
-  one << InferStep::RFP_ROUND_FULL << InferStep::BREAK;
-  one << InferStep::RFP_FULL << InferStep::BREAK;
-  if (options.arith.nlCov)
-  {
-    one << InferStep::COVERINGS_INIT << InferStep::BREAK;
-    one << InferStep::COVERINGS_FULL << InferStep::BREAK;
-  }
+
+  //one << InferStep::IAND_FULL << InferStep::BREAK;
+  //one << InferStep::POW2_FULL << InferStep::BREAK;
+  //one << InferStep::ILOG2_FULL << InferStep::BREAK;
+  //if (options.arith.nlCov)
+  //{
+  //  one << InferStep::COVERINGS_INIT << InferStep::BREAK;
+  //  one << InferStep::COVERINGS_FULL << InferStep::BREAK;
+  //}
 
   d_interleaving.add(one);
 }

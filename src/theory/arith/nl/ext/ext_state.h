@@ -81,8 +81,20 @@ class ExtState : protected EnvObj
   std::unordered_set<Node> d_tplane_refine;
 
   // for rfp
+  void checkRfpComp(Kind type, Node lhs, Node rhs, bool doWait = false);
+
   // Map from nl mult nodes to their rounding terms.
   std::map<Node, Node> d_ms_rounds;
+  std::map<Node, bool> d_ms_round_lits;
+  std::map<std::pair<Node, Node>, bool> d_ms_prune_vs;
+
+  std::map<Node, std::pair<Node,uint> > d_rounds;
+  void registerRfpRound(Node arg, Node round){
+    if (d_rounds.find(arg) == d_rounds.end())
+      d_rounds[arg] = std::pair<Node,uint>(round, 0);
+  }
+
+  static const uint RFP_ROUND_CMAX = 10;
 };
 
 }  // namespace nl

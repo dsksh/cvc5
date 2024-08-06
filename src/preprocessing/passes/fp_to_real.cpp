@@ -387,7 +387,6 @@ Node FPToReal::translateWithChildren(
       Node op = createFPOperator(newKind, eb, sb);
       Node rel = d_nm->mkNode(newKind, op, 
         translated_children[0], translated_children[1]);
-      rel = rewrite(rel);
 
       //returnNode = mkTrue(rel);
       returnNode = mkIsOne(rel);

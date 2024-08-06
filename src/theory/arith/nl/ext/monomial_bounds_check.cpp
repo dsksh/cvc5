@@ -25,6 +25,12 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 
+// for rfp
+#include "util/int_roundingmode.h"
+#include "util/real_floatingpoint.h"
+#include "theory/arith/nl/rfp_utils.h"
+using namespace cvc5::internal::theory::arith::nl::RfpUtils;
+
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
@@ -153,7 +159,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
         }
       }
 
-      // rhs
+      // for rfp
       // do not process the constraints (= x ((_ rfp.round e s) m x).
       if (type == Kind::EQUAL && exp.getNumChildren() >= 2 && 
           exp[1].getKind() == Kind::RFP_ROUND && exp[1][1] == x)
@@ -423,33 +429,8 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                                          proof,
                                          introNewTerms);
 
-            // rfp
-            std::map<Node, Node>::const_iterator it = d_data->d_ms_rounds.find(infer_lhs);
-            if (it != d_data->d_ms_rounds.end())
-            {
-              if (type == Kind::GEQ || type == Kind::LEQ || type == Kind::EQUAL)
-              {
-                Node lhsRnd = it->second;
-                Node rop = lhsRnd.getOperator();
-                Node rhsRnd = nm->mkNode(Kind::RFP_ROUND, rop, lhsRnd[0], infer_rhs);
-                Node infer = nm->mkNode(type, lhsRnd, rhsRnd);
-                Node lemma = exp.impNode(infer);
-                d_data->d_im.addPendingLemma(lemma,
-                                             InferenceId::ARITH_NL_INFER_BOUNDS_NT);
-              }
-              else if (type == Kind::GT || type == Kind::LT)
-              {
-                Node lhsRnd = it->second;
-                Node rop = lhsRnd.getOperator();
-                Node rhsRnd = nm->mkNode(Kind::RFP_ROUND, rop, lhsRnd[0], infer_rhs);
-                Node assumption = nm->mkNode(type, lhsRnd, rhsRnd);
-                Node infer1 = nm->mkNode(type, lhsRnd, infer_rhs);
-                Node infer2 = nm->mkNode(type, infer_lhs, rhsRnd);
-                Node lemma = assumption.impNode(infer1.andNode(infer2));
-                d_data->d_im.addPendingLemma(lemma,
-                                             InferenceId::ARITH_NL_INFER_BOUNDS_NT);
-              }
-            }
+            // for rfp
+            d_data->checkRfpComp(type, infer_lhs, infer_rhs, introNewTerms);
           }
         }
       }

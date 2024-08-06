@@ -20,6 +20,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 #include "util/int_roundingmode.h"
@@ -42,10 +43,12 @@ namespace nl {
 
 RfpRoundSolver::RfpRoundSolver(Env& env,
                                InferenceManager& im,
-                               NlModel& model)
+                               NlModel& model,
+                               ExtState* data)
     : EnvObj(env),
       d_im(im),
       d_model(model),
+      d_data(data),
       d_initRefine(userContext())
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -63,6 +66,10 @@ void RfpRoundSolver::initLastCall(const std::vector<Node>& assertions,
 {
   d_rounds.clear();
   d_toRfps.clear();
+
+  //d_data->d_rounds.clear();
+  //d_data->d_ms_prune_vs.clear();
+  //Trace("rfp-round-prune") << "clear d_rounds" << std::endl;
 
   Trace("rfp-round-mv") << "RFP_TO_FP terms : " << std::endl;
   for (const Node& a : xts)
@@ -284,7 +291,7 @@ void RfpRoundSolver::checkInitRefineRound(TNode node)
   FloatingPointSize sz = node.getOperator().getConst<RfpRound>().getSize();
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
-  NodeManager* nm = NodeManager::currentNM();
+  //NodeManager* nm = NodeManager::currentNM();
 
   //Node nan = nm->mkConstReal(RFP::notANumber(eb,sb));
   //Node isNan = nm->mkNode(kind::EQUAL, node, nan);
@@ -457,16 +464,37 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
   if ((arg < 0 && round >= 0) || (arg >= 0 && round < 0))
   {
     // Sign preservation.
-    Node r1 = nm->mkNode(kind::LT, node[1], nm->mkConstReal(0));
-    Node r2 = nm->mkNode(kind::LT, node, nm->mkConstReal(0));
+    Node r1 = nm->mkNode(kind::GT, node[1], nm->mkConstReal(0));
+    Node r2 = nm->mkNode(kind::GT, node, nm->mkConstReal(0));
     Node lem = isNotNan.impNode(r1.eqNode(r2));
     Trace("rfp-round-lemma") << "RfpRoundSolver::Lemma: " << lem
                              << " ; round_samesign ; BOUND_REFINE"
                              << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_SIGN);
   }
+  if ((arg < 1 && round >= 1) || (arg >= 1 && round < 1))
+  {
+    Node r1 = nm->mkNode(kind::GEQ, node[1], nm->mkConstReal(1));
+    Node r2 = nm->mkNode(kind::GEQ, node, nm->mkConstReal(1));
+    Node lem = isNotNan.impNode(r1.eqNode(r2));
+    Trace("rfp-round-lemma") << "RfpRoundSolver::Lemma: " << lem
+                             << " ; round_geq_one ; BOUND_REFINE"
+                             << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_SIGN);
+  }
+  if ((arg < -1 && round >= -1) || (arg >= -1 && round < -1))
+  {
+    Node r1 = nm->mkNode(kind::GT, node[1], nm->mkConstReal(-1));
+    Node r2 = nm->mkNode(kind::GT, node, nm->mkConstReal(-1));
+    Node lem = isNotNan.impNode(r1.eqNode(r2));
+    Trace("rfp-round-lemma") << "RfpRoundSolver::Lemma: " << lem
+                             << " ; round_leq_m_one ; BOUND_REFINE"
+                             << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_SIGN);
+  }
 
   //if (!RFP::isNan(eb,sb, arg))
+  //if (node[1].isVar())
   {
     // Pruning of irrelevant numbers.
     //Node nan = nm->mkConstReal(RFP::notANumber(eb,sb));
@@ -496,6 +524,12 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
         << "RfpRoundSolver::Lemma: " << lem << " ; BOUND_REFINE ub" << std::endl;
       d_im.addPendingLemma(
         lem, InferenceId::ARITH_NL_RFP_ROUND_PRUNE, nullptr, true);
+
+      d_data->registerRfpRound(node[1], node);
+      //d_data->d_ms_prune_vs[std::pair(node,nm->mkConstReal(arg))] = true;
+      //d_data->d_ms_prune_vs[std::pair(node,nm->mkConstReal(argDn))] = true;
+      //Trace("rfp-round-prune") << node[1] << ", " <<  nm->mkConstReal(arg) << std::endl;
+      //Trace("rfp-round-prune") << node[1] << ", " <<  nm->mkConstReal(argDn) << std::endl;
     }
 
     Rational argUp = RFP::round(eb,sb, IRM::TP, arg);
@@ -521,6 +555,12 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
         << "RfpRoundSolver::Lemma: " << lem << " ; BOUND_REFINE lb" << std::endl;
       d_im.addPendingLemma(
         lem, InferenceId::ARITH_NL_RFP_ROUND_PRUNE, nullptr, true);
+
+      d_data->registerRfpRound(node[1], node);
+      //d_data->d_ms_prune_vs[std::pair(node,nm->mkConstReal(arg))] = true;
+      //d_data->d_ms_prune_vs[std::pair(node,nm->mkConstReal(argUp))] = true;
+      //Trace("rfp-round-prune") << node[1] << ", " <<  nm->mkConstReal(arg) << std::endl;
+      //Trace("rfp-round-prune") << node[1] << ", " <<  nm->mkConstReal(argUp) << std::endl;
     }
 
     if (RFP::plusInfinity(eb,sb) <= arg && 
