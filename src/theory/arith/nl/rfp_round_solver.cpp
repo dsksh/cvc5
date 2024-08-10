@@ -493,8 +493,6 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_SIGN);
   }
 
-  //if (!RFP::isNan(eb,sb, arg))
-  //if (node[1].isVar())
   {
     // Pruning of irrelevant numbers.
     //Node nan = nm->mkConstReal(RFP::notANumber(eb,sb));
@@ -563,10 +561,12 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
       //Trace("rfp-round-prune") << node[1] << ", " <<  nm->mkConstReal(argUp) << std::endl;
     }
 
-    if (RFP::plusInfinity(eb,sb) <= arg && 
-      round != RFP::maxValue(eb,sb) && round != RFP::plusInfinity(eb,sb))
+    if (//RFP::plusInfinity(eb,sb) <= arg && 
+        RFP::maxValue(eb,sb) <= arg && 
+        round != RFP::maxValue(eb,sb) && round != RFP::plusInfinity(eb,sb))
     {
-      Node a1 = nm->mkNode(kind::LEQ, nm->mkConstReal(RFP::plusInfinity(eb,sb)), node[1]);
+      //Node a1 = nm->mkNode(kind::LEQ, nm->mkConstReal(RFP::plusInfinity(eb,sb)), node[1]);
+      Node a1 = nm->mkNode(kind::LEQ, nm->mkConstReal(RFP::maxValue(eb,sb)), node[1]);
       Node assumption = isNotNan.andNode(a1);
       Node c1 = nm->mkNode(kind::EQUAL, node, nm->mkConstReal(RFP::maxValue(eb,sb)));
       Node c2 = nm->mkNode(kind::EQUAL, node, nm->mkConstReal(RFP::plusInfinity(eb,sb)));
@@ -578,10 +578,12 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
         lem, InferenceId::ARITH_NL_RFP_ROUND_PRUNE, nullptr, true);
     }
 
-    if (arg <= RFP::minusInfinity(eb,sb) && 
-      round != -RFP::maxValue(eb,sb) && round != RFP::minusInfinity(eb,sb))
+    if (//arg <= RFP::minusInfinity(eb,sb) && 
+        arg <= -RFP::maxValue(eb,sb) && 
+        round != -RFP::maxValue(eb,sb) && round != RFP::minusInfinity(eb,sb))
     {
-      Node a1 = nm->mkNode(kind::LEQ, node[1], nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+      //Node a1 = nm->mkNode(kind::LEQ, node[1], nm->mkConstReal(RFP::minusInfinity(eb,sb)));
+      Node a1 = nm->mkNode(kind::LEQ, node[1], nm->mkConstReal(-RFP::maxValue(eb,sb)));
       Node assumption = isNotNan.andNode(a1);
       Node c1 = nm->mkNode(kind::EQUAL, node, nm->mkConstReal(-RFP::maxValue(eb,sb)));
       Node c2 = nm->mkNode(kind::EQUAL, node, nm->mkConstReal(RFP::minusInfinity(eb,sb)));

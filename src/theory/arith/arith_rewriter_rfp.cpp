@@ -978,12 +978,6 @@ RewriteResponse ArithRewriter::postRewriteRfpGt(TNode t)
     //x = RFP::round(eb,sb, 0, x);
     //y = RFP::round(eb,sb, 0, y);
 
-    // TODO
-    {
-      Node ret = nm->mkConstInt(x > y ? 1 : 0);
-      return RewriteResponse(REWRITE_DONE, ret);
-    }
-
     // finite case
     if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
         (!RFP::isZero(eb,sb, x) || !RFP::isZero(eb,sb, y)))
