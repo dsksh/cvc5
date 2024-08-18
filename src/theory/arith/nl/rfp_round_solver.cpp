@@ -562,7 +562,7 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
     }
 
     if (//RFP::plusInfinity(eb,sb) <= arg && 
-        RFP::maxValue(eb,sb) <= arg && 
+        arg >= RFP::maxValue(eb,sb) && 
         round != RFP::maxValue(eb,sb) && round != RFP::plusInfinity(eb,sb))
     {
       //Node a1 = nm->mkNode(kind::LEQ, nm->mkConstReal(RFP::plusInfinity(eb,sb)), node[1]);
