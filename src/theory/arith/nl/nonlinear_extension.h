@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +34,7 @@
 #include "theory/arith/nl/icp/icp_solver.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/pow2_solver.h"
-#include "theory/arith/nl/ilog2_solver.h"
+//#include "theory/arith/nl/ilog2_solver.h"
 #include "theory/arith/nl/rfp_round_solver.h"
 #include "theory/arith/nl/rfp_solver.h"
 #include "theory/arith/nl/stats.h"
@@ -203,7 +203,7 @@ class NonlinearExtension : EnvObj
   /** The statistics class */
   NlStats d_stats;
   // needs last call effort
-  bool d_hasNlTerms;
+  context::CDO<bool> d_hasNlTerms;
   /**
    * The number of times we have the called main check method
    * (modelBasedRefinement). This counter is used for interleaving strategies.
@@ -259,12 +259,12 @@ class NonlinearExtension : EnvObj
    */
   Pow2Solver d_pow2Slv;
 
-  /** The ilog2 solver
-   *
-   * This is the subsolver responsible for running the procedure for
-   * constraints involving logs based on 2.
-   */
-  Ilog2Solver d_ilog2Slv;
+  ///** The ilog2 solver
+  // *
+  // * This is the subsolver responsible for running the procedure for
+  // * constraints involving logs based on 2.
+  // */
+  //Ilog2Solver d_ilog2Slv;
 
   /** The rfp.round solver
    *

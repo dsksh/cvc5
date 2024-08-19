@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,31 +48,30 @@ void EqualitySolver::finishInit()
 {
   d_ee = d_astate.getEqualityEngine();
   // add the function kinds
-  d_ee->addFunctionKind(kind::NONLINEAR_MULT);
-  d_ee->addFunctionKind(kind::EXPONENTIAL);
-  d_ee->addFunctionKind(kind::SINE);
-  d_ee->addFunctionKind(kind::IAND);
-  d_ee->addFunctionKind(kind::POW2);
-  d_ee->addFunctionKind(kind::ILOG2);
-  // TODO
-  d_ee->addFunctionKind(kind::RFP_ROUND);
-  d_ee->addFunctionKind(kind::RFP_TO_RFP_FROM_RFP);
-  d_ee->addFunctionKind(kind::RFP_TO_REAL);
-  d_ee->addFunctionKind(kind::RFP_ADD);
-  d_ee->addFunctionKind(kind::RFP_NEG);
-  d_ee->addFunctionKind(kind::RFP_SUB);
-  d_ee->addFunctionKind(kind::RFP_MULT);
-  d_ee->addFunctionKind(kind::RFP_DIV);
-  d_ee->addFunctionKind(kind::RFP_LT);
-  d_ee->addFunctionKind(kind::RFP_LEQ);
-  d_ee->addFunctionKind(kind::RFP_GT);
-  d_ee->addFunctionKind(kind::RFP_GEQ);
+  d_ee->addFunctionKind(Kind::NONLINEAR_MULT);
+  d_ee->addFunctionKind(Kind::EXPONENTIAL);
+  d_ee->addFunctionKind(Kind::SINE);
+  d_ee->addFunctionKind(Kind::IAND);
+  d_ee->addFunctionKind(Kind::POW2);
+  //d_ee->addFunctionKind(Kind::ILOG2);
+  d_ee->addFunctionKind(Kind::RFP_ROUND);
+  d_ee->addFunctionKind(Kind::RFP_TO_RFP_FROM_RFP);
+  d_ee->addFunctionKind(Kind::RFP_TO_REAL);
+  d_ee->addFunctionKind(Kind::RFP_ADD);
+  d_ee->addFunctionKind(Kind::RFP_NEG);
+  d_ee->addFunctionKind(Kind::RFP_SUB);
+  d_ee->addFunctionKind(Kind::RFP_MULT);
+  d_ee->addFunctionKind(Kind::RFP_DIV);
+  d_ee->addFunctionKind(Kind::RFP_LT);
+  d_ee->addFunctionKind(Kind::RFP_LEQ);
+  d_ee->addFunctionKind(Kind::RFP_GT);
+  d_ee->addFunctionKind(Kind::RFP_GEQ);
 }
 
 bool EqualitySolver::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
-  if (atom.getKind() != EQUAL)
+  if (atom.getKind() != Kind::EQUAL)
   {
     // finished processing, since not beneficial to add non-equality facts
     return true;

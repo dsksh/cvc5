@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Gereon Kremer
+ *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,11 +21,12 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "printer/smt2/smt2_printer.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons_new.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
@@ -79,7 +80,7 @@ void getMaxGroundTerms(const Options& options,
 
     if (expr::hasBoundVar(cur) || cur.getType() != tn)
     {
-      if (!skip_quant || cur.getKind() != kind::FORALL)
+      if (!skip_quant || cur.getKind() != Kind::FORALL)
       {
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
@@ -132,7 +133,7 @@ void getMinGroundTerms(const Options& options,
     if (it == cache.end())
     {
       cache.emplace(cur, std::make_pair(false, false));
-      if (!skip_quant || cur.getKind() != kind::FORALL)
+      if (!skip_quant || cur.getKind() != Kind::FORALL)
       {
         visit.push_back(cur);
         visit.insert(visit.end(), cur.begin(), cur.end());
@@ -218,8 +219,9 @@ void SygusInst::reset_round(Theory::Effort e)
   for (uint32_t i = 0; i < nasserted; ++i)
   {
     Node q = model->getAssertedQuantifier(i);
-    if (!shouldProcess(q))
+    if (d_ce_lits.find(q) == d_ce_lits.end())
     {
+      // did not handle this quantified formula, skip
       continue;
     }
     if (model->isQuantifierActive(q))
@@ -264,11 +266,12 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
 
   if (quant_e != QEFFORT_STANDARD) return;
 
+  beginCallDebug();
   FirstOrderModel* model = d_treg.getModel();
   Instantiate* inst = d_qim.getInstantiate();
   TermDbSygus* db = d_treg.getTermDatabaseSygus();
   SygusExplain syexplain(d_env, db);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   options::SygusInstMode mode = options().quantifiers.sygusInstMode;
 
   for (const Node& q : d_active_quant)
@@ -297,8 +300,8 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
       }
       else
       {
-        lem = nm->mkNode(kind::IMPLIES,
-                         exp.size() == 1 ? exp[0] : nm->mkNode(kind::AND, exp),
+        lem = nm->mkNode(Kind::IMPLIES,
+                         exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp),
                          dt_eval.eqNode(t));
       }
       eval_unfold_lemmas.push_back(lem);
@@ -309,7 +312,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
       if (!inst->addInstantiation(q,
                                   terms,
                                   InferenceId::QUANTIFIERS_INST_SYQI,
-                                  nm->mkNode(kind::SEXPR, values)))
+                                  nm->mkNode(Kind::SEXPR, values)))
       {
         sendEvalUnfoldLemmas(eval_unfold_lemmas);
       }
@@ -321,7 +324,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
         inst->addInstantiation(q,
                                terms,
                                InferenceId::QUANTIFIERS_INST_SYQI,
-                               nm->mkNode(kind::SEXPR, values));
+                               nm->mkNode(Kind::SEXPR, values));
       }
     }
     else
@@ -330,10 +333,11 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
       inst->addInstantiation(q,
                              terms,
                              InferenceId::QUANTIFIERS_INST_SYQI,
-                             nm->mkNode(kind::SEXPR, values));
+                             nm->mkNode(Kind::SEXPR, values));
       sendEvalUnfoldLemmas(eval_unfold_lemmas);
     }
   }
+  endCallDebug();
 }
 
 bool SygusInst::sendEvalUnfoldLemmas(const std::vector<Node>& lemmas)
@@ -443,12 +447,20 @@ void SygusInst::registerQuantifier(Node q)
   {
     addSpecialValues(var.getType(), extra_cons);
     TypeNode tn = SygusGrammarCons::mkDefaultSygusType(
-        options(), var.getType(), Node(), extra_cons);
+        d_env, var.getType(), Node(), extra_cons);
     types.push_back(tn);
 
     Trace("sygus-inst") << "Construct (default) datatype for " << var
                         << std::endl
-                        << tn << std::endl;
+                        << printer::smt2::Smt2Printer::sygusGrammarString(tn)
+                        << std::endl;
+    // In the rare case that the sygus grammar is not well-founded, we abort.
+    // This can happen, e.g. for datatypes whose only values involve
+    // uninterpreted sort subfields.
+    if (!tn.isWellFounded())
+    {
+      return;
+    }
   }
 
   registerCeLemma(q, types);
@@ -459,8 +471,9 @@ void SygusInst::registerQuantifier(Node q)
  */
 void SygusInst::preRegisterQuantifier(Node q)
 {
-  if (!shouldProcess(q))
+  if (d_ce_lemmas.find(q) == d_ce_lemmas.end())
   {
+    // did not allocate a cex lemma for this
     return;
   }
   Trace("sygus-inst") << "preRegister " << q << std::endl;
@@ -475,6 +488,8 @@ void SygusInst::ppNotifyAssertions(const std::vector<Node>& assertions)
   }
 }
 
+std::string SygusInst::identify() const { return "sygus-inst"; }
+
 /*****************************************************************************/
 /* private methods                                                           */
 /*****************************************************************************/
@@ -487,7 +502,7 @@ Node SygusInst::getCeLiteral(Node q)
     return it->second;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node sk = sm->mkDummySkolem("CeLiteral", nm->booleanType());
   Node lit = d_qstate.getValuation().ensureLiteral(sk);
@@ -505,7 +520,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
   Trace("sygus-inst") << "Register CE Lemma for " << q << std::endl;
 
   /* Generate counterexample lemma for 'q'. */
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   TermDbSygus* db = d_treg.getTermDatabaseSygus();
 
@@ -533,7 +548,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
     {
       args.insert(args.end(), svl.begin(), svl.end());
     }
-    Node eval = nm->mkNode(kind::DT_SYGUS_EVAL, args);
+    Node eval = nm->mkNode(Kind::DT_SYGUS_EVAL, args);
     // we use a Skolem constant here, instead of an application of an
     // evaluation function, since we are not using the builtin support
     // for evaluation functions. We use the DT_SYGUS_EVAL term so that the
@@ -568,7 +583,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
   /* Add counterexample lemma (lit => ~P[x_i/eval_i]) */
   Node body =
       q[1].substitute(q[0].begin(), q[0].end(), evals.begin(), evals.end());
-  Node lem = nm->mkNode(kind::OR, lit.negate(), body.negate());
+  Node lem = nm->mkNode(Kind::OR, lit.negate(), body.negate());
 
   d_ce_lemmas.emplace(std::make_pair(q, lem));
   Trace("sygus-inst") << "Register CE Lemma: " << lem << std::endl;

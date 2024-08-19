@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,6 +73,7 @@ enum RewriteRuleId
   SremEliminateFewerBitwiseOps,
   ZeroExtendEliminate,
   SignExtendEliminate,
+  NegoEliminate,
   UaddoEliminate,
   SaddoEliminate,
   UmuloEliminate,
@@ -80,8 +81,7 @@ enum RewriteRuleId
   UsuboEliminate,
   SsuboEliminate,
   SdivoEliminate,
-  BVToNatEliminate,
-  IntToBVEliminate,
+  SizeEliminate,
 
   /// ground term evaluation
   EvalEquals,
@@ -110,6 +110,7 @@ enum RewriteRuleId
   EvalSle,
   EvalITEBv,
   EvalComp,
+  EvalConstBvSym,
   EvalEagerAtom,
 
   /// simplification rules
@@ -208,7 +209,7 @@ enum RewriteRuleId
   UltAddOne,
   ConcatToMult,
   MultSltMult,
-  BitOfConst,
+  BitConst,
 };
 
 inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
@@ -237,8 +238,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case RepeatEliminate:     out << "RepeatEliminate";     return out;
   case RotateLeftEliminate: out << "RotateLeftEliminate"; return out;
   case RotateRightEliminate:out << "RotateRightEliminate";return out;
-  case BVToNatEliminate:    out << "BVToNatEliminate";    return out;
-  case IntToBVEliminate:    out << "IntToBVEliminate";    return out;
+  case SizeEliminate: out << "SizeEliminate"; return out;
   case NandEliminate:       out << "NandEliminate";       return out;
   case NorEliminate :       out << "NorEliminate";        return out;
   case SdivEliminate :      out << "SdivEliminate";       return out;
@@ -274,6 +274,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalSltBv:           out << "EvalSltBv";           return out;
   case EvalITEBv:           out << "EvalITEBv";           return out;
   case EvalComp:            out << "EvalComp";            return out;
+  case EvalConstBvSym: out << "EvalConstBvSym"; return out;
   case EvalEagerAtom: out << "EvalEagerAtom"; return out;
   case EvalExtract :        out << "EvalExtract";         return out;
   case EvalSignExtend :     out << "EvalSignExtend";      return out;
@@ -377,7 +378,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ConcatToMult: out << "ConcatToMult"; return out;
   case MultSltMult: out << "MultSltMult"; return out;
   case NormalizeEqAddNeg: out << "NormalizeEqAddNeg"; return out;
-  case BitOfConst: out << "BitOfConst"; return out;
+  case BitConst: out << "BitConst"; return out;
   default:
     Unreachable();
   }
@@ -588,8 +589,6 @@ struct AllRewriteRules {
   RewriteRule<BitwiseEq>                      rule113;
   RewriteRule<UltOne>                         rule114;
   RewriteRule<SltZero>                        rule115;
-  RewriteRule<BVToNatEliminate>               rule116;
-  RewriteRule<IntToBVEliminate>               rule117;
   RewriteRule<MultDistrib>                    rule118;
   RewriteRule<UltAddOne> rule119;
   RewriteRule<ConcatToMult>                   rule120;

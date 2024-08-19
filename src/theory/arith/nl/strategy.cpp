@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Yoni Zohar
+ *   Gereon Kremer, Yoni Zohar, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,9 +41,9 @@ std::ostream& operator<<(std::ostream& os, InferStep step)
     case InferStep::POW2_INIT: return os << "POW2_INIT";
     case InferStep::POW2_FULL: return os << "POW2_FULL";
     case InferStep::POW2_INITIAL: return os << "POW2_INITIAL";
-    case InferStep::ILOG2_INIT: return os << "ILOG2_INIT";
-    case InferStep::ILOG2_FULL: return os << "ILOG2_FULL";
-    case InferStep::ILOG2_INITIAL: return os << "ILOG2_INITIAL";
+    //case InferStep::ILOG2_INIT: return os << "ILOG2_INIT";
+    //case InferStep::ILOG2_FULL: return os << "ILOG2_FULL";
+    //case InferStep::ILOG2_INITIAL: return os << "ILOG2_INITIAL";
     case InferStep::RFP_ROUND_INIT: return os << "RFP_ROUND_INIT";
     case InferStep::RFP_ROUND_FULL: return os << "RFP_ROUND_FULL";
     case InferStep::RFP_ROUND_INITIAL: return os << "RFP_ROUND_INITIAL";

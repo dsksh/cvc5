@@ -159,7 +159,7 @@ class RfpOperation
   {
     return os << "(_ rfp." << getName() << " " 
               << d_fpSize.exponentWidth() << " "
-              << d_fpSize.significandWidth() << ") ";
+              << d_fpSize.significandWidth() << ")";
   }
 
  private:

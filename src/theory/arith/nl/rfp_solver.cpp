@@ -67,16 +67,16 @@ void RfpSolver::initLastCall(const std::vector<Node>& assertions,
     u_int32_t hash;
     switch (n.getKind())
     {
-      case RFP_TO_REAL: hash = n.getOperator().getConst<RfpToReal>(); break;
-      case RFP_ADD: hash = n.getOperator().getConst<RfpAdd>(); break;
-      case RFP_NEG: hash = n.getOperator().getConst<RfpNeg>(); break;
-      case RFP_SUB: hash = n.getOperator().getConst<RfpSub>(); break;
-      case RFP_MULT: hash = n.getOperator().getConst<RfpMult>(); break;
-      case RFP_DIV: hash = n.getOperator().getConst<RfpDiv>(); break;
-      //case RFP_LT:  hash = n.getOperator().getConst<RfpLt>(); break;
-      //case RFP_LEQ: hash = n.getOperator().getConst<RfpLeq>(); break;
-      case RFP_GT:  hash = n.getOperator().getConst<RfpGt>(); break;
-      case RFP_GEQ: hash = n.getOperator().getConst<RfpGeq>(); break;
+      case Kind::RFP_TO_REAL: hash = n.getOperator().getConst<RfpToReal>(); break;
+      case Kind::RFP_ADD: hash = n.getOperator().getConst<RfpAdd>(); break;
+      case Kind::RFP_NEG: hash = n.getOperator().getConst<RfpNeg>(); break;
+      case Kind::RFP_SUB: hash = n.getOperator().getConst<RfpSub>(); break;
+      case Kind::RFP_MULT: hash = n.getOperator().getConst<RfpMult>(); break;
+      case Kind::RFP_DIV: hash = n.getOperator().getConst<RfpDiv>(); break;
+      //case Kind::RFP_LT:  hash = n.getOperator().getConst<RfpLt>(); break;
+      //case Kind::RFP_LEQ: hash = n.getOperator().getConst<RfpLeq>(); break;
+      case Kind::RFP_GT:  hash = n.getOperator().getConst<RfpGt>(); break;
+      case Kind::RFP_GEQ: hash = n.getOperator().getConst<RfpGeq>(); break;
       default: continue;
     }
     d_terms[n.getKind()][hash].push_back(n);
@@ -103,16 +103,16 @@ void RfpSolver::checkInitialRefine()
         d_initRefine.insert(node);
         switch(term.first)
         {
-          case RFP_TO_REAL: checkInitialRefineToReal(node); break;
-          case RFP_ADD: checkInitialRefineAdd(node); break;
-          case RFP_NEG: checkInitialRefineNeg(node); break;
-          case RFP_SUB: checkInitialRefineSub(node); break;
-          case RFP_MULT: checkInitialRefineMult(node); break;
-          case RFP_DIV: checkInitialRefineDiv(node); break;
-          //case RFP_LT:  checkInitialRefineLt(node); break;
-          //case RFP_LEQ: checkInitialRefineLeq(node); break;
-          case RFP_GT:  checkInitialRefineGt(node); break;
-          case RFP_GEQ: checkInitialRefineGeq(node); break;
+          case Kind::RFP_TO_REAL: checkInitialRefineToReal(node); break;
+          case Kind::RFP_ADD: checkInitialRefineAdd(node); break;
+          case Kind::RFP_NEG: checkInitialRefineNeg(node); break;
+          case Kind::RFP_SUB: checkInitialRefineSub(node); break;
+          case Kind::RFP_MULT: checkInitialRefineMult(node); break;
+          case Kind::RFP_DIV: checkInitialRefineDiv(node); break;
+          //case Kind::RFP_LT:  checkInitialRefineLt(node); break;
+          //case Kind::RFP_LEQ: checkInitialRefineLeq(node); break;
+          case Kind::RFP_GT:  checkInitialRefineGt(node); break;
+          case Kind::RFP_GEQ: checkInitialRefineGeq(node); break;
           default: {}
         }
       }
@@ -134,16 +134,16 @@ void RfpSolver::checkFullRefine()
         Trace("rfp-solver") << term.first << ", " << node << std::endl;
         switch (term.first)
         {
-          case RFP_TO_REAL: checkFullRefineToReal(node); break;
-          case RFP_ADD: checkFullRefineAdd(node); break;
-          case RFP_NEG: checkFullRefineNeg(node); break;
-          case RFP_SUB: checkFullRefineSub(node); break;
-          case RFP_MULT: checkFullRefineMult(node); break;
-          case RFP_DIV: checkFullRefineDiv(node); break;
-          case RFP_GT:  checkFullRefineGt(node); break;
-          case RFP_GEQ: checkFullRefineGeq(node); break;
-          case RFP_LT:
-          case RFP_LEQ:
+          case Kind::RFP_TO_REAL: checkFullRefineToReal(node); break;
+          case Kind::RFP_ADD: checkFullRefineAdd(node); break;
+          case Kind::RFP_NEG: checkFullRefineNeg(node); break;
+          case Kind::RFP_SUB: checkFullRefineSub(node); break;
+          case Kind::RFP_MULT: checkFullRefineMult(node); break;
+          case Kind::RFP_DIV: checkFullRefineDiv(node); break;
+          case Kind::RFP_GT:  checkFullRefineGt(node); break;
+          case Kind::RFP_GEQ: checkFullRefineGeq(node); break;
+          case Kind::RFP_LT:
+          case Kind::RFP_LEQ:
             // do nothing
             break;
           default:
@@ -196,10 +196,10 @@ void RfpSolver::checkFullRefineValue(Node node)
 
 Node RfpSolver::opValueBasedLemma(TNode n)
 {
-  Assert(n.getKind() == RFP_ADD 
-      || n.getKind() == RFP_SUB
-      || n.getKind() == RFP_MULT
-      || n.getKind() == RFP_DIV
+  Assert(n.getKind() == Kind::RFP_ADD 
+      || n.getKind() == Kind::RFP_SUB
+      || n.getKind() == Kind::RFP_MULT
+      || n.getKind() == Kind::RFP_DIV
       );
   Node rm = n[0];
   Node x = n[1];
@@ -218,13 +218,13 @@ Node RfpSolver::opValueBasedLemma(TNode n)
   Node valC = nm->mkNode(n.getKind(), cs);
   valC = rewrite(valC);
 
-  Node assumption = nm->mkNode(AND, rm.eqNode(valRm), x.eqNode(valX), y.eqNode(valY));
-  return nm->mkNode(IMPLIES, assumption, n.eqNode(valC));
+  Node assumption = rm.eqNode(valRm).andNode(x.eqNode(valX)).andNode(y.eqNode(valY));
+  return assumption.impNode(n.eqNode(valC));
 }
 
 Node RfpSolver::relValueBasedLemma(TNode n)
 {
-  Assert(n.getKind() == RFP_GT || n.getKind() == RFP_GEQ);
+  Assert(n.getKind() == Kind::RFP_GT || n.getKind() == Kind::RFP_GEQ);
   Node x = n[0];
   Node y = n[1];
 
@@ -239,8 +239,8 @@ Node RfpSolver::relValueBasedLemma(TNode n)
   Node valC = nm->mkNode(n.getKind(), cs);
   valC = rewrite(valC);
 
-  Node assumption = nm->mkNode(AND, x.eqNode(valX), y.eqNode(valY));
-  return nm->mkNode(IMPLIES, assumption, n.eqNode(valC));
+  Node assumption = x.eqNode(valX).andNode(y.eqNode(valY));
+  return assumption.impNode(n.eqNode(valC));
 }
 
 // RfpToReal
@@ -310,7 +310,7 @@ void RfpSolver::checkFullRefineToReal(Node node)
   if (!RFP::isNan(eb,sb, x) && !RFP::isInfiniteWeak(eb,sb, x))
   {
     Node assumption = node[0].eqNode(valX);
-    //Node valC = nm->mkNode(kind::RFP_TO_REAL, node.getOperator(), valX);
+    //Node valC = nm->mkNode(Kind::RFP_TO_REAL, node.getOperator(), valX);
     //valC = rewrite(valC);
     Node conclusion;
     if (RFP::isZero(eb,sb, x)){
@@ -342,7 +342,7 @@ void RfpSolver::checkFullRefineToReal(Node node)
 // RfpAdd
 
 void RfpSolver::checkInitialRefineAdd(Node node) {
-  Assert(node.getKind() == RFP_ADD);
+  Assert(node.getKind() == Kind::RFP_ADD);
   Assert(node.getNumChildren() == 3);
   NodeManager* nm = NodeManager::currentNM();
   FloatingPointSize sz = node.getOperator().getConst<RfpAdd>().getSize();
@@ -359,14 +359,14 @@ void RfpSolver::checkInitialRefineAdd(Node node) {
     //  .andNode(mkIsZero(eb,sb, node[1]).notNode());
     //Node aY = mkIsFinite(eb,sb, node[2])
     //  .andNode(mkIsZero(eb,sb, node[2]).notNode());
-    Node addXY = nm->mkNode(kind::ADD, node[1], node[2]);
+    Node addXY = nm->mkNode(Kind::ADD, node[1], node[2]);
     Node noOverflow = mkNoOverflow(eb,sb, node[0], addXY);
     noOverflow = rewrite(noOverflow);
     Node assumption = aX.andNode(aY).andNode(noOverflow);
 
     //Node isFinite = mkIsFinite(eb,sb, node);
     Node op = nm->mkConst(RfpRound(eb, sb));
-    Node rounded = nm->mkNode(kind::RFP_ROUND, op, node[0], addXY);
+    Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], addXY);
     //Node conclusion = isFinite.andNode(node.eqNode(rounded));
     Node conclusion = node.eqNode(rounded);
 
@@ -418,11 +418,11 @@ void RfpSolver::checkInitialRefineAdd(Node node) {
     // add_finite_rev_n
     Node isTN = mkIsToNearest(node[0]);
     Node assumption = mkIsFinite(eb,sb, node).andNode(isTN);
-    Node addXY = nm->mkNode(kind::ADD, node[1], node[2]);
+    Node addXY = nm->mkNode(Kind::ADD, node[1], node[2]);
     Node noOverflow = mkNoOverflow(eb,sb, node[0], addXY);
     noOverflow = rewrite(noOverflow);
     Node op = nm->mkConst(RfpRound(eb, sb));
-    Node rounded = nm->mkNode(kind::RFP_ROUND, op, node[0], addXY);
+    Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], addXY);
     Node conclusion = noOverflow.andNode(node.eqNode(rounded));
     Node lem = assumption.impNode(conclusion);
     Trace("rfp-add-lemma") << "RfpSolver::Lemma: " << lem
@@ -455,7 +455,7 @@ void RfpSolver::checkInitialRefineAdd(Node node) {
           .andNode(mkDiffSign(eb,sb, node[1], node[2]))
         .impNode(mkIsNan(eb,sb, node))
       );
-    Node addXY = nm->mkNode(ADD, node[1], node[2]);
+    Node addXY = nm->mkNode(Kind::ADD, node[1], node[2]);
     Node noOverflow = rewrite(mkNoOverflow(eb,sb, node[0], addXY));
     conj.push_back(
       mkIsFinite(eb,sb, node[1]).andNode(mkIsFinite(eb,sb, node[2]))
@@ -495,9 +495,9 @@ void RfpSolver::checkInitialRefineAdd(Node node) {
 void RfpSolver::checkFullRefineAdd(Node node)
 {
   Trace("rfp-add") << "RFP_ADD term: " << node << std::endl;
-  Assert(node.getKind() == RFP_ADD);
+  Assert(node.getKind() == Kind::RFP_ADD);
   Assert(node.getNumChildren() == 3);
-  NodeManager* nm = NodeManager::currentNM();
+  //NodeManager* nm = NodeManager::currentNM();
   FloatingPointSize sz = node.getOperator().getConst<RfpAdd>().getSize();
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
@@ -551,7 +551,7 @@ void RfpSolver::checkFullRefineAdd(Node node)
   //    .orNode(mkIsSubnormal(eb,sb, node[1]));
   //  Node aY = mkIsNormal(eb,sb, node[2])
   //    .orNode(mkIsSubnormal(eb,sb, node[2]));
-  //  Node addXY = nm->mkNode(kind::ADD, node[1], node[2]);
+  //  Node addXY = nm->mkNode(Kind::ADD, node[1], node[2]);
   //  addXY = rewrite(addXY);
   //  Node noOverflow = mkNoOverflow(eb,sb, node[0], addXY);
   //  noOverflow = rewrite(noOverflow);
@@ -559,7 +559,7 @@ void RfpSolver::checkFullRefineAdd(Node node)
 
   //  //Node isFinite = mkIsFinite(eb,sb, node);
   //  Node op = nm->mkConst(RfpRound(eb, sb));
-  //  Node rounded = nm->mkNode(kind::RFP_ROUND, op, node[0], addXY);
+  //  Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], addXY);
   //  Node conclusion = node.eqNode(rounded);
 
   //  Node lem = assumption.impNode(conclusion);
@@ -589,11 +589,11 @@ void RfpSolver::checkFullRefineAdd(Node node)
   //  // add_finite_rev_n
   //  Node isTN = mkIsToNearest(node[0]);
   //  Node assumption = mkIsFinite(eb,sb, node).andNode(isTN);
-  //  Node addXY = nm->mkNode(kind::ADD, node[1], node[2]);
+  //  Node addXY = nm->mkNode(Kind::ADD, node[1], node[2]);
   //  Node noOverflow = mkNoOverflow(eb,sb, node[0], addXY);
   //  noOverflow = rewrite(noOverflow);
   //  Node op = nm->mkConst(RfpRound(eb, sb));
-  //  Node rounded = nm->mkNode(kind::RFP_ROUND, op, node[0], addXY);
+  //  Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], addXY);
   //  Node conclusion = noOverflow.andNode(node.eqNode(rounded));
   //  Node lem = assumption.impNode(conclusion);
   //  Trace("rfp-add-lemma") << "RfpSolver::Lemma: " << lem
@@ -694,7 +694,7 @@ void RfpSolver::checkFullRefineAdd(Node node)
 
   //  Node isFiniteX = mkIsFinite(eb,sb, node[1]);
   //  Node isFiniteY = mkIsFinite(eb,sb, node[2]);
-  //  Node addXY = nm->mkNode(kind::ADD, node[1], node[2]);
+  //  Node addXY = nm->mkNode(Kind::ADD, node[1], node[2]);
   //  Node overflow = mkNoOverflow(eb,sb, node[0], addXY).notNode();
   //  Node assumption = isFiniteX.andNode(isFiniteY).andNode(overflow);
   //  Node conclusion = mkIsOverflowValue(eb,sb, node[0], node);
@@ -738,7 +738,7 @@ void RfpSolver::checkFullRefineAdd(Node node)
 // RfpNeg
 
 void RfpSolver::checkInitialRefineNeg(Node node) {
-  Assert(node.getKind() == RFP_NEG);
+  Assert(node.getKind() == Kind::RFP_NEG);
   Assert(node.getNumChildren() == 1);
   NodeManager* nm = NodeManager::currentNM();
   FloatingPointSize sz = node.getOperator().getConst<RfpNeg>().getSize();
@@ -751,7 +751,7 @@ void RfpSolver::checkInitialRefineNeg(Node node) {
     Node isNotZeroX = mkIsZero(eb,sb, node[0]).notNode();
     Node assumption = isFiniteX.andNode(isNotZeroX);
 
-    Node negX = nm->mkNode(kind::NEG, node[0]);
+    Node negX = nm->mkNode(Kind::NEG, node[0]);
     Node conclusion = node.eqNode(negX);
 
     Node lem = assumption.impNode(conclusion);
@@ -782,7 +782,7 @@ void RfpSolver::checkInitialRefineNeg(Node node) {
     Node assumption = isFinite.andNode(isNotZero);
 
     Node isFiniteX = mkIsFinite(eb,sb, node[0]);
-    Node negX = node.eqNode(nm->mkNode(kind::NEG, node[0]));
+    Node negX = node.eqNode(nm->mkNode(Kind::NEG, node[0]));
     Node conclusion = isFiniteX.andNode(negX);
 
     Node lem = assumption.impNode(conclusion);
@@ -821,7 +821,7 @@ void RfpSolver::checkInitialRefineNeg(Node node) {
 void RfpSolver::checkFullRefineNeg(Node node)
 {
   Trace("rfp-neg") << "RFP_NEG term: " << node << std::endl;
-  Assert(node.getKind() == RFP_NEG);
+  Assert(node.getKind() == Kind::RFP_NEG);
   Assert(node.getNumChildren() == 1);
   //NodeManager* nm = NodeManager::currentNM();
   FloatingPointSize sz = node.getOperator().getConst<RfpNeg>().getSize();
@@ -882,12 +882,12 @@ void RfpSolver::checkInitialRefineSub(Node node) {
       .orNode(mkIsSubnormal(eb,sb, node[1]));
     Node aY = mkIsNormal(eb,sb, node[2])
       .orNode(mkIsSubnormal(eb,sb, node[2]));
-    Node subXY = nm->mkNode(kind::SUB, node[1], node[2]);
+    Node subXY = nm->mkNode(Kind::SUB, node[1], node[2]);
     Node noOverflow = rewrite(mkNoOverflow(eb,sb, node[0], subXY));
     Node assumption = aX.andNode(aY).andNode(noOverflow);
 
     Node op = nm->mkConst(RfpRound(eb, sb));
-    Node rounded = nm->mkNode(kind::RFP_ROUND, op, node[0], subXY);
+    Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], subXY);
     Node conclusion = node.eqNode(rounded);
 
     Node lem = assumption.impNode(conclusion);
@@ -912,10 +912,10 @@ void RfpSolver::checkInitialRefineSub(Node node) {
     // sub_finite_rev_n
     Node isTN = mkIsToNearest(node[0]);
     Node assumption = mkIsFinite(eb,sb, node).andNode(isTN);
-    Node subXY = nm->mkNode(kind::SUB, node[1], node[2]);
+    Node subXY = nm->mkNode(Kind::SUB, node[1], node[2]);
     Node noOverflow = rewrite(mkNoOverflow(eb,sb, node[0], subXY));
     Node op = nm->mkConst(RfpRound(eb, sb));
-    Node rounded = nm->mkNode(kind::RFP_ROUND, op, node[0], subXY);
+    Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], subXY);
     Node conclusion = noOverflow.andNode(node.eqNode(rounded));
     Node lem = assumption.impNode(conclusion);
     Trace("rfp-sub-lemma") << "RfpSolver::Lemma: " << lem
@@ -948,7 +948,7 @@ void RfpSolver::checkInitialRefineSub(Node node) {
           .andNode(mkDiffSign(eb,sb, node[1], node[2]))
         .impNode(mkIsInf(eb,sb, node).andNode(mkSameSign(eb,sb, node, node[1])))
       );
-    Node subXY = nm->mkNode(SUB, node[1], node[2]);
+    Node subXY = nm->mkNode(Kind::SUB, node[1], node[2]);
     Node noOverflow = rewrite(mkNoOverflow(eb,sb, node[0], subXY));
     conj.push_back(
       mkIsFinite(eb,sb, node[1]).andNode(mkIsFinite(eb,sb, node[2]))
@@ -1040,13 +1040,13 @@ void RfpSolver::checkInitialRefineMult(Node node)
   //    .orNode(mkIsSubnormal(eb,sb, node[1]));
   //  Node aY = mkIsNormal(eb,sb, node[2])
   //    .orNode(mkIsSubnormal(eb,sb, node[2]));
-  //  Node multXY = nm->mkNode(kind::MULT, node[1], node[2]);
+  //  Node multXY = nm->mkNode(Kind::MULT, node[1], node[2]);
   //  multXY = rewrite(multXY);
   //  Node noOverflow = mkNoOverflow(eb,sb, node[0], multXY);
   //  Node assumption = aX.andNode(aY).andNode(noOverflow);
 
   //  Node op = nm->mkConst(RfpRound(eb, sb));
-  //  Node rounded = nm->mkNode(kind::RFP_ROUND, op, node[0], multXY);
+  //  Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], multXY);
   //  Node conclusion = node.eqNode(rounded);
 
   //  Node lem = assumption.impNode(conclusion);
@@ -1072,10 +1072,10 @@ void RfpSolver::checkInitialRefineMult(Node node)
   //  // mul_finite_rev_n
   //  Node isTN = mkIsToNearest(node[0]);
   //  Node assumption = mkIsFinite(eb,sb, node).andNode(isTN);
-  //  Node multXY = nm->mkNode(kind::MULT, node[1], node[2]);
+  //  Node multXY = nm->mkNode(Kind::MULT, node[1], node[2]);
   //  Node noOverflow = mkNoOverflow(eb,sb, node[0], multXY);
   //  Node op = nm->mkConst(RfpRound(eb, sb));
-  //  Node rounded = nm->mkNode(kind::RFP_ROUND, op, node[0], multXY);
+  //  Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], multXY);
   //  Node conclusion = noOverflow.andNode(node.eqNode(rounded));
   //  Node lem = assumption.impNode(conclusion);
   //  Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem
@@ -1094,7 +1094,7 @@ void RfpSolver::checkInitialRefineMult(Node node)
     Node assumption = isFiniteX.andNode(isFiniteY)
       .andNode( isZeroX.orNode(isZeroY) );
     Node conclusion = mkIsZero(eb,sb, node);
-    Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+    Node lem = assumption.impNode(conclusion);
     Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem << " ; INIT_REFINE"
                            << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
@@ -1129,7 +1129,7 @@ void RfpSolver::checkInitialRefineMult(Node node)
       mkIsInfWeak(eb,sb, node[1]).andNode(mkIsInfWeak(eb,sb, node[2]))
         .impNode(mkIsInf(eb,sb, node))
       );
-    Node multXY = nm->mkNode(MULT, node[1], node[2]);
+    Node multXY = nm->mkNode(Kind::MULT, node[1], node[2]);
     Node noOverflow = rewrite(mkNoOverflow(eb,sb, node[0], multXY));
     conj.push_back(
       mkIsFinite(eb,sb, node[1]).andNode(mkIsFinite(eb,sb, node[2]))
@@ -1203,7 +1203,7 @@ void RfpSolver::checkFullRefineMult(Node node)
     Node isNotNanY = mkIsNan(eb,sb, node[2]).notNode();
     Node assumption = isOneX.andNode(isNotNanY);
     Node conclusion = node.eqNode(node[2]);
-    Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+    Node lem = assumption.impNode(conclusion);
     Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem << " ; AUX_REFINE"
                             << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE,
@@ -1217,9 +1217,9 @@ void RfpSolver::checkFullRefineMult(Node node)
     Node isNotNanY = mkIsNan(eb,sb, node[2]).notNode();
     Node assumption = isOneX.andNode(isNotNanY);
     Node negOp = nm->mkConst(RfpNeg(eb,sb));
-    Node neg = nm->mkNode(kind::RFP_NEG, negOp, node[2]);
+    Node neg = nm->mkNode(Kind::RFP_NEG, negOp, node[2]);
     Node conclusion = node.eqNode(neg);
-    Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+    Node lem = assumption.impNode(conclusion);
     Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem << " ; AUX_REFINE"
                             << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE,
@@ -1233,7 +1233,7 @@ void RfpSolver::checkFullRefineMult(Node node)
     Node isOneY = node[2].eqNode(nm->mkConstReal(1));
     Node assumption = isNotNanX.andNode(isOneY);
     Node conclusion = node.eqNode(node[1]);
-    Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+    Node lem = assumption.impNode(conclusion);
     Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem << " ; AUX_REFINE"
                             << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE,
@@ -1247,9 +1247,9 @@ void RfpSolver::checkFullRefineMult(Node node)
     Node isOneY = node[2].eqNode(nm->mkConstReal(1));
     Node assumption = isNotNanX.andNode(isOneY);
     Node negOp = nm->mkConst(RfpNeg(eb,sb));
-    Node neg = nm->mkNode(kind::RFP_NEG, negOp, node[1]);
+    Node neg = nm->mkNode(Kind::RFP_NEG, negOp, node[1]);
     Node conclusion = node.eqNode(neg);
-    Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+    Node lem = assumption.impNode(conclusion);
     Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem << " ; AUX_REFINE"
                             << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE,
@@ -1266,14 +1266,14 @@ void RfpSolver::checkFullRefineMult(Node node)
       .orNode(mkIsSubnormal(eb,sb, node[1]));
     Node aY = mkIsNormal(eb,sb, node[2])
       .orNode(mkIsSubnormal(eb,sb, node[2]));
-    Node multXY = nm->mkNode(kind::MULT, node[1], node[2]);
+    Node multXY = nm->mkNode(Kind::MULT, node[1], node[2]);
     multXY = rewrite(multXY);
     Node noOverflow = mkNoOverflow(eb,sb, node[0], multXY);
     noOverflow = rewrite(noOverflow);
     Node assumption = aX.andNode(aY).andNode(noOverflow);
 
     Node op = nm->mkConst(RfpRound(eb, sb));
-    Node rounded = nm->mkNode(kind::RFP_ROUND, op, node[0], multXY);
+    Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], multXY);
     rounded = rewrite(rounded);
     Node conclusion = node.eqNode(rounded);
 
@@ -1306,12 +1306,12 @@ void RfpSolver::checkFullRefineMult(Node node)
     // mul_finite_rev_n
     Node isTN = mkIsToNearest(node[0]);
     Node assumption = mkIsFinite(eb,sb, node).andNode(isTN);
-    Node multXY = nm->mkNode(kind::MULT, node[1], node[2]);
+    Node multXY = nm->mkNode(Kind::MULT, node[1], node[2]);
     //multXY = rewrite(multXY);
     Node noOverflow = mkNoOverflow(eb,sb, node[0], multXY);
     noOverflow = rewrite(noOverflow);
     Node op = nm->mkConst(RfpRound(eb, sb));
-    Node rounded = nm->mkNode(kind::RFP_ROUND, op, node[0], multXY);
+    Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], multXY);
     Node conclusion = noOverflow.andNode(node.eqNode(rounded));
     Node lem = assumption.impNode(conclusion);
     Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem
@@ -1377,7 +1377,7 @@ void RfpSolver::checkFullRefineMult(Node node)
   //    // mul_special 7
   //    Node isFiniteX = mkIsInf(eb,sb, node[1]);
   //    Node isFiniteY = mkIsFinite(eb,sb, node[2]);
-  //    Node multXY = nm->mkNode(kind::MULT, node[1], node[2]);
+  //    Node multXY = nm->mkNode(Kind::MULT, node[1], node[2]);
   //    Node overflow = mkIsFinite(eb,sb, multXY).notNode();
   //    Node assumption = isFiniteX.andNode(isFiniteY.andNode(overflow));
   //    Node conclusion = mkIsInf(eb,sb, node);
@@ -1442,13 +1442,13 @@ void RfpSolver::checkInitialRefineDiv(Node node) {
       .orNode(mkIsSubnormal(eb,sb, node[1]));
     Node aY = mkIsNormal(eb,sb, node[2])
       .orNode(mkIsSubnormal(eb,sb, node[2]));
-    Node divXY = nm->mkNode(kind::DIVISION, node[1], node[2]);
+    Node divXY = nm->mkNode(Kind::DIVISION, node[1], node[2]);
     Node noOverflow = mkNoOverflow(eb,sb, node[0], divXY);
     noOverflow = rewrite(noOverflow);
     Node assumption = aX.andNode(aY).andNode(noOverflow);
 
     Node op = nm->mkConst(RfpRound(eb,sb));
-    Node round = nm->mkNode(kind::RFP_ROUND, op, node[0], divXY);
+    Node round = nm->mkNode(Kind::RFP_ROUND, op, node[0], divXY);
     Node conclusion = node.eqNode(round);
 
     Node lem = assumption.impNode(conclusion);
@@ -1478,11 +1478,11 @@ void RfpSolver::checkInitialRefineDiv(Node node) {
     // div_finite_rev_n
     Node isTN = mkIsToNearest(node[0]);
     Node assumption = mkIsFinite(eb,sb, node).andNode(isTN);
-    Node divXY = nm->mkNode(kind::DIVISION, node[1], node[2]);
+    Node divXY = nm->mkNode(Kind::DIVISION, node[1], node[2]);
     Node noOverflow = mkNoOverflow(eb,sb, node[0], divXY);
     noOverflow = rewrite(noOverflow);
     Node op = nm->mkConst(RfpRound(eb, sb));
-    Node rounded = nm->mkNode(kind::RFP_ROUND, op, node[0], divXY);
+    Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], divXY);
     Node conclusion = noOverflow.andNode(node.eqNode(rounded));
     Node lem = assumption.impNode(conclusion);
     Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem
@@ -1509,7 +1509,7 @@ void RfpSolver::checkInitialRefineDiv(Node node) {
       mkIsInfWeak(eb,sb, node[1]).andNode(mkIsInfWeak(eb,sb, node[2]))
         .impNode(mkIsNan(eb,sb, node))
       );
-    Node divXY = nm->mkNode(DIVISION, node[1], node[2]);
+    Node divXY = nm->mkNode(Kind::DIVISION, node[1], node[2]);
     Node noOverflow = rewrite(mkNoOverflow(eb,sb, node[0], divXY));
     conj.push_back(
       mkIsFinite(eb,sb, node[1]).andNode(mkIsFinite(eb,sb, node[2]))
@@ -1598,9 +1598,9 @@ void RfpSolver::checkFullRefineDiv(Node node)
 Node mkRelConstr(Node node)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node lb = nm->mkNode(LEQ, nm->mkConstInt(Rational(0)), node);
-  Node ub = nm->mkNode(LEQ, node, nm->mkConstInt(Rational(1)));
-  return nm->mkNode(AND, lb, ub);
+  Node lb = nm->mkNode(Kind::LEQ, nm->mkConstInt(Rational(0)), node);
+  Node ub = nm->mkNode(Kind::LEQ, node, nm->mkConstInt(Rational(1)));
+  return lb.andNode(ub);
 }
 
 // RfpGt
@@ -1641,11 +1641,11 @@ void RfpSolver::checkInitialRefineGt(Node node)
   //    .andNode( isNotZeroX.orNode(isNotZeroY) );
 
   //  //Node gtTrue = mkTrue(node);
-  //  //Node gtXY = nm->mkNode(kind::GT, node[0], node[1]);
+  //  //Node gtXY = nm->mkNode(Kind::GT, node[0], node[1]);
   //  //Node conclusion = gtTrue.eqNode(gtXY);
   //  Node gtTrue = mkIsOne(node);
   //  Node gtFalse = mkFalse(node);
-  //  Node gtXY = nm->mkNode(kind::GT, node[0], node[1]);
+  //  Node gtXY = nm->mkNode(Kind::GT, node[0], node[1]);
   //  Node conclusion = gtXY.iteNode(gtTrue, gtFalse);
 
   //  Node lem = assumption.impNode(conclusion);
@@ -1694,11 +1694,11 @@ void RfpSolver::checkInitialRefineGt(Node node)
   //    .andNode(isZeroY);
 
   //  //Node gtTrue = mkTrue(node);
-  //  //Node gtXY = nm->mkNode(kind::GT, node[0], nm->mkConstReal(0));
+  //  //Node gtXY = nm->mkNode(Kind::GT, node[0], nm->mkConstReal(0));
   //  //Node conclusion = gtTrue.eqNode(gtXY);
   //  Node gtTrue = mkIsOne(node);
   //  Node gtFalse = mkFalse(node);
-  //  Node gtXY = nm->mkNode(kind::GT, node[0], nm->mkConstReal(0));
+  //  Node gtXY = nm->mkNode(Kind::GT, node[0], nm->mkConstReal(0));
   //  Node conclusion = gtXY.iteNode(gtTrue, gtFalse);
 
   //  Node lem = assumption.impNode(conclusion);
@@ -1717,7 +1717,7 @@ void RfpSolver::checkInitialRefineGt(Node node)
   //    .andNode(isZeroY);
 
   //  Node gtTrue = mkTrue(node);
-  //  Node gtXY = nm->mkNode(kind::GT, node[0], nm->mkConstReal(0));
+  //  Node gtXY = nm->mkNode(Kind::GT, node[0], nm->mkConstReal(0));
   //  Node conclusion = gtTrue.eqNode(gtXY);
 
   //  Node lem = assumption.impNode(conclusion);
@@ -1793,7 +1793,7 @@ void RfpSolver::checkFullRefineGt(Node node)
   //{
   //  Node gtTrue = mkIsOne(node);
   //  Node gtFalse = mkFalse(node);
-  //  Node gtXY = nm->mkNode(kind::GT, node[0], node[1]);
+  //  Node gtXY = nm->mkNode(Kind::GT, node[0], node[1]);
   //  gtXY = rewrite(gtXY);
   //  Node lem = gtXY.iteNode(gtTrue, gtFalse);
   //  Trace("rfp-gt-lemma") << "RfpSolver::Lemma: " << lem 
@@ -1818,12 +1818,12 @@ void RfpSolver::checkFullRefineGt(Node node)
       .andNode(isFiniteY).andNode(isNotZeroY);
 
     //Node gtTrue = mkTrue(node);
-    //Node gtXY = nm->mkNode(kind::GT, node[0], node[1]);
+    //Node gtXY = nm->mkNode(Kind::GT, node[0], node[1]);
     ////gtXY = rewrite(gtXY);
     //Node conclusion = gtTrue.eqNode(gtXY);
     Node gtTrue = mkIsOne(node);
     Node gtFalse = mkFalse(node);
-    Node gtXY = nm->mkNode(kind::GT, node[0], node[1]);
+    Node gtXY = nm->mkNode(Kind::GT, node[0], node[1]);
     gtXY = rewrite(gtXY);
     Node conclusion = gtXY.iteNode(gtTrue, gtFalse);
 
@@ -1882,16 +1882,16 @@ void RfpSolver::checkFullRefineGt(Node node)
       .andNode(isFiniteY).andNode(isNotZeroY);
 
     //Node gtTrue = mkTrue(node);
-    //Node gtXY = nm->mkNode(kind::GT, nm->mkConstReal(0), node[1]);
+    //Node gtXY = nm->mkNode(Kind::GT, nm->mkConstReal(0), node[1]);
     //gtXY = rewrite(gtXY);
     //Node conclusion = gtTrue.eqNode(gtXY);
     Node gtTrue = mkIsOne(node);
     Node gtFalse = mkFalse(node);
-    Node gtXY = nm->mkNode(kind::GT, nm->mkConstReal(0), node[1]);
+    Node gtXY = nm->mkNode(Kind::GT, nm->mkConstReal(0), node[1]);
     gtXY = rewrite(gtXY);
     Node conclusion = gtXY.iteNode(gtTrue, gtFalse);
 
-    Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+    Node lem = assumption.impNode(conclusion);
     Trace("rfp-gt-lemma") << "RfpSolver::Lemma: " << lem 
                           << " ; gt_zero_non_zero ; COMP"
                           << std::endl;
@@ -1912,12 +1912,12 @@ void RfpSolver::checkFullRefineGt(Node node)
       .andNode(isZeroY);
 
     //Node gtTrue = mkTrue(node);
-    //Node gtXY = nm->mkNode(kind::GT, node[0], nm->mkConstReal(0));
+    //Node gtXY = nm->mkNode(Kind::GT, node[0], nm->mkConstReal(0));
     ////gtXY = rewrite(gtXY);
     //Node conclusion = gtTrue.eqNode(gtXY);
     Node gtTrue = mkIsOne(node);
     Node gtFalse = mkFalse(node);
-    Node gtXY = nm->mkNode(kind::GT, node[0], nm->mkConstReal(0));
+    Node gtXY = nm->mkNode(Kind::GT, node[0], nm->mkConstReal(0));
     gtXY = rewrite(gtXY);
     Node conclusion = gtXY.iteNode(gtTrue, gtFalse);
 
@@ -1987,7 +1987,7 @@ Node mkGeqSpecial(uint32_t eb, uint32_t sb, TNode node)
 void RfpSolver::checkInitialRefineGeq(Node node) 
 {
   Trace("rfp-geq") << "RFP_GEQ term: " << node << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  //NodeManager* nm = NodeManager::currentNM();
   FloatingPointSize sz = node.getOperator().getConst<RfpGeq>().getSize();
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
@@ -2003,7 +2003,7 @@ void RfpSolver::checkInitialRefineGeq(Node node)
 
   //  Node geqTrue = mkIsOne(node);
   //  Node geqFalse = mkFalse(node);
-  //  Node geqXY = nm->mkNode(kind::GEQ, node[0], node[1]);
+  //  Node geqXY = nm->mkNode(Kind::GEQ, node[0], node[1]);
   //  Node conclusion = geqXY.iteNode(geqTrue, geqFalse);
 
   //  Node lem = assumption.impNode(conclusion);
@@ -2095,7 +2095,7 @@ void RfpSolver::checkFullRefineGeq(Node node)
 
     Node geqTrue = mkIsOne(node);
     Node geqFalse = mkFalse(node);
-    Node geqXY = nm->mkNode(kind::GEQ, node[0], node[1]);
+    Node geqXY = nm->mkNode(Kind::GEQ, node[0], node[1]);
     geqXY = rewrite(geqXY);
     Node conclusion = geqXY.iteNode(geqTrue, geqFalse);
 
@@ -2149,11 +2149,11 @@ Node lem = assumption.impNode(mkIsOne(node));
 
     Node geqTrue = mkIsOne(node);
     Node geqFalse = mkFalse(node);
-    Node geqXY = nm->mkNode(kind::GEQ, nm->mkConstReal(0), node[1]);
+    Node geqXY = nm->mkNode(Kind::GEQ, nm->mkConstReal(0), node[1]);
     geqXY = rewrite(geqXY);
     Node conclusion = geqXY.iteNode(geqTrue, geqFalse);
 
-    Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+    Node lem = assumption.impNode(conclusion);
     Trace("rfp-geq-lemma") << "RfpSolver::Lemma: " << lem 
                            << " ; ge_zero_non_zero ; COMP"
                            << std::endl;
@@ -2175,11 +2175,11 @@ Node lem = assumption.impNode(mkIsOne(node));
 
     Node geqTrue = mkIsOne(node);
     Node geqFalse = mkFalse(node);
-    Node geqXY = nm->mkNode(kind::GEQ, node[0], nm->mkConstReal(0));
+    Node geqXY = nm->mkNode(Kind::GEQ, node[0], nm->mkConstReal(0));
     geqXY = rewrite(geqXY);
     Node conclusion = geqXY.iteNode(geqTrue, geqFalse);
 
-    Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+    Node lem = assumption.impNode(conclusion);
     Trace("rfp-geq-lemma") << "RfpSolver::Lemma: " << lem 
                            << " ; ge_non_zero_zero ; COMP"
                            << std::endl;

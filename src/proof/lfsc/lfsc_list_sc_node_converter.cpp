@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,10 +19,11 @@ namespace cvc5::internal {
 namespace proof {
 
 LfscListScNodeConverter::LfscListScNodeConverter(
+    NodeManager* nm,
     LfscNodeConverter& conv,
     const std::unordered_set<Node>& listVars,
     bool isPre)
-    : d_conv(conv), d_listVars(listVars), d_isPre(isPre)
+    : NodeConverter(nm), d_conv(conv), d_listVars(listVars), d_isPre(isPre)
 {
 }
 
@@ -62,11 +63,11 @@ Node LfscListScNodeConverter::postConvert(Node n)
       children.push_back(d_conv.convert(null));
       Node sop = mkOperatorFor("nary_elim", children, tn);
       children.insert(children.begin(), sop);
-      return nm->mkNode(kind::APPLY_UF, children);
+      return nm->mkNode(Kind::APPLY_UF, children);
     }
     return n;
   }
-  Assert(k == kind::APPLY_UF || k == kind::APPLY_CONSTRUCTOR
+  Assert(k == Kind::APPLY_UF || k == Kind::APPLY_CONSTRUCTOR
          || !NodeManager::isNAryKind(k) || n.getNumChildren() == 2)
       << "Cannot convert LFSC side condition for " << n;
   // note that after converting to binary form, variables should only appear
@@ -79,10 +80,10 @@ Node LfscListScNodeConverter::postConvert(Node n)
     // We are in converted form, but need to get the null terminator for the
     // original term. Hence, we convert the application back to original form
     // if we replaced with an APPLY_UF.
-    if (k == kind::APPLY_UF)
+    if (k == Kind::APPLY_UF)
     {
       k = d_conv.getBuiltinKindForInternalSymbol(n.getOperator());
-      Assert(k != kind::UNDEFINED_KIND);
+      Assert(k != Kind::UNDEFINED_KIND);
       // for uniformity, reconstruct in original form
       std::vector<Node> nchildren(n.begin(), n.end());
       n = nm->mkNode(k, nchildren);
@@ -105,7 +106,7 @@ Node LfscListScNodeConverter::postConvert(Node n)
     children.push_back(null);
     Node sop = mkOperatorFor("nary_concat", children, tn);
     children.insert(children.begin(), sop);
-    return nm->mkNode(kind::APPLY_UF, children);
+    return nm->mkNode(Kind::APPLY_UF, children);
   }
   return n;
 }

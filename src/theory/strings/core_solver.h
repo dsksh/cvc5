@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -70,7 +70,7 @@ class CoreInferInfo
  * This implements techniques for handling (dis)equalities involving
  * string concatenation terms based on the procedure by Liang et al CAV 2014.
  */
-class CoreSolver : protected EnvObj
+class CoreSolver : public InferSideEffectProcess, protected EnvObj
 {
   friend class InferenceManager;
   using NodeIntMap = context::CDHashMap<Node, int>;
@@ -144,7 +144,7 @@ class CoreSolver : protected EnvObj
    * assignment. For further detail on this terminology, see Liang et al
    * CAV 2014.
    *
-   * Notice that all constant words are implicitly considered concatentation
+   * Notice that all constant words are implicitly considered concatenation
    * of their characters, e.g. "abc" is treated as "a" ++ "b" ++ "c".
    *
    * At a high level, we build normal forms for equivalence classes bottom-up,
@@ -230,6 +230,8 @@ class CoreSolver : protected EnvObj
    * for str.to_code.
    */
   const std::vector<Node>& getRelevantDeq() const;
+  /** Has a normal form for n been computed? */
+  bool hasNormalForm(const Node& n) const;
   /**
    * Get normal form for string term n. For details on this data structure,
    * see theory/strings/normal_form.h.
@@ -237,7 +239,7 @@ class CoreSolver : protected EnvObj
    * This query is valid after a successful call to checkNormalFormsEq, e.g.
    * a call where the inference manager was not given any lemmas or inferences.
    */
-  NormalForm& getNormalForm(Node n);
+  NormalForm& getNormalForm(const Node& n);
   /** get normal string
    *
    * This method returns the node that is equivalent to the normal form of x,
@@ -266,7 +268,7 @@ class CoreSolver : protected EnvObj
    */
   static Node getConclusion(Node x,
                             Node y,
-                            PfRule rule,
+                            ProofRule rule,
                             bool isRev,
                             SkolemCache* skc,
                             std::vector<Node>& newSkolems);
@@ -309,11 +311,17 @@ class CoreSolver : protected EnvObj
                                      bool isRev,
                                      SkolemCache* skc,
                                      std::vector<Node>& newSkolems);
+
+  /** Called when ii is ready to be processed as a fact */
+  void processFact(InferInfo& ii, ProofGenerator*& pg) override;
+  /** Called when ii is ready to be processed as a lemma */
+  TrustNode processLemma(InferInfo& ii, LemmaProperty& p) override;
+
  private:
   /**
    * This returns the index of the inference in pinfer that should be processed
    * based on our heuristics. In particular, we favor certain identifiers
-   * before others, as well as considering the position in a concatentation
+   * before others, as well as considering the position in a concatenation
    * term they reference.
    */
   size_t pickInferInfo(const std::vector<CoreInferInfo>& pinfer);
@@ -409,8 +417,10 @@ class CoreSolver : protected EnvObj
    * pinfer: the set of possible inferences we add to.
    *
    * stype is the string-like type of the equivalence class we are processing.
+   *
+   * @return true if the normal forms are equal
    */
-  void processSimpleNEq(NormalForm& nfi,
+  bool processSimpleNEq(NormalForm& nfi,
                         NormalForm& nfj,
                         unsigned& index,
                         bool isRev,

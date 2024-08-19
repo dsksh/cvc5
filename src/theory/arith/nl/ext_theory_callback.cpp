@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Yoni Zohar
+ *   Andrew Reynolds, Tim King, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,22 +75,21 @@ bool NlExtTheoryCallback::isExtfReduced(
   if (!isZero(n))
   {
     Kind k = n.getKind();
-    if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND
-        && k != POW2
-        && k != ILOG2
-        // TODO
-        && k != RFP_ROUND
-        && k != RFP_TO_RFP_FROM_RFP
-        && k != RFP_TO_REAL
-        && k != RFP_ADD
-        && k != RFP_NEG
-        && k != RFP_SUB
-        && k != RFP_MULT
-        && k != RFP_DIV
-        && k != RFP_LT
-        && k != RFP_LEQ
-        && k != RFP_GT
-        && k != RFP_GEQ
+    if (k != Kind::NONLINEAR_MULT && !isTranscendentalKind(k) && k != Kind::IAND
+        && k != Kind::POW2
+        //&& k != Kind::ILOG2
+        && k != Kind::RFP_ROUND
+        && k != Kind::RFP_TO_RFP_FROM_RFP
+        && k != Kind::RFP_TO_REAL
+        && k != Kind::RFP_ADD
+        && k != Kind::RFP_NEG
+        && k != Kind::RFP_SUB
+        && k != Kind::RFP_MULT
+        && k != Kind::RFP_DIV
+        && k != Kind::RFP_LT
+        && k != Kind::RFP_LEQ
+        && k != Kind::RFP_GT
+        && k != Kind::RFP_GEQ
         )
     {
       // we consider an extended function to be reduced if it simplifies to
@@ -106,7 +105,7 @@ bool NlExtTheoryCallback::isExtfReduced(
   // simplified to zero, for example, if (= x 0) ^ (= y 5) => (= (* x y) 0),
   // we minimize the explanation to (= x 0) => (= (* x y) 0).
   id = ExtReducedId::ARITH_SR_ZERO;
-  if (on.getKind() == NONLINEAR_MULT)
+  if (on.getKind() == Kind::NONLINEAR_MULT)
   {
     Trace("nl-ext-zero-exp")
         << "Infer zero : " << on << " == " << n << std::endl;
@@ -118,15 +117,15 @@ bool NlExtTheoryCallback::isExtfReduced(
       Trace("nl-ext-zero-exp")
           << "  exp[" << i << "] = " << exp[i] << std::endl;
       std::vector<Node> eqs;
-      if (exp[i].getKind() == EQUAL && exp[i][0].getType().isRealOrInt())
+      if (exp[i].getKind() == Kind::EQUAL && exp[i][0].getType().isRealOrInt())
       {
         eqs.push_back(exp[i]);
       }
-      else if (exp[i].getKind() == AND)
+      else if (exp[i].getKind() == Kind::AND)
       {
         for (const Node& ec : exp[i])
         {
-          if (ec.getKind() == EQUAL && ec[0].getType().isRealOrInt())
+          if (ec.getKind() == Kind::EQUAL && ec[0].getType().isRealOrInt())
           {
             eqs.push_back(ec);
           }

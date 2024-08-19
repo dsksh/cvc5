@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -85,7 +85,7 @@ Trigger::Trigger(Env& env,
     Node ns = d_qreg.substituteInstConstantsToBoundVariables(nt, q);
     extNodes.push_back(ns);
   }
-  d_trNode = NodeManager::currentNM()->mkNode(SEXPR, extNodes);
+  d_trNode = NodeManager::currentNM()->mkNode(Kind::SEXPR, extNodes);
   if (isOutputOn(OutputTag::TRIGGER))
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
@@ -138,7 +138,7 @@ bool Trigger::isMultiTrigger() const { return d_nodes.size() > 1; }
 
 Node Trigger::getInstPattern() const
 {
-  return NodeManager::currentNM()->mkNode( INST_PATTERN, d_nodes );
+  return NodeManager::currentNM()->mkNode(Kind::INST_PATTERN, d_nodes);
 }
 
 uint64_t Trigger::addInstantiations()
@@ -199,7 +199,7 @@ Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
     it = visited.find(cur);
     if (it == visited.end())
     {
-      if (cur.getNumChildren() == 0)
+      if (cur.getNumChildren() == 0 || cur.getKind() == Kind::BOUND_VAR_LIST)
       {
         visited[cur] = cur;
       }

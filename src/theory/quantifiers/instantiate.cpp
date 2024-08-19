@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -115,7 +115,7 @@ bool Instantiate::addInstantiationInternal(
   // For resource-limiting (also does a time check).
   d_qim.safePoint(Resource::QuantifierStep);
   Assert(!d_qstate.isInConflict());
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   Assert(terms.size() == q[0].getNumChildren());
   if (TraceIsOn("inst-add-debug"))
   {
@@ -169,8 +169,12 @@ bool Instantiate::addInstantiationInternal(
                     << std::endl;
       bad_inst = true;
     }
-    else if (options().quantifiers.cegqi)
+    else
     {
+      // This checks whether the term represents a "counterexample". It is
+      // model-unsound to instantiate with such terms.
+      // Note we check this even if cegqi is false, since sygusInst also
+      // introduces terms with this attribute.
       Node icf = TermUtil::getInstConstAttr(terms[i]);
       if (!icf.isNull())
       {
@@ -287,10 +291,10 @@ bool Instantiate::addInstantiationInternal(
       // add the transformation proof, or the trusted rule if none provided
       pfTmp->addLazyStep(proven,
                          tpBody.getGenerator(),
-                         PfRule::QUANTIFIERS_PREPROCESS,
+                         TrustId::QUANTIFIERS_PREPROCESS,
                          true,
                          "Instantiate::getInstantiation:qpreprocess");
-      pfTmp->addStep(body, PfRule::EQ_RESOLVE, {orig_body, proven}, {});
+      pfTmp->addStep(body, ProofRule::EQ_RESOLVE, {orig_body, proven}, {});
     }
   }
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
@@ -299,7 +303,7 @@ bool Instantiate::addInstantiationInternal(
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
 
   // construct the instantiation, and rewrite the lemma
-  Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, q, body);
+  Node lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, q, body);
 
   // If proofs are enabled, construct the proof, which is of the form:
   // ... free assumption q ...
@@ -326,7 +330,7 @@ bool Instantiate::addInstantiationInternal(
     lem = rewrite(lem);
     if (prevLem != lem)
     {
-      d_pfInst->addStep(lem, PfRule::MACRO_SR_PRED_ELIM, {prevLem}, {});
+      d_pfInst->addStep(lem, ProofRule::MACRO_SR_PRED_ELIM, {prevLem}, {});
     }
     hasProof = true;
   }
@@ -340,12 +344,12 @@ bool Instantiate::addInstantiationInternal(
   if (hasProof)
   {
     // use proof generator
-    addedLem =
-        d_qim.addPendingLemma(lem, id, LemmaProperty::NONE, d_pfInst.get());
+    addedLem = d_qim.addPendingLemma(
+        lem, id, LemmaProperty::INPROCESS, d_pfInst.get());
   }
   else
   {
-    addedLem = d_qim.addPendingLemma(lem, id);
+    addedLem = d_qim.addPendingLemma(lem, id, LemmaProperty::INPROCESS);
   }
 
   if (!addedLem)
@@ -410,7 +414,7 @@ bool Instantiate::addInstantiationInternal(
 
 void Instantiate::processInstantiationRep(Node q, std::vector<Node>& terms)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   Assert(terms.size() == q[0].getNumChildren());
   for (size_t i = 0, size = terms.size(); i < size; i++)
   {
@@ -568,10 +572,12 @@ Node Instantiate::getInstantiation(Node q,
   // store the proof of the instantiated body, with (open) assumption q
   if (pf != nullptr)
   {
+    std::vector<Node> pfTerms;
+    // Include the list of terms as an SEXPR.
+    pfTerms.push_back(NodeManager::currentNM()->mkNode(Kind::SEXPR, terms));
     // additional arguments: if the inference id is not unknown, include it,
     // followed by the proof argument if non-null. The latter is used e.g.
     // to track which trigger caused an instantiation.
-    std::vector<Node> pfTerms = terms;
     if (id != InferenceId::UNKNOWN)
     {
       pfTerms.push_back(mkInferenceIdNode(id));
@@ -580,7 +586,7 @@ Node Instantiate::getInstantiation(Node q,
         pfTerms.push_back(pfArg);
       }
     }
-    pf->addStep(body, PfRule::INSTANTIATE, {q}, pfTerms);
+    pf->addStep(body, ProofRule::INSTANTIATE, {q}, pfTerms);
   }
 
   // run rewriters to rewrite the instantiation in sequence.
@@ -596,10 +602,10 @@ Node Instantiate::getInstantiation(Node q,
         Node proven = trn.getProven();
         pf->addLazyStep(proven,
                         trn.getGenerator(),
-                        PfRule::THEORY_PREPROCESS,
+                        TrustId::THEORY_PREPROCESS,
                         true,
                         "Instantiate::getInstantiation:rewrite_inst");
-        pf->addStep(newBody, PfRule::EQ_RESOLVE, {body, proven}, {});
+        pf->addStep(newBody, ProofRule::EQ_RESOLVE, {body, proven}, {});
       }
       body = newBody;
     }
@@ -756,11 +762,11 @@ Node Instantiate::ensureType(Node n, TypeNode tn)
   }
   if (tn.isInteger())
   {
-    return NodeManager::currentNM()->mkNode(TO_INTEGER, n);
+    return NodeManager::currentNM()->mkNode(Kind::TO_INTEGER, n);
   }
   else if (tn.isReal())
   {
-    return NodeManager::currentNM()->mkNode(TO_REAL, n);
+    return NodeManager::currentNM()->mkNode(Kind::TO_REAL, n);
   }
   return Node::null();
 }

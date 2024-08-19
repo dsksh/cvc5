@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,7 +43,7 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
       d_astate(*containing.getTheoryState()),
       d_im(containing.getInferenceManager()),
       d_stats(statisticsRegistry()),
-      d_hasNlTerms(false),
+      d_hasNlTerms(context(), false),
       d_checkCounter(0),
       d_extTheoryCb(d_astate.getEqualityEngine()),
       d_extTheory(env, d_extTheoryCb, d_im),
@@ -59,31 +59,31 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
       d_icpSlv(d_env, d_im),
       d_iandSlv(env, d_im, d_model),
       d_pow2Slv(env, d_im, d_model),
-      d_ilog2Slv(env, d_im, d_model),
+      //d_ilog2Slv(env, d_im, d_model),
       d_rfpRoundSlv(env, d_im, d_model, &d_extState),
       d_rfpSlv(env, d_im, d_model)
 {
-  d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
-  d_extTheory.addFunctionKind(kind::EXPONENTIAL);
-  d_extTheory.addFunctionKind(kind::SINE);
-  d_extTheory.addFunctionKind(kind::PI);
-  d_extTheory.addFunctionKind(kind::IAND);
-  d_extTheory.addFunctionKind(kind::POW2);
-  d_extTheory.addFunctionKind(kind::ILOG2);
-  d_extTheory.addFunctionKind(kind::RFP_ROUND);
-  d_extTheory.addFunctionKind(kind::RFP_TO_RFP_FROM_RFP);
-  d_extTheory.addFunctionKind(kind::RFP_TO_REAL);
-  d_extTheory.addFunctionKind(kind::RFP_ADD);
-  d_extTheory.addFunctionKind(kind::RFP_SUB);
-  d_extTheory.addFunctionKind(kind::RFP_NEG);
-  d_extTheory.addFunctionKind(kind::RFP_MULT);
-  d_extTheory.addFunctionKind(kind::RFP_DIV);
-  d_extTheory.addFunctionKind(kind::RFP_EQ);
-  d_extTheory.addFunctionKind(kind::RFP_LT);
-  d_extTheory.addFunctionKind(kind::RFP_LEQ);
-  d_extTheory.addFunctionKind(kind::RFP_GT);
-  d_extTheory.addFunctionKind(kind::RFP_GEQ);
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_extTheory.addFunctionKind(Kind::NONLINEAR_MULT);
+  d_extTheory.addFunctionKind(Kind::EXPONENTIAL);
+  d_extTheory.addFunctionKind(Kind::SINE);
+  d_extTheory.addFunctionKind(Kind::PI);
+  d_extTheory.addFunctionKind(Kind::IAND);
+  d_extTheory.addFunctionKind(Kind::POW2);
+  //d_extTheory.addFunctionKind(Kind::ILOG2);
+  d_extTheory.addFunctionKind(Kind::RFP_ROUND);
+  d_extTheory.addFunctionKind(Kind::RFP_TO_RFP_FROM_RFP);
+  d_extTheory.addFunctionKind(Kind::RFP_TO_REAL);
+  d_extTheory.addFunctionKind(Kind::RFP_ADD);
+  d_extTheory.addFunctionKind(Kind::RFP_SUB);
+  d_extTheory.addFunctionKind(Kind::RFP_NEG);
+  d_extTheory.addFunctionKind(Kind::RFP_MULT);
+  d_extTheory.addFunctionKind(Kind::RFP_DIV);
+  d_extTheory.addFunctionKind(Kind::RFP_EQ);
+  d_extTheory.addFunctionKind(Kind::RFP_LT);
+  d_extTheory.addFunctionKind(Kind::RFP_LEQ);
+  d_extTheory.addFunctionKind(Kind::RFP_GT);
+  d_extTheory.addFunctionKind(Kind::RFP_GEQ);
+  d_true = nodeManager()->mkConst(true);
 }
 
 NonlinearExtension::~NonlinearExtension() {}
@@ -92,7 +92,11 @@ void NonlinearExtension::preRegisterTerm(TNode n)
 {
   // register terms with extended theory, to find extended terms that can be
   // eliminated by context-depedendent simplification.
-  d_extTheory.registerTerm(n);
+  if (d_extTheory.hasFunctionKind(n.getKind()))
+  {
+    d_hasNlTerms = true;
+    d_extTheory.registerTerm(n);
+  }
 }
 
 void NonlinearExtension::processSideEffect(const NlLemma& se)
@@ -250,8 +254,17 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                                          const std::set<Node>& termSet)
 {
   Trace("nl-ext") << "NonlinearExtension::checkFullEffort" << std::endl;
+  if (TraceIsOn("nl-arith-model"))
+  {
+    Trace("nl-arith-model") << "  arith model is:" << std::endl;
+    for (std::pair<const Node, Node>& m : arithModel)
+    {
+      Trace("nl-arith-model")
+          << "  " << m.first << " -> " << m.second << ", rep "
+          << d_astate.getRepresentative(m.first) << std::endl;
+    }
+  }
 
-  d_hasNlTerms = true;
   if (options().arith.nlExtRewrites)
   {
     std::vector<Node> nred;
@@ -259,10 +272,12 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     {
       Trace("nl-ext") << "...sent no lemmas, # extf to reduce = " << nred.size()
                       << std::endl;
-      if (nred.empty())
-      {
-        d_hasNlTerms = false;
-      }
+      // note that even if the extended theory thinks there are no terms left
+      // to reduce (nred.empty()), we still have to check with the non-linear
+      // extension, since the substitutions ExtTheory uses come from the
+      // equality engine, which may disagree with the arithmetic model
+      // (arithModel), since the equality engine does congruence over extended
+      // operators, and the linear solver does not take this into account.
     }
     else
     {
@@ -274,6 +289,16 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   {
     // no non-linear constraints, we are done
     return;
+  }
+  if (TraceIsOn("nl-model-final"))
+  {
+    Trace("nl-model-final") << "MODEL INPUT:" << std::endl;
+    for (std::pair<const Node, Node>& m : arithModel)
+    {
+      Trace("nl-model-final")
+          << "  " << m.first << " -> " << m.second << std::endl;
+    }
+    Trace("nl-model-final") << "END" << std::endl;
   }
   Trace("nl-ext") << "NonlinearExtension::interceptModel begin" << std::endl;
   d_model.reset(arithModel);
@@ -290,6 +315,16 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   // assign values for equivalence classes with transcendental function
   // applications
   d_trSlv.postProcessModel(arithModel, termSet);
+  if (TraceIsOn("nl-model-final"))
+  {
+    Trace("nl-model-final") << "MODEL OUTPUT:" << std::endl;
+    for (std::pair<const Node, Node>& m : arithModel)
+    {
+      Trace("nl-model-final")
+          << "  " << m.first << " -> " << m.second << std::endl;
+    }
+    Trace("nl-model-final") << "END" << std::endl;
+  }
 }
 
 Result::Status NonlinearExtension::modelBasedRefinement(
@@ -465,11 +500,11 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         break;
       case InferStep::POW2_FULL: d_pow2Slv.checkFullRefine(); break;
       case InferStep::POW2_INITIAL: d_pow2Slv.checkInitialRefine(); break;
-      case InferStep::ILOG2_INIT:
-        d_ilog2Slv.initLastCall(assertions, false_asserts, xts);
-        break;
-      case InferStep::ILOG2_FULL: d_ilog2Slv.checkFullRefine(); break;
-      case InferStep::ILOG2_INITIAL: d_ilog2Slv.checkInitialRefine(); break;
+      //case InferStep::ILOG2_INIT:
+      //  d_ilog2Slv.initLastCall(assertions, false_asserts, xts);
+      //  break;
+      //case InferStep::ILOG2_FULL: d_ilog2Slv.checkFullRefine(); break;
+      //case InferStep::ILOG2_INITIAL: d_ilog2Slv.checkInitialRefine(); break;
       case InferStep::RFP_ROUND_INIT:
         d_rfpRoundSlv.initLastCall(assertions, false_asserts, xts);
         break;

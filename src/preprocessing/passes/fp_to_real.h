@@ -45,11 +45,11 @@ class FPToReal : public PreprocessingPass
 
   /** Returns a node that describes an FP property node in real arithmetic.
    */
-  Node createPropertyNode(kind::Kind_t pKind, uint32_t eb, uint32_t sb, TNode node);
+  Node createPropertyNode(Kind pKind, uint32_t eb, uint32_t sb, TNode node);
 
   /** Returns an RFP operator node. 
    */
-  Node createFPOperator(kind::Kind_t rfpKind, uint32_t eb = 0, uint32_t sb = 0);
+  Node createFPOperator(Kind rfpKind, uint32_t eb = 0, uint32_t sb = 0);
 
   /**
    * A useful utility function.

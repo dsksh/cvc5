@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,6 @@
 #include "theory/sets/solver_state.h"
 #include "theory/sets/term_registry.h"
 #include "theory/sets/theory_sets_rels.h"
-#include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -111,7 +110,6 @@ class TheorySetsPrivate : protected EnvObj
   /**
    * Apply the following rules for map terms (set.map f A) where A has type
    * (Set T):
-   * - General case:
    *   (=>
    *     (set.member y (set.map f A))
    *     (and
@@ -119,12 +117,7 @@ class TheorySetsPrivate : protected EnvObj
    *       (set.member x A)
    *     )
    *   )
-   *   where x is a fresh skolem
-   * - Special case where we can avoid skolems
-   *   (=>
-   *     (set.member (f x) (set.map f A))
-   *     (set.member x A)
-   *   )
+   *   where x is a fresh skolem   
    */
   void checkMapDown();
   void checkGroups();
@@ -332,8 +325,6 @@ class TheorySetsPrivate : protected EnvObj
 
   ~TheorySetsPrivate();
 
-  TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
-
   /** Get the solver state */
   SolverState* getSolverState() { return &d_state; }
 
@@ -354,8 +345,6 @@ class TheorySetsPrivate : protected EnvObj
   bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
 
   void computeCareGraph();
-
-  Node explain(TNode);
 
   void preRegisterTerm(TNode node);
 
@@ -425,9 +414,6 @@ class TheorySetsPrivate : protected EnvObj
    * higher order constraints is asserted to this theory.
    */
   bool d_higher_order_kinds_enabled;
-
-  /** The theory rewriter for this theory. */
-  TheorySetsRewriter d_rewriter;
 
   /** a map that maps each set to an existential quantifier generated for
    * operator is_singleton */

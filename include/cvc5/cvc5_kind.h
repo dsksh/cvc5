@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Gereon Kremer, Mudathir Mohamed
+ *   Aina Niemetz, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,6 +17,8 @@
     || (defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_C_KIND_H))
 
 #ifdef CVC5_API_USE_C_ENUMS
+#include <stddef.h>
+#include <stdint.h>
 #undef ENUM
 #define ENUM(name) Cvc5##name
 #else
@@ -27,6 +29,7 @@
 namespace cvc5 {
 #undef ENUM
 #define ENUM(name) class name
+#undef EVALUE
 #define EVALUE(name) name
 #endif
 
@@ -53,7 +56,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum ENUM(Kind) : int32_t
+enum ENUM(Kind)
 {
   /**
    * Internal kind.
@@ -159,6 +162,16 @@ enum ENUM(Kind) : int32_t
    * \endrst
    */
   EVALUE(VARIABLE),
+  /**
+   * A Skolem.
+   *
+   * \rst
+   * .. note:: Represents an internally generated term. Information on the
+   * skolem is available via the calls `Solver::getSkolemId` and
+   * `Solver::getSkolemIndices`.
+   * \endrst
+   */
+  EVALUE(SKOLEM),
   /**
    * Symbolic expression.
    *
@@ -535,14 +548,14 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(POW2),
-  /**
-   * 3-argument max for reals.
-   */
-  EVALUE(MAX3),
-  /**
-   * Integer log of base 2 for reals.
-   */
-  EVALUE(ILOG2),
+  ///**
+  // * 3-argument max for reals.
+  // */
+  //EVALUE(MAX3),
+  ///**
+  // * Integer log of base 2 for reals.
+  // */
+  //EVALUE(ILOG2),
   /**
    * Convert rounding modes to integers.
    */
@@ -688,6 +701,28 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(DIVISION),
   /**
+   * Real division, division by 0 defined to be 0, left associative.
+   *
+   * - Arity: ``n > 1``
+   *
+   *   - ``1..n:`` Terms of Sort Real
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  EVALUE(DIVISION_TOTAL),
+  /**
    * Integer division, division by 0 undefined, left associative.
    *
    * - Arity: ``n > 1``
@@ -704,6 +739,28 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(INTS_DIVISION),
+  /**
+   * Integer division, division by 0 defined to be 0, left associative.
+   *
+   * - Arity: ``n > 1``
+   *
+   *   - ``1..n:`` Terms of Sort Int
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  EVALUE(INTS_DIVISION_TOTAL),
   /**
    * Integer modulus, modulus by 0 undefined.
    *
@@ -722,6 +779,29 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(INTS_MODULUS),
+  /**
+   * Integer modulus, t modulus by 0 defined to be t.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of Sort Int
+   *   - ``2:`` Term of Sort Int
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  EVALUE(INTS_MODULUS_TOTAL),
   /**
    * Absolute value.
    *
@@ -979,6 +1059,9 @@ enum ENUM(Kind) : int32_t
   EVALUE(ARCCOTANGENT),
   /**
    * Square root.
+   *
+   * If the argument `x` is non-negative, then this returns a non-negative value
+   * `y` such that `y * y = x`.
    *
    * - Arity: ``1``
    *
@@ -1777,7 +1860,24 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BITVECTOR_REDAND),
   /**
-   * Unsigned addition overflow detection.
+   * Bit-vector negation overflow detection.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of bit-vector Sort
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  EVALUE(BITVECTOR_NEGO),
+  /**
+   * Bit-vector unsigned addition overflow detection.
    *
    * - Arity: ``2``
    *
@@ -1794,7 +1894,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BITVECTOR_UADDO),
   /**
-   * Signed addition overflow detection.
+   * Bit-vector signed addition overflow detection.
    *
    * - Arity: ``2``
    *
@@ -1811,7 +1911,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BITVECTOR_SADDO),
   /**
-   * Unsigned multiplication overflow detection.
+   * Bit-vector unsigned multiplication overflow detection.
    *
    * - Arity: ``2``
    *
@@ -1828,7 +1928,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BITVECTOR_UMULO),
   /**
-   * Signed multiplication overflow detection.
+   * Bit-vector signed multiplication overflow detection.
    *
    * - Arity: ``2``
    *
@@ -1845,7 +1945,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BITVECTOR_SMULO),
   /**
-   * Unsigned subtraction overflow detection.
+   * Bit-vector unsigned subtraction overflow detection.
    *
    * - Arity: ``2``
    *
@@ -1862,7 +1962,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BITVECTOR_USUBO),
   /**
-   * Signed subtraction overflow detection.
+   * Bit-vector signed subtraction overflow detection.
    *
    * - Arity: ``2``
    *
@@ -1879,7 +1979,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BITVECTOR_SSUBO),
   /**
-   * Signed division overflow detection.
+   * Bit-vector signed division overflow detection.
    *
    * - Arity: ``2``
    *
@@ -2053,6 +2153,38 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_TO_NAT),
+  /**
+   * Converts a list of Bool terms to a bit-vector.
+   *
+   * - Arity: ``n > 0``
+   *
+   *   - ``1..n:`` Terms of Sort Bool
+   *
+   * \rst
+   * .. note:: May be returned as the result of an API call, but terms of this
+   *           kind may not be created explicitly via the API and may not
+   *           appear in assertions.
+   * \endrst
+   */
+  EVALUE(BITVECTOR_FROM_BOOLS),
+  /**
+   * Retrieves the bit at the given index from a bit-vector as a Bool term.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of bit-vector Sort
+   *
+   * - Indices: ``1``
+   *
+   *   - ``1:`` The bit index
+   *
+   * \rst
+   * .. note:: May be returned as the result of an API call, but terms of this
+   *           kind may not be created explicitly via the API and may not
+   *           appear in assertions.
+   * \endrst
+   */
+  EVALUE(BITVECTOR_BIT),
 
   /* Finite Fields --------------------------------------------------------- */
 
@@ -2061,7 +2193,7 @@ enum ENUM(Kind) : int32_t
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkFiniteFieldElem(const std::string&, const Sort&) const
+   *   - Solver::mkFiniteFieldElem(const std::string&, const Sort&, uint32_t base) const
    */
   EVALUE(CONST_FINITE_FIELD),
   /**
@@ -2098,6 +2230,19 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FINITE_FIELD_ADD),
+  /**
+   * Bitsum of two or more finite field elements: x + 2y + 4z + ...
+   *
+   * - Arity: ``n > 1``
+   *
+   *   - ``1..n:`` Terms of finite field Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   */
+  EVALUE(FINITE_FIELD_BITSUM),
   /**
    * Multiplication of two or more finite field elements.
    *
@@ -2353,7 +2498,8 @@ enum ENUM(Kind) : int32_t
    *
    * - Arity: ``2``
    *
-   *   - ``1..2:`` Terms of floating-point Sort (sorts must match)
+   *   - ``1:`` Term of Sort RoundingMode
+   *   - ``2:`` Term of floating-point Sort
    *
    * - Create Term of this Kind with:
    *
@@ -2681,9 +2827,10 @@ enum ENUM(Kind) : int32_t
   /**
    * Conversion to unsigned bit-vector from floating-point.
    *
-   * - Arity: ``1``
+   * - Arity: ``2``
    *
-   *   - ``1:`` Term of floating-point Sort
+   *   - ``1:`` Term of Sort RoundingMode
+   *   - ``2:`` Term of floating-point Sort
    *
    * - Indices: ``1``
    *
@@ -2701,9 +2848,10 @@ enum ENUM(Kind) : int32_t
   /**
    * Conversion to signed bit-vector from floating-point.
    *
-   * - Arity: ``1``
+   * - Arity: ``2``
    *
-   *   - ``1:`` Term of floating-point Sort
+   *   - ``1:`` Term of Sort RoundingMode
+   *   - ``2:`` Term of floating-point Sort
    *
    * - Indices: ``1``
    *
@@ -3047,7 +3195,22 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(TUPLE_PROJECT),
-
+  /**
+   * Lifting operator for nullable terms.
+   * This operator lifts a built-in operator or a user-defined function 
+   * to nullable terms.
+   * For built-in kinds use mkNullableLift.
+   * For user-defined functions use mkTerm.
+   * 
+   * - Arity: ``n > 1``
+   *
+   * - ``1..n:`` Terms of nullable sort
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkNullableLift(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+  */
+  EVALUE(NULLABLE_LIFT),
   /* Separation Logic ------------------------------------------------------ */
 
   /**
@@ -3406,6 +3569,28 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(SET_CHOOSE),
   /**
+   * Set is empty tester.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of set Sort
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  EVALUE(SET_IS_EMPTY),
+  /**
    * Set is singleton tester.
    *
    * - Arity: ``1``
@@ -3531,6 +3716,38 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(RELATION_JOIN),
+   /**
+   * \rst
+   *  Table join operator for relations has the form
+   *  :math:`((\_ \; rel.table\_join \; m_1 \; n_1 \; \dots \; m_k \; n_k) \; A \; B)`
+   *  where :math:`m_1 \; n_1 \; \dots \; m_k \; n_k` are natural numbers,
+   *  and :math:`A, B` are relations.
+   *  This operator filters the product of two sets based on the equality of
+   *  projected tuples using indices :math:`m_1, \dots, m_k` in relation :math:`A`,
+   *  and indices :math:`n_1, \dots, n_k` in relation :math:`B`.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of relation Sort
+   *
+   *   - ``2:`` Term of relation Sort
+   *
+   * - Indices: ``n``
+   *   - ``1..n:``  Indices of the projection
+   *
+   * \endrst
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  EVALUE(RELATION_TABLE_JOIN),
   /**
    * Relation cartesian product.
    *
@@ -3862,7 +4079,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BAG_MEMBER),
   /**
-   * Bag duplicate removal.
+   * Bag setof.
    *
    * Eliminate duplicates in a given bag. The returned bag contains exactly the
    * same elements in the given bag, but with multiplicity one.
@@ -3885,7 +4102,7 @@ enum ENUM(Kind) : int32_t
    *              future versions.
    * \endrst
    */
-  EVALUE(BAG_DUPLICATE_REMOVAL),
+  EVALUE(BAG_SETOF),
   /**
    * Bag make.
    *
@@ -3959,72 +4176,6 @@ enum ENUM(Kind) : int32_t
    * \endrst
    */
   EVALUE(BAG_CHOOSE),
-  /**
-   * Bag is singleton tester.
-   *
-   * - Arity: ``1``
-   *
-   *   - ``1:`` Term of bag Sort
-   *
-   * - Create Term of this Kind with:
-   *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
-   *
-   * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
-   * \endrst
-   */
-  EVALUE(BAG_IS_SINGLETON),
-  /**
-   * Conversion from set to bag.
-   *
-   * - Arity: ``1``
-   *
-   *   - ``1:`` Term of set Sort
-   *
-   * - Create Term of this Kind with:
-   *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
-   *
-   * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
-   * \endrst
-   */
-  EVALUE(BAG_FROM_SET),
-  /**
-   * Conversion from bag to set.
-   *
-   * - Arity: ``1``
-   *
-   *   - ``1:`` Term of bag Sort
-   *
-   * - Create Term of this Kind with:
-   *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
-   *
-   * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
-   * \endrst
-   */
-  EVALUE(BAG_TO_SET),
   /**
    * Bag map.
    *
@@ -5578,7 +5729,6 @@ enum ENUM(Kind) : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
-   * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
    *              future versions.
    *
@@ -5737,24 +5887,35 @@ typedef enum ENUM(Kind) ENUM(Kind);
  * @param kind The kind.
  * @return The string representation.
  */
-const char* cvc5_kind_to_string(Cvc5Kind kind);
+CVC5_EXPORT const char* cvc5_kind_to_string(Cvc5Kind kind);
 #else
 /**
  * Get the string representation of a given kind.
  * @param kind The kind
  * @return The string representation.
+ * @warning This function is deprecated and replaced by
+ *          `std::to_string(Kind kind)`. It will be removed in a future release.
  */
-std::string kindToString(Kind kind) CVC5_EXPORT;
-
+[[deprecated("use std::to_string(Kind) instead.")]] CVC5_EXPORT std::string
+kindToString(Kind kind);
 /**
  * Serialize a kind to given stream.
  * @param out  The output stream.
  * @param kind The kind to be serialized to the given output stream.
  * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& out, Kind kind) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, Kind kind);
 
 }  // namespace cvc5
+
+namespace std {
+/**
+ * Get the string representation of a given kind.
+ * @param kind The kind
+ * @return The string representation.
+ */
+CVC5_EXPORT std::string to_string(cvc5::Kind kind);
+}
 #endif
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -5763,7 +5924,7 @@ std::ostream& operator<<(std::ostream& out, Kind kind) CVC5_EXPORT;
  * @param kind The kind.
  * @return The hash value.
  */
-size_t cvc5_kind_hash(Cvc5Kind kind);
+CVC5_EXPORT size_t cvc5_kind_hash(Cvc5Kind kind);
 #else
 namespace std {
 
@@ -5790,7 +5951,7 @@ struct CVC5_EXPORT hash<cvc5::Kind>
 
 #ifdef CVC5_API_USE_C_ENUMS
 #undef EVALUE
-#define EVALUE(name) CVC5_SORTKIND_##name
+#define EVALUE(name) CVC5_SORT_KIND_##name
 #endif
 
 #ifndef CVC5_API_USE_C_ENUMS
@@ -5811,7 +5972,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum ENUM(SortKind) : int32_t
+enum ENUM(SortKind)
 {
   /**
    * Internal kind.
@@ -5906,7 +6067,7 @@ enum ENUM(SortKind) : int32_t
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkFiniteFieldSort(const std::string&) const
+   *   - Solver::mkFiniteFieldSort(const std::string&, uint32_t base) const
    */
   EVALUE(FINITE_FIELD_SORT),
   /**
@@ -5992,6 +6153,15 @@ enum ENUM(SortKind) : int32_t
    */
   EVALUE(TUPLE_SORT),
   /**
+   * A nullable sort, whose argument sort denotes the sort of the direct child
+   * of the nullable.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkNullableSort(const Sort&) const
+   */
+  EVALUE(NULLABLE_SORT),
+  /**
    * An uninterpreted sort.
    *
    * - Create Sort of this Kind with:
@@ -6017,24 +6187,36 @@ typedef enum ENUM(SortKind) ENUM(SortKind);
  * @param kind The sort kind.
  * @return The string representation.
  */
-const char* cvc5_sort_kind_to_string(Cvc5SortKind kind);
+CVC5_EXPORT const char* cvc5_sort_kind_to_string(Cvc5SortKind kind);
 #else
 /**
  * Get the string representation of a given kind.
  * @param k the sort kind
  * @return the string representation of kind k
+ * @warning This function is deprecated and replaced by
+ *          `std::to_string(SortKind kind)`. It will be removed in a future
+ *          release.
  */
-std::string sortKindToString(SortKind k) CVC5_EXPORT;
-
+[[deprecated("use std::to_string(SortKind) instead.")]] CVC5_EXPORT std::string
+sortKindToString(SortKind k);
 /**
  * Serialize a kind to given stream.
  * @param out the output stream
  * @param k the sort kind to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, SortKind k) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, SortKind k);
 
 }  // namespace cvc5
+
+namespace std {
+/**
+ * Get the string representation of a given kind.
+ * @param k the sort kind
+ * @return the string representation of kind k
+ */
+CVC5_EXPORT std::string to_string(cvc5::SortKind k);
+}
 #endif
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -6043,7 +6225,7 @@ std::ostream& operator<<(std::ostream& out, SortKind k) CVC5_EXPORT;
  * @param kind The kind.
  * @return The hash value.
  */
-size_t cvc5_sort_kind_hash(Cvc5SortKind kind);
+CVC5_EXPORT size_t cvc5_sort_kind_hash(Cvc5SortKind kind);
 #else
 namespace std {
 
@@ -6055,7 +6237,7 @@ struct CVC5_EXPORT hash<cvc5::SortKind>
 {
   /**
    * Hashes a SortKind to a size_t.
-   * @param The kind.
+   * @param kind The kind.
    * @return The hash value.
    */
   size_t operator()(cvc5::SortKind kind) const;

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Tim King
+ *   Andrew Reynolds, Aina Niemetz, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,8 @@
 #include "decision/decision_engine.h"
 #include "decision/justification_strategy.h"
 #include "expr/node_algorithm.h"
+#include "expr/plugin.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/parallel_options.h"
@@ -48,6 +50,8 @@ TheoryProxy::TheoryProxy(Env& env,
       d_cnfStream(nullptr),
       d_decisionEngine(nullptr),
       d_trackActiveSkDefs(false),
+      d_dmTrackActiveSkDefs(false),
+      d_inSolve(false),
       d_theoryEngine(theoryEngine),
       d_queue(context()),
       d_tpp(env, *theoryEngine),
@@ -61,7 +65,8 @@ TheoryProxy::TheoryProxy(Env& env,
       options().smt.deepRestartMode != options::DeepRestartMode::NONE
       || isOutputOn(OutputTag::LEARNED_LITS)
       || options().smt.produceLearnedLiterals
-      || options().parallel.computePartitions > 0;
+      || options().parallel.computePartitions > 0
+      || options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE;
   if (trackZeroLevel)
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
@@ -81,6 +86,12 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
       || dmode == options::DecisionMode::STOPONLY)
   {
     d_decisionEngine.reset(new decision::JustificationStrategy(d_env, ss, cs));
+    if (options().decision.jhSkolemRlvMode
+        == options::JutificationSkolemRlvMode::ASSERT)
+    {
+      d_dmTrackActiveSkDefs = true;
+      d_trackActiveSkDefs = true;
+    }
   }
   else
   {
@@ -89,19 +100,32 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
   // make the theory preregistrar
   d_prr.reset(new TheoryPreregistrar(d_env, d_theoryEngine, ss, cs));
   // compute if we need to track skolem definitions
-  d_trackActiveSkDefs = d_decisionEngine->needsActiveSkolemDefs()
-                        || d_prr->needsActiveSkolemDefs();
+  if (d_prr->needsActiveSkolemDefs())
+  {
+    d_trackActiveSkDefs = true;
+  }
+  if (options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
+  {
+    d_lemip.reset(new LemmaInprocess(d_env, cs, *d_zll.get()));
+  }
   d_cnfStream = cs;
 }
 
 void TheoryProxy::presolve()
 {
+  Trace("theory-proxy") << "TheoryProxy::presolve: begin" << std::endl;
   d_decisionEngine->presolve();
   d_theoryEngine->presolve();
   d_stopSearch = false;
+  Trace("theory-proxy") << "TheoryProxy::presolve: end" << std::endl;
+  d_inSolve = true;
 }
 
-void TheoryProxy::postsolve() { d_theoryEngine->postsolve(); }
+void TheoryProxy::postsolve(SatValue result)
+{
+  d_theoryEngine->postsolve(result);
+  d_inSolve = false;
+}
 
 void TheoryProxy::notifyTopLevelSubstitution(const Node& lhs,
                                              const Node& rhs) const
@@ -154,7 +178,10 @@ void TheoryProxy::notifySkolemDefinition(Node a, TNode skolem)
   d_skdm->notifySkolemDefinition(skolem, a);
 }
 
-void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
+void TheoryProxy::notifyAssertion(Node a,
+                                  TNode skolem,
+                                  bool isLemma,
+                                  bool local)
 {
   // ignore constants
   if (a.isConst())
@@ -162,13 +189,22 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
     return;
   }
   // notify the decision engine
-  d_decisionEngine->addAssertion(a, skolem, isLemma);
+  if (local)
+  {
+    // If it is marked local, add as local assertions.
+    d_decisionEngine->addLocalAssertions({a});
+  }
+  else if (skolem.isNull() || !d_dmTrackActiveSkDefs)
+  {
+    // Otherwise, if it is not a skolem definition, or we are treating
+    // skolem definitions as ordinary assertions, we add it now.
+    d_decisionEngine->addAssertions({a});
+  }
+  // Otherwise, it is a skolem definition that will be activated dynamically
+  // in TheoryProxy::theoryCheck.
+
   // notify the preregistrar
   d_prr->addAssertion(a, skolem, isLemma);
-}
-
-void TheoryProxy::variableNotify(SatVariable var) {
-  notifySatLiteral(getNode(SatLiteral(var)));
 }
 
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
@@ -217,7 +253,10 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       {
         // notify the decision engine of the skolem definitions that have become
         // active due to the assertion.
-        d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
+        if (d_dmTrackActiveSkDefs)
+        {
+          d_decisionEngine->addLocalAssertions(activeSkolemDefs);
+        }
         d_prr->notifyActiveSkolemDefs(activeSkolemDefs);
         // if we are doing a FULL effort check (propagating with no remaining
         // decisions) and a new skolem definition becomes active, then the SAT
@@ -257,12 +296,15 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   {
     Assert(options().smt.proofMode != options::ProofMode::FULL
            || tte.getGenerator());
-    d_propEngine->getProofCnfStream()->convertPropagation(tte);
+    // notify the prop engine of the explanation, which is only relevant if
+    // we are proof producing for the purposes of storing the CNF of the
+    // explanation.
+    d_propEngine->notifyExplainedPropagation(tte);
   }
   Trace("prop-explain") << "explainPropagation() => " << theoryExplanation
                         << std::endl;
   explanation.push_back(l);
-  if (theoryExplanation.getKind() == kind::AND)
+  if (theoryExplanation.getKind() == Kind::AND)
   {
     for (const Node& n : theoryExplanation)
     {
@@ -286,22 +328,46 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   }
 }
 
-void TheoryProxy::notifyCurrPropagationInsertedAtLevel(int explLevel)
+void TheoryProxy::notifySatClause(const SatClause& clause)
 {
-  d_propEngine->getProofCnfStream()->notifyCurrPropagationInsertedAtLevel(
-      explLevel);
-}
-
-void TheoryProxy::notifyClauseInsertedAtLevel(const SatClause& clause,
-                                              int clLevel)
-{
-  d_propEngine->getProofCnfStream()->notifyClauseInsertedAtLevel(clause,
-                                                                 clLevel);
+  const std::vector<Plugin*>& plugins = d_env.getPlugins();
+  if (plugins.empty())
+  {
+    // nothing to do if no plugins
+    return;
+  }
+  if (!d_inSolve && options().base.pluginNotifySatClauseInSolve)
+  {
+    // We are not in solving mode. We do not inform plugins of SAT clauses
+    // if pluginNotifySatClauseInSolve is true (default).
+    return;
+  }
+  // convert to node
+  std::vector<Node> clauseNodes;
+  for (const SatLiteral& l : clause)
+  {
+    clauseNodes.push_back(d_cnfStream->getNode(l));
+  }
+  Node cln = NodeManager::currentNM()->mkOr(clauseNodes);
+  // get the sharable form of cln
+  Node clns = d_env.getSharableFormula(cln);
+  if (!clns.isNull())
+  {
+    Trace("theory-proxy")
+        << "TheoryProxy::notifySatClause: Clause from SAT solver: " << clns
+        << std::endl;
+    // notify the plugins
+    for (Plugin* p : plugins)
+    {
+      p->notifySatClause(clns);
+    }
+  }
 }
 
 void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Node literalNode = d_cnfStream->getNode(l);
-  Trace("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
+  Trace("theory-proxy") << "enqueueing theory literal " << l << " "
+                        << literalNode << std::endl;
   Assert(!literalNode.isNull());
   // Decision level = SAT context level - 1 due to global push().
   d_queue.push(std::make_pair(literalNode, context()->getLevel() - 1));
@@ -311,10 +377,13 @@ SatLiteral TheoryProxy::getNextDecisionRequest(bool& requirePhase,
                                                bool& stopSearch)
 {
   Trace("theory-proxy") << "TheoryProxy: getNextDecisionRequest" << std::endl;
+  requirePhase = false;
+  stopSearch = false;
   SatLiteral res = undefSatLiteral;
   TNode n = d_theoryEngine->getNextDecisionRequest();
   if (!n.isNull())
   {
+    Trace("theory-proxy") << "... return next theory decision" << std::endl;
     requirePhase = true;
     res = d_cnfStream->getLiteral(n);
   }
@@ -325,7 +394,7 @@ SatLiteral TheoryProxy::getNextDecisionRequest(bool& requirePhase,
     requirePhase = false;
     if (d_stopSearch.get())
     {
-      Trace("theory-proxy") << "...stopped search, finish" << std::endl;
+      Trace("theory-proxy") << "...stop search, finished" << std::endl;
       stopSearch = true;
     }
     else
@@ -338,22 +407,22 @@ SatLiteral TheoryProxy::getNextDecisionRequest(bool& requirePhase,
       }
       else
       {
-        Trace("theory-proxy") << "...returned next decision" << std::endl;
+        Trace("theory-proxy") << "...return next decision" << std::endl;
       }
     }
   }
   return res;
 }
 
-bool TheoryProxy::theoryNeedCheck() const {
+bool TheoryProxy::theoryNeedCheck() const
+{
   if (d_stopSearch.get())
   {
     return false;
   }
   else if (d_activatedSkDefs)
   {
-    // a new skolem definition become active on the last call to theoryCheck,
-    // return true
+    // a new skolem definition became active on the last call to theoryCheck
     return true;
   }
   // otherwise ask the theory engine, which will return true if its output
@@ -402,17 +471,12 @@ void TheoryProxy::spendResource(Resource r)
   d_theoryEngine->spendResource(r);
 }
 
-bool TheoryProxy::isDecisionRelevant(SatVariable var) { return true; }
-
-bool TheoryProxy::isDecisionEngineDone() {
+bool TheoryProxy::isDecisionEngineDone()
+{
   return d_decisionEngine->isDone() || d_stopSearch.get();
 }
 
-SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
-  return SAT_VALUE_UNKNOWN;
-}
-
-CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
+CnfStream* TheoryProxy::getCnfStream() const { return d_cnfStream; }
 
 TrustNode TheoryProxy::preprocessLemma(
     TrustNode trn, std::vector<theory::SkolemLemma>& newLemmas)
@@ -452,10 +516,10 @@ void TheoryProxy::notifySatLiteral(Node n)
   d_prr->notifySatLiteral(n);
 }
 
-void TheoryProxy::notifyBacktrack(uint32_t nlevels)
+void TheoryProxy::notifyBacktrack()
 {
   // notify the preregistrar, which may trigger reregistrations
-  d_prr->notifyBacktrack(nlevels);
+  d_prr->notifyBacktrack();
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
@@ -484,6 +548,12 @@ std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const
     return d_zll->getLearnedZeroLevelLiteralsForRestart();
   }
   return {};
+}
+
+TrustNode TheoryProxy::inprocessLemma(TrustNode& trn)
+{
+  Assert(d_lemip != nullptr);
+  return d_lemip->inprocessLemma(trn);
 }
 
 }  // namespace prop

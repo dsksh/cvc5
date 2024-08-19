@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,21 +31,29 @@ namespace theory {
  * related to normal forms in strings), where inferences that come first are
  * generally preferred.
  *
- * Notice that an inference is intentionally distinct from PfRule. An
- * inference captures *why* we performed a reasoning step, and a PfRule
+ * Notice that an inference is intentionally distinct from ProofRule. An
+ * inference captures *why* we performed a reasoning step, and a ProofRule
  * rule captures *what* reasoning step was used. For instance, the inference
- * LEN_SPLIT translates to PfRule::SPLIT. The use of stats on inferences allows
- * us to know that we performed N splits (PfRule::SPLIT) because we wanted
- * to split on lengths for string equalities (Inference::LEN_SPLIT).
+ * LEN_SPLIT translates to ProofRule::SPLIT. The use of stats on inferences
+ * allows us to know that we performed N splits (ProofRule::SPLIT) because we
+ * wanted to split on lengths for string equalities (Inference::LEN_SPLIT).
  */
 enum class InferenceId
 {
   NONE,
   // ---------------------------------- core
+  // formulas coming from input
+  INPUT,
   // a conflict when two constants merge in the equality engine (of any theory)
   EQ_CONSTANT_MERGE,
   // a split from theory combination
   COMBINATION_SPLIT,
+  // a conflict due to rewriting an asserted literal
+  CONFLICT_REWRITE_LIT,
+  // an explained theory propagation
+  EXPLAINED_PROPAGATION,
+  // a skolem lemma introduced by the theory preprocessor
+  THEORY_PP_SKOLEM_LEM,
   // ---------------------------------- ext theory
   // a simplification from the extended theory utility
   EXTT_SIMPLIFY,
@@ -163,13 +171,13 @@ enum class InferenceId
   ARITH_NL_POW2_MONOTONE_REFINE,
   // trivial refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_TRIVIAL_CASE_REFINE,
-  //-------------------- nonlinear ilog2 solver
-  // initial refinements (Ilog2Solver::checkInitialRefine)
-  ARITH_NL_ILOG2_INIT_REFINE,
-  // value refinements (Ilog2Solver::checkFullRefine)
-  ARITH_NL_ILOG2_VALUE_REFINE,
-  // monotonicity refinements (Ilog2Solver::checkFullRefine)
-  ARITH_NL_ILOG2_MONOTONE_REFINE,
+  ////-------------------- nonlinear ilog2 solver
+  //// initial refinements (Ilog2Solver::checkInitialRefine)
+  //ARITH_NL_ILOG2_INIT_REFINE,
+  //// value refinements (Ilog2Solver::checkFullRefine)
+  //ARITH_NL_ILOG2_VALUE_REFINE,
+  //// monotonicity refinements (Ilog2Solver::checkFullRefine)
+  //ARITH_NL_ILOG2_MONOTONE_REFINE,
   //-------------------- rfp.round solver
   // initial refinements (RfpRoundSolver::checkInitialRefine)
   ARITH_NL_RFP_ROUND_INIT_REFINE,
@@ -247,9 +255,11 @@ enum class InferenceId
   BAGS_INTERSECTION_MIN,
   BAGS_DIFFERENCE_SUBTRACT,
   BAGS_DIFFERENCE_REMOVE,
-  BAGS_DUPLICATE_REMOVAL,
+  BAGS_SETOF,
   BAGS_MAP_DOWN,
-  BAGS_MAP_UP,
+  BAGS_MAP_DOWN_INJECTIVE,
+  BAGS_MAP_UP1,
+  BAGS_MAP_UP2,
   BAGS_FILTER_DOWN,
   BAGS_FILTER_UP,
   BAGS_FOLD,
@@ -377,6 +387,10 @@ enum class InferenceId
   QUANTIFIERS_INST_CBQI_CONFLICT,
   // propagating instantiation from conflict-based instantiation
   QUANTIFIERS_INST_CBQI_PROP,
+  // conflicting instantiation from sub conflict-based instantiation
+  QUANTIFIERS_INST_SUB_CONFLICT,
+  // unsat core from sub conflict-based instantiation
+  QUANTIFIERS_SUB_UC,
   // instantiation from naive exhaustive instantiation in finite model finding
   QUANTIFIERS_INST_FMF_EXH,
   // instantiation from finite model finding based on its model-based algorithm
@@ -513,6 +527,9 @@ enum class InferenceId
   // when term indexing discovers disequal congruent terms in the master
   // equality engine
   QUANTIFIERS_TDB_DEQ_CONG,
+  // An existential corresponding to a witness term generated based on BV
+  // invertibility conditions.
+  QUANTIFIERS_CEGQI_WITNESS,
   //-------------------------------------- end quantifiers theory
 
   // ---------------------------------- sep theory
@@ -602,6 +619,8 @@ enum class InferenceId
   SETS_RELS_JOIN_IMAGE_UP,
   SETS_RELS_JOIN_SPLIT_1,
   SETS_RELS_JOIN_SPLIT_2,
+  SETS_RELS_TABLE_JOIN_UP,
+  SETS_RELS_TABLE_JOIN_DOWN,
   SETS_RELS_PRODUCE_COMPOSE,
   SETS_RELS_PRODUCT_SPLIT,
   SETS_RELS_TCLOSURE_FWD,
@@ -955,6 +974,8 @@ enum class InferenceId
   UF_CARD_SPLIT,
   //-------------------- end cardinality extension to UF
   //-------------------- HO extension to UF
+  // A care graph split due to HO
+  UF_HO_CG_SPLIT,
   // Encodes an n-ary application as a chain of binary HO_APPLY applications
   //   (= (f t1 ... tn) (@ (@ ... (@ f t1) ...) tn))
   UF_HO_APP_ENCODE,
@@ -994,8 +1015,15 @@ enum class InferenceId
   //-------------------- UF arith/bv conversions solver
   // reductions of an arithmetic/bit-vector conversion term
   UF_ARITH_BV_CONV_REDUCTION,
+  // value-based refinement of an arithmetic/bit-vector conversion term
+  UF_ARITH_BV_CONV_VALUE_REFINE,
   //-------------------------------------- end uf theory
 
+  //-------------------------------------- lemma from modules
+  // From the partition generator
+  PARTITION_GENERATOR_PARTITION,
+  // From a plugin
+  PLUGIN_LEMMA,
   //-------------------------------------- unknown
   UNKNOWN
 };

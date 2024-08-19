@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Yoni Zohar, Aina Niemetz
+ *   Gereon Kremer, Yoni Zohar, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,12 +56,12 @@ enum class InferStep
   /** An initial POW2 check */
   POW2_INITIAL,
 
-  /** Initialize the ILOG2 solver */
-  ILOG2_INIT,
-  /** A full ILOG2 check */
-  ILOG2_FULL,
-  /** An initial ILOG2 check */
-  ILOG2_INITIAL,
+  ///** Initialize the ILOG2 solver */
+  //ILOG2_INIT,
+  ///** A full ILOG2 check */
+  //ILOG2_FULL,
+  ///** An initial ILOG2 check */
+  //ILOG2_INITIAL,
 
   /** Initialize the RFP_ROUND solver */
   RFP_ROUND_INIT,

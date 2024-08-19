@@ -1,11 +1,11 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Martin Brain, Aina Niemetz, Andres Noetzli
+ *   Aina Niemetz, Martin Brain, Andrew Reynolds
  * Copyright (c) 2013  University of Oxford
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -84,8 +84,9 @@ namespace rewrite {
 
   RewriteResponse removeDoubleNegation(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_NEG);
-    if (node[0].getKind() == kind::FLOATINGPOINT_NEG) {
+    Assert(node.getKind() == Kind::FLOATINGPOINT_NEG);
+    if (node[0].getKind() == Kind::FLOATINGPOINT_NEG)
+    {
       return RewriteResponse(REWRITE_AGAIN, node[0][0]);
     }
 
@@ -94,12 +95,12 @@ namespace rewrite {
 
   RewriteResponse compactAbs(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ABS);
-    if (node[0].getKind() == kind::FLOATINGPOINT_NEG
-        || node[0].getKind() == kind::FLOATINGPOINT_ABS)
+    Assert(node.getKind() == Kind::FLOATINGPOINT_ABS);
+    if (node[0].getKind() == Kind::FLOATINGPOINT_NEG
+        || node[0].getKind() == Kind::FLOATINGPOINT_ABS)
     {
       Node ret =
-          NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_ABS, node[0][0]);
+          NodeManager::currentNM()->mkNode(Kind::FLOATINGPOINT_ABS, node[0][0]);
       return RewriteResponse(REWRITE_AGAIN, ret);
     }
 
@@ -108,10 +109,11 @@ namespace rewrite {
 
   RewriteResponse convertSubtractionToAddition(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_SUB);
-    Node negation = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_NEG,node[2]);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_SUB);
+    Node negation =
+        NodeManager::currentNM()->mkNode(Kind::FLOATINGPOINT_NEG, node[2]);
     Node addition = NodeManager::currentNM()->mkNode(
-        kind::FLOATINGPOINT_ADD, node[0], node[1], negation);
+        Kind::FLOATINGPOINT_ADD, node[0], node[1], negation);
     return RewriteResponse(REWRITE_DONE, addition);
   }
 
@@ -119,13 +121,13 @@ namespace rewrite {
     Assert(isPreRewrite);  // Should be run first
 
     Kind k = node.getKind();
-    Assert(k == kind::FLOATINGPOINT_EQ || k == kind::FLOATINGPOINT_GEQ
-           || k == kind::FLOATINGPOINT_LEQ || k == kind::FLOATINGPOINT_GT
-           || k == kind::FLOATINGPOINT_LT);
+    Assert(k == Kind::FLOATINGPOINT_EQ || k == Kind::FLOATINGPOINT_GEQ
+           || k == Kind::FLOATINGPOINT_LEQ || k == Kind::FLOATINGPOINT_GT
+           || k == Kind::FLOATINGPOINT_LT);
 
     size_t children = node.getNumChildren();
     if (children > 2) {
-      NodeBuilder conjunction(kind::AND);
+      NodeBuilder conjunction(Kind::AND);
 
       for (size_t i = 0; i < children - 1; ++i) {
 	for (size_t j = i + 1; j < children; ++j) {
@@ -145,37 +147,41 @@ namespace rewrite {
 
   RewriteResponse ieeeEqToEq(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_EQ);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_EQ);
     NodeManager *nm = NodeManager::currentNM();
 
     return RewriteResponse(
         REWRITE_DONE,
         nm->mkNode(
-            kind::AND,
+            Kind::AND,
             nm->mkNode(
-                kind::AND,
-                nm->mkNode(kind::NOT,
-                           nm->mkNode(kind::FLOATINGPOINT_IS_NAN, node[0])),
-                nm->mkNode(kind::NOT,
-                           nm->mkNode(kind::FLOATINGPOINT_IS_NAN, node[1]))),
+                Kind::AND,
+                nm->mkNode(Kind::NOT,
+                           nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node[0])),
+                nm->mkNode(Kind::NOT,
+                           nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node[1]))),
             nm->mkNode(
-                kind::OR,
-                nm->mkNode(kind::EQUAL, node[0], node[1]),
-                nm->mkNode(kind::AND,
-                           nm->mkNode(kind::FLOATINGPOINT_IS_ZERO, node[0]),
-                           nm->mkNode(kind::FLOATINGPOINT_IS_ZERO, node[1])))));
+                Kind::OR,
+                nm->mkNode(Kind::EQUAL, node[0], node[1]),
+                nm->mkNode(Kind::AND,
+                           nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, node[0]),
+                           nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, node[1])))));
   }
 
   RewriteResponse geqToleq(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_GEQ);
-    return RewriteResponse(REWRITE_DONE,NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_LEQ,node[1],node[0]));
+    Assert(node.getKind() == Kind::FLOATINGPOINT_GEQ);
+    return RewriteResponse(REWRITE_DONE,
+                           NodeManager::currentNM()->mkNode(
+                               Kind::FLOATINGPOINT_LEQ, node[1], node[0]));
   }
 
   RewriteResponse gtTolt(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_GT);
-    return RewriteResponse(REWRITE_DONE,NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_LT,node[1],node[0]));
+    Assert(node.getKind() == Kind::FLOATINGPOINT_GT);
+    return RewriteResponse(REWRITE_DONE,
+                           NodeManager::currentNM()->mkNode(
+                               Kind::FLOATINGPOINT_LT, node[1], node[0]));
   }
 
   RewriteResponse removed(TNode node, bool isPreRewrite)
@@ -195,7 +201,7 @@ namespace rewrite {
   }
 
   RewriteResponse equal (TNode node, bool isPreRewrite) {
-    Assert(node.getKind() == kind::EQUAL);
+    Assert(node.getKind() == Kind::EQUAL);
 
     // We should only get equalities of floating point or rounding mode types.
     TypeNode tn = node[0].getType(true);
@@ -208,7 +214,7 @@ namespace rewrite {
       return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
     } else if (!isPreRewrite && (node[0] > node[1])) {
       Node normal =
-          NodeManager::currentNM()->mkNode(kind::EQUAL, node[1], node[0]);
+          NodeManager::currentNM()->mkNode(Kind::EQUAL, node[1], node[0]);
       return RewriteResponse(REWRITE_DONE, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
@@ -220,9 +226,9 @@ namespace rewrite {
   RewriteResponse compactMinMax (TNode node, bool isPreRewrite) {
 #ifdef CVC5_ASSERTIONS
     Kind k = node.getKind();
-    Assert((k == kind::FLOATINGPOINT_MIN) || (k == kind::FLOATINGPOINT_MAX)
-           || (k == kind::FLOATINGPOINT_MIN_TOTAL)
-           || (k == kind::FLOATINGPOINT_MAX_TOTAL));
+    Assert((k == Kind::FLOATINGPOINT_MIN) || (k == Kind::FLOATINGPOINT_MAX)
+           || (k == Kind::FLOATINGPOINT_MIN_TOTAL)
+           || (k == Kind::FLOATINGPOINT_MAX_TOTAL));
 #endif
     if (node[0] == node[1]) {
       return RewriteResponse(REWRITE_AGAIN, node[0]);
@@ -233,11 +239,12 @@ namespace rewrite {
 
 
   RewriteResponse reorderFPEquality (TNode node, bool isPreRewrite) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_EQ);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_EQ);
     Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
 
     if (node[0] > node[1]) {
-      Node normal = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_EQ,node[1],node[0]);
+      Node normal = NodeManager::currentNM()->mkNode(
+          Kind::FLOATINGPOINT_EQ, node[1], node[0]);
       return RewriteResponse(REWRITE_DONE, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
@@ -246,7 +253,7 @@ namespace rewrite {
 
   RewriteResponse reorderBinaryOperation (TNode node, bool isPreRewrite) {
     Kind k = node.getKind();
-    Assert((k == kind::FLOATINGPOINT_ADD) || (k == kind::FLOATINGPOINT_MULT));
+    Assert((k == Kind::FLOATINGPOINT_ADD) || (k == Kind::FLOATINGPOINT_MULT));
     Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
 
     if (node[1] > node[2]) {
@@ -258,12 +265,12 @@ namespace rewrite {
   }
 
   RewriteResponse reorderFMA (TNode node, bool isPreRewrite) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_FMA);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_FMA);
     Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
 
     if (node[1] > node[2]) {
       Node normal = NodeManager::currentNM()->mkNode(
-          kind::FLOATINGPOINT_FMA, {node[0], node[2], node[1], node[3]});
+          Kind::FLOATINGPOINT_FMA, {node[0], node[2], node[1], node[3]});
       return RewriteResponse(REWRITE_DONE, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
@@ -271,49 +278,55 @@ namespace rewrite {
   }
 
   RewriteResponse removeSignOperations (TNode node, bool isPreRewrite) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_IS_NORMAL
-           || node.getKind() == kind::FLOATINGPOINT_IS_SUBNORMAL
-           || node.getKind() == kind::FLOATINGPOINT_IS_ZERO
-           || node.getKind() == kind::FLOATINGPOINT_IS_INF
-           || node.getKind() == kind::FLOATINGPOINT_IS_NAN);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_IS_NORMAL
+           || node.getKind() == Kind::FLOATINGPOINT_IS_SUBNORMAL
+           || node.getKind() == Kind::FLOATINGPOINT_IS_ZERO
+           || node.getKind() == Kind::FLOATINGPOINT_IS_INF
+           || node.getKind() == Kind::FLOATINGPOINT_IS_NAN);
     Assert(node.getNumChildren() == 1);
 
     Kind childKind(node[0].getKind());
 
-    if ((childKind == kind::FLOATINGPOINT_NEG) ||
-	(childKind == kind::FLOATINGPOINT_ABS)) {
-
+    if ((childKind == Kind::FLOATINGPOINT_NEG)
+        || (childKind == Kind::FLOATINGPOINT_ABS))
+    {
       Node rewritten = NodeManager::currentNM()->mkNode(node.getKind(),node[0][0]);
       return RewriteResponse(REWRITE_AGAIN_FULL, rewritten);
-    } else {
+    }
+    else
+    {
       return RewriteResponse(REWRITE_DONE, node);
-    } 
+    }
   }
 
   RewriteResponse compactRemainder (TNode node, bool isPreRewrite) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_REM);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_REM);
     Assert(!isPreRewrite);  // status assumes parts have been rewritten
 
     Node working = node;
 
     // (fp.rem (fp.rem X Y) Y) == (fp.rem X Y)
-    if (working[0].getKind() == kind::FLOATINGPOINT_REM && // short-cut matters!
-	working[0][1] == working[1]) {
+    if (working[0].getKind() == Kind::FLOATINGPOINT_REM
+        &&  // short-cut matters!
+        working[0][1] == working[1])
+    {
       working = working[0];
     }
 
     // Sign of the RHS does not matter
-    if (working[1].getKind() == kind::FLOATINGPOINT_NEG ||
-	working[1].getKind() == kind::FLOATINGPOINT_ABS) {
+    if (working[1].getKind() == Kind::FLOATINGPOINT_NEG
+        || working[1].getKind() == Kind::FLOATINGPOINT_ABS)
+    {
       working[1] = working[1][0];
     }
 
     // Lift negation out of the LHS so it can be cancelled out
-    if (working[0].getKind() == kind::FLOATINGPOINT_NEG) {
+    if (working[0].getKind() == Kind::FLOATINGPOINT_NEG)
+    {
       NodeManager * nm = NodeManager::currentNM();
       working = nm->mkNode(
-          kind::FLOATINGPOINT_NEG,
-          nm->mkNode(kind::FLOATINGPOINT_REM, working[0][0], working[1]));
+          Kind::FLOATINGPOINT_NEG,
+          nm->mkNode(Kind::FLOATINGPOINT_REM, working[0][0], working[1]));
       // in contrast to other rewrites here, this requires rewrite again full
       return RewriteResponse(REWRITE_AGAIN_FULL, working);
     }
@@ -323,22 +336,22 @@ namespace rewrite {
 
   RewriteResponse leqId(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_LEQ);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_LEQ);
 
     if (node[0] == node[1])
     {
       NodeManager *nm = NodeManager::currentNM();
       return RewriteResponse(
           isPreRewrite ? REWRITE_DONE : REWRITE_AGAIN_FULL,
-          nm->mkNode(kind::NOT,
-                     nm->mkNode(kind::FLOATINGPOINT_IS_NAN, node[0])));
+          nm->mkNode(Kind::NOT,
+                     nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, node[0])));
     }
     return RewriteResponse(REWRITE_DONE, node);
   }
 
   RewriteResponse ltId(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_LT);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_LT);
 
     if (node[0] == node[1])
     {
@@ -351,7 +364,7 @@ namespace rewrite {
   RewriteResponse toFPSignedBV(TNode node, bool isPreRewrite)
   {
     Assert(!isPreRewrite);
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_SBV);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_SBV);
 
     /* symFPU does not allow conversions from signed bit-vector of size 1 */
     if (node[1].getType().getBitVectorSize() == 1)
@@ -362,9 +375,9 @@ namespace rewrite {
       Node fromubv = nm->mkNode(op, node[0], node[1]);
       return RewriteResponse(
           REWRITE_AGAIN_FULL,
-          nm->mkNode(kind::ITE,
+          nm->mkNode(Kind::ITE,
                      node[1].eqNode(bv::utils::mkOne(1)),
-                     nm->mkNode(kind::FLOATINGPOINT_NEG, fromubv),
+                     nm->mkNode(Kind::FLOATINGPOINT_NEG, fromubv),
                      fromubv));
     }
     return RewriteResponse(REWRITE_DONE, node);
@@ -376,7 +389,7 @@ namespace constantFold {
 
 RewriteResponse fpLiteral(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_FP);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_FP);
 
   BitVector bv(node[0].getConst<BitVector>());
   bv = bv.concat(node[1].getConst<BitVector>());
@@ -393,7 +406,7 @@ RewriteResponse fpLiteral(TNode node, bool isPreRewrite)
 
 RewriteResponse abs(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_ABS);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_ABS);
   Assert(node.getNumChildren() == 1);
 
   return RewriteResponse(REWRITE_DONE,
@@ -403,7 +416,7 @@ RewriteResponse abs(TNode node, bool isPreRewrite)
 
 RewriteResponse neg(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_NEG);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_NEG);
   Assert(node.getNumChildren() == 1);
 
   return RewriteResponse(REWRITE_DONE,
@@ -413,7 +426,7 @@ RewriteResponse neg(TNode node, bool isPreRewrite)
 
 RewriteResponse add(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_ADD);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_ADD);
   Assert(node.getNumChildren() == 3);
 
   RoundingMode rm(node[0].getConst<RoundingMode>());
@@ -428,7 +441,7 @@ RewriteResponse add(TNode node, bool isPreRewrite)
 
 RewriteResponse mult(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_MULT);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_MULT);
   Assert(node.getNumChildren() == 3);
 
   RoundingMode rm(node[0].getConst<RoundingMode>());
@@ -443,7 +456,7 @@ RewriteResponse mult(TNode node, bool isPreRewrite)
 
 RewriteResponse fma(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_FMA);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_FMA);
   Assert(node.getNumChildren() == 4);
 
   RoundingMode rm(node[0].getConst<RoundingMode>());
@@ -461,7 +474,7 @@ RewriteResponse fma(TNode node, bool isPreRewrite)
 
 RewriteResponse div(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_DIV);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_DIV);
   Assert(node.getNumChildren() == 3);
 
   RoundingMode rm(node[0].getConst<RoundingMode>());
@@ -476,7 +489,7 @@ RewriteResponse div(TNode node, bool isPreRewrite)
 
 RewriteResponse sqrt(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_SQRT);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_SQRT);
   Assert(node.getNumChildren() == 2);
 
   RoundingMode rm(node[0].getConst<RoundingMode>());
@@ -488,7 +501,7 @@ RewriteResponse sqrt(TNode node, bool isPreRewrite)
 
 RewriteResponse rti(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_RTI);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_RTI);
   Assert(node.getNumChildren() == 2);
 
   RoundingMode rm(node[0].getConst<RoundingMode>());
@@ -500,7 +513,7 @@ RewriteResponse rti(TNode node, bool isPreRewrite)
 
 RewriteResponse rem(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_REM);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_REM);
   Assert(node.getNumChildren() == 2);
 
   FloatingPoint arg1(node[0].getConst<FloatingPoint>());
@@ -514,7 +527,7 @@ RewriteResponse rem(TNode node, bool isPreRewrite)
 
 RewriteResponse min(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_MIN);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_MIN);
   Assert(node.getNumChildren() == 2);
 
   FloatingPoint arg1(node[0].getConst<FloatingPoint>());
@@ -538,7 +551,7 @@ RewriteResponse min(TNode node, bool isPreRewrite)
 
 RewriteResponse max(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_MAX);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_MAX);
   Assert(node.getNumChildren() == 2);
 
   FloatingPoint arg1(node[0].getConst<FloatingPoint>());
@@ -562,7 +575,7 @@ RewriteResponse max(TNode node, bool isPreRewrite)
 
 RewriteResponse minTotal(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_MIN_TOTAL);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_MIN_TOTAL);
   Assert(node.getNumChildren() == 3);
 
   FloatingPoint arg1(node[0].getConst<FloatingPoint>());
@@ -598,7 +611,7 @@ RewriteResponse minTotal(TNode node, bool isPreRewrite)
 
 RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_MAX_TOTAL);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_MAX_TOTAL);
   Assert(node.getNumChildren() == 3);
 
   FloatingPoint arg1(node[0].getConst<FloatingPoint>());
@@ -633,7 +646,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 }
 
   RewriteResponse equal (TNode node, bool isPreRewrite) {
-    Assert(node.getKind() == kind::EQUAL);
+    Assert(node.getKind() == Kind::EQUAL);
 
     // We should only get equalities of floating point or rounding mode types.
     TypeNode tn = node[0].getType(true);
@@ -658,7 +671,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse leq(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_LEQ);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_LEQ);
     Assert(node.getNumChildren() == 2);
 
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
@@ -671,7 +684,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse lt(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_LT);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_LT);
     Assert(node.getNumChildren() == 2);
 
     FloatingPoint arg1(node[0].getConst<FloatingPoint>());
@@ -684,7 +697,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isNormal(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_IS_NORMAL);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_IS_NORMAL);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isNormal()));
@@ -692,7 +705,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isSubnormal(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_IS_SUBNORMAL);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_IS_SUBNORMAL);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isSubnormal()));
@@ -700,7 +713,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isZero(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_IS_ZERO);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_IS_ZERO);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isZero()));
@@ -708,7 +721,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isInfinite(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_IS_INF);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_IS_INF);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isInfinite()));
@@ -716,7 +729,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isNaN(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_IS_NAN);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_IS_NAN);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isNaN()));
@@ -724,7 +737,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isNegative(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_IS_NEG);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_IS_NEG);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isNegative()));
@@ -732,7 +745,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isPositive(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_IS_POS);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_IS_POS);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isPositive()));
@@ -740,7 +753,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromIEEEBitVectorLiteral(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV);
 
     TNode op = node.getOperator();
     const FloatingPointToFPIEEEBitVector &param = op.getConst<FloatingPointToFPIEEEBitVector>();
@@ -756,7 +769,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse constantConvert(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_FP);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_FP);
     Assert(node.getNumChildren() == 2);
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
@@ -770,7 +783,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromRealLiteral(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_REAL);
 
     TNode op = node.getOperator();
     const FloatingPointSize& size =
@@ -788,7 +801,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromSBV(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_SBV);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_SBV);
 
     TNode op = node.getOperator();
     const FloatingPointSize& size =
@@ -816,7 +829,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromUBV(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_UBV);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_UBV);
 
     TNode op = node.getOperator();
     const FloatingPointSize& size =
@@ -834,7 +847,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertToUBV(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_UBV);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_TO_UBV);
 
     TNode op = node.getOperator();
     const BitVectorSize& size = op.getConst<FloatingPointToUBV>().d_bv_size;
@@ -855,7 +868,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertToSBV(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_SBV);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_TO_SBV);
 
     TNode op = node.getOperator();
     const BitVectorSize& size = op.getConst<FloatingPointToSBV>().d_bv_size;
@@ -876,7 +889,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertToReal(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_REAL);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_TO_REAL);
 
     FloatingPoint arg(node[0].getConst<FloatingPoint>());
 
@@ -893,7 +906,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertToUBVTotal(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_UBV_TOTAL);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_TO_UBV_TOTAL);
 
     TNode op = node.getOperator();
     const BitVectorSize& size =
@@ -925,7 +938,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertToSBVTotal(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_SBV_TOTAL);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_TO_SBV_TOTAL);
 
     TNode op = node.getOperator();
     const BitVectorSize& size =
@@ -957,7 +970,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertToRealTotal(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_REAL_TOTAL);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_TO_REAL_TOTAL);
 
     FloatingPoint arg(node[0].getConst<FloatingPoint>());
 
@@ -985,7 +998,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
   // ishii
   RewriteResponse convertFromRealFP(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::RFP_TO_FP);
+    Assert(node.getKind() == Kind::RFP_TO_FP);
 
     TNode op = node.getOperator();
     const FloatingPointSize& size =
@@ -1003,20 +1016,20 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
   {
     Kind k = node.getKind();
 
-    Assert((k == kind::FLOATINGPOINT_COMPONENT_NAN)
-           || (k == kind::FLOATINGPOINT_COMPONENT_INF)
-           || (k == kind::FLOATINGPOINT_COMPONENT_ZERO)
-           || (k == kind::FLOATINGPOINT_COMPONENT_SIGN));
+    Assert((k == Kind::FLOATINGPOINT_COMPONENT_NAN)
+           || (k == Kind::FLOATINGPOINT_COMPONENT_INF)
+           || (k == Kind::FLOATINGPOINT_COMPONENT_ZERO)
+           || (k == Kind::FLOATINGPOINT_COMPONENT_SIGN));
 
     FloatingPoint arg0(node[0].getConst<FloatingPoint>());
 
     bool result;
     switch (k)
     {
-      case kind::FLOATINGPOINT_COMPONENT_NAN: result = arg0.isNaN(); break;
-      case kind::FLOATINGPOINT_COMPONENT_INF: result = arg0.isInfinite(); break;
-      case kind::FLOATINGPOINT_COMPONENT_ZERO: result = arg0.isZero(); break;
-      case kind::FLOATINGPOINT_COMPONENT_SIGN: result = arg0.getSign(); break;
+      case Kind::FLOATINGPOINT_COMPONENT_NAN: result = arg0.isNaN(); break;
+      case Kind::FLOATINGPOINT_COMPONENT_INF: result = arg0.isInfinite(); break;
+      case Kind::FLOATINGPOINT_COMPONENT_ZERO: result = arg0.isZero(); break;
+      case Kind::FLOATINGPOINT_COMPONENT_SIGN: result = arg0.getSign(); break;
       default: Unreachable() << "Unknown kind used in componentFlag"; break;
     }
 
@@ -1028,7 +1041,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse componentExponent(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_COMPONENT_EXPONENT);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_COMPONENT_EXPONENT);
 
     FloatingPoint arg0(node[0].getConst<FloatingPoint>());
 
@@ -1041,7 +1054,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse componentSignificand(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
 
     FloatingPoint arg0(node[0].getConst<FloatingPoint>());
 
@@ -1053,7 +1066,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse roundingModeBitBlast(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::ROUNDINGMODE_BITBLAST);
+    Assert(node.getKind() == Kind::ROUNDINGMODE_BITBLAST);
 
     BitVector value;
 
@@ -1095,194 +1108,273 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
   /**
    * Initialize the rewriter.
    */
-  TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
+  TheoryFpRewriter::TheoryFpRewriter(NodeManager* nm, context::UserContext* u)
+      : TheoryRewriter(nm), d_fpExpDef()
   {
     /* Set up the pre-rewrite dispatch table */
-    for (uint32_t i = 0; i < kind::LAST_KIND; ++i)
+    for (uint32_t i = 0; i < static_cast<uint32_t>(Kind::LAST_KIND); ++i)
     {
       d_preRewriteTable[i] = rewrite::notFP;
     }
 
     /******** Constants ********/
     /* No rewriting possible for constants */
-    d_preRewriteTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
-    d_preRewriteTable[kind::CONST_ROUNDINGMODE] = rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::CONST_FLOATINGPOINT)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::CONST_ROUNDINGMODE)] =
+        rewrite::identity;
 
     /******** Sorts(?) ********/
     /* These kinds should only appear in types */
-    // d_preRewriteTable[kind::ROUNDINGMODE_TYPE] = rewrite::type;
-    d_preRewriteTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
+    // d_preRewriteTable[static_cast<uint32_t>(Kind::ROUNDINGMODE_TYPE)] =
+    // rewrite::type;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_TYPE)] =
+        rewrite::type;
 
     /******** Operations ********/
-    d_preRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::compactAbs;
-    d_preRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
-    d_preRewriteTable[kind::FLOATINGPOINT_ADD] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_SUB] =
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_FP)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_ABS)] =
+        rewrite::compactAbs;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_NEG)] =
+        rewrite::removeDoubleNegation;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_ADD)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_SUB)] =
         rewrite::convertSubtractionToAddition;
-    d_preRewriteTable[kind::FLOATINGPOINT_MULT] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_DIV] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_FMA] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_SQRT] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_REM] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_RTI] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_MIN] = rewrite::compactMinMax;
-    d_preRewriteTable[kind::FLOATINGPOINT_MAX] = rewrite::compactMinMax;
-    d_preRewriteTable[kind::FLOATINGPOINT_MIN_TOTAL] = rewrite::compactMinMax;
-    d_preRewriteTable[kind::FLOATINGPOINT_MAX_TOTAL] = rewrite::compactMinMax;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MULT)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_DIV)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_FMA)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_SQRT)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_REM)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_RTI)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MIN)] =
+        rewrite::compactMinMax;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MAX)] =
+        rewrite::compactMinMax;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MIN_TOTAL)] =
+        rewrite::compactMinMax;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MAX_TOTAL)] =
+        rewrite::compactMinMax;
 
     /******** Comparisons ********/
-    d_preRewriteTable[kind::FLOATINGPOINT_EQ] =
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_EQ)] =
         rewrite::then<rewrite::breakChain, rewrite::ieeeEqToEq>;
-    d_preRewriteTable[kind::FLOATINGPOINT_LEQ] =
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_LEQ)] =
         rewrite::then<rewrite::breakChain, rewrite::leqId>;
-    d_preRewriteTable[kind::FLOATINGPOINT_LT] =
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_LT)] =
         rewrite::then<rewrite::breakChain, rewrite::ltId>;
-    d_preRewriteTable[kind::FLOATINGPOINT_GEQ] =
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_GEQ)] =
         rewrite::then<rewrite::breakChain, rewrite::geqToleq>;
-    d_preRewriteTable[kind::FLOATINGPOINT_GT] =
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_GT)] =
         rewrite::then<rewrite::breakChain, rewrite::gtTolt>;
 
     /******** Classifications ********/
-    d_preRewriteTable[kind::FLOATINGPOINT_IS_NORMAL] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_IS_SUBNORMAL] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_IS_ZERO] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_IS_INF] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_IS_NAN] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_IS_NEG] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_IS_POS] = rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_NORMAL)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_SUBNORMAL)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_ZERO)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_INF)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_NAN)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_NEG)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_POS)] =
+        rewrite::identity;
 
     /******** Conversions ********/
-    d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV] =
+    d_preRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)] = rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_FP)] = rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_REAL)] = rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_SBV)] = rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_UBV)] = rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_TO_UBV)] =
         rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_FP] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_REAL] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_SBV] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_UBV] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] = rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_TO_SBV)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_TO_REAL)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_TO_UBV_TOTAL)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_TO_SBV_TOTAL)] =
+        rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_REAL_TOTAL)] = rewrite::identity;
 
-    // ishii
-    d_preRewriteTable[kind::RFP_TO_FP] = rewrite::identity;
+    // for rfp
+    d_preRewriteTable[static_cast<uint32_t>(Kind::RFP_TO_FP)] = 
+        rewrite::identity;
 
-    /******** Variables ********/
-    d_preRewriteTable[kind::VARIABLE] = rewrite::variable;
-    d_preRewriteTable[kind::BOUND_VARIABLE] = rewrite::variable;
-    d_preRewriteTable[kind::SKOLEM] = rewrite::variable;
-    d_preRewriteTable[kind::INST_CONSTANT] = rewrite::variable;
-
-    d_preRewriteTable[kind::EQUAL] = rewrite::equal;
+    /******** Equality ********/
+    d_preRewriteTable[static_cast<uint32_t>(Kind::EQUAL)] = rewrite::equal;
 
     /******** Components for bit-blasting ********/
-    d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_NAN] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_INF] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] =
+    d_preRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_NAN)] = rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_INF)] = rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_ZERO)] = rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_SIGN)] = rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_EXPONENT)] = rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND)] = rewrite::identity;
+    d_preRewriteTable[static_cast<uint32_t>(Kind::ROUNDINGMODE_BITBLAST)] =
         rewrite::identity;
-    d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] =
-        rewrite::identity;
-    d_preRewriteTable[kind::ROUNDINGMODE_BITBLAST] = rewrite::identity;
 
     /* Set up the post-rewrite dispatch table */
-    for (uint32_t i = 0; i < kind::LAST_KIND; ++i)
+    for (uint32_t i = 0; i < static_cast<uint32_t>(Kind::LAST_KIND); ++i)
     {
       d_postRewriteTable[i] = rewrite::notFP;
     }
 
     /******** Constants ********/
     /* No rewriting possible for constants */
-    d_postRewriteTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
-    d_postRewriteTable[kind::CONST_ROUNDINGMODE] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::CONST_FLOATINGPOINT)] =
+        rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::CONST_ROUNDINGMODE)] =
+        rewrite::identity;
 
     /******** Sorts(?) ********/
     /* These kinds should only appear in types */
-    // d_postRewriteTable[kind::ROUNDINGMODE_TYPE] = rewrite::type;
-    d_postRewriteTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
+    // d_postRewriteTable[static_cast<uint32_t>(Kind::ROUNDINGMODE_TYPE)] =
+    // rewrite::type;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_TYPE)] =
+        rewrite::type;
 
     /******** Operations ********/
-    d_postRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::compactAbs;
-    d_postRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
-    d_postRewriteTable[kind::FLOATINGPOINT_ADD] =
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_FP)] =
+        rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_ABS)] =
+        rewrite::compactAbs;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_NEG)] =
+        rewrite::removeDoubleNegation;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_ADD)] =
         rewrite::reorderBinaryOperation;
-    d_postRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_MULT] =
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_SUB)] =
+        rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MULT)] =
         rewrite::reorderBinaryOperation;
-    d_postRewriteTable[kind::FLOATINGPOINT_DIV] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_FMA] = rewrite::reorderFMA;
-    d_postRewriteTable[kind::FLOATINGPOINT_SQRT] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_REM] = rewrite::compactRemainder;
-    d_postRewriteTable[kind::FLOATINGPOINT_RTI] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_MIN] = rewrite::compactMinMax;
-    d_postRewriteTable[kind::FLOATINGPOINT_MAX] = rewrite::compactMinMax;
-    d_postRewriteTable[kind::FLOATINGPOINT_MIN_TOTAL] = rewrite::compactMinMax;
-    d_postRewriteTable[kind::FLOATINGPOINT_MAX_TOTAL] = rewrite::compactMinMax;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_DIV)] =
+        rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_FMA)] =
+        rewrite::reorderFMA;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_SQRT)] =
+        rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_REM)] =
+        rewrite::compactRemainder;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_RTI)] =
+        rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MIN)] =
+        rewrite::compactMinMax;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MAX)] =
+        rewrite::compactMinMax;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MIN_TOTAL)] =
+        rewrite::compactMinMax;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MAX_TOTAL)] =
+        rewrite::compactMinMax;
 
     /******** Comparisons ********/
-    d_postRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_LEQ] = rewrite::leqId;
-    d_postRewriteTable[kind::FLOATINGPOINT_LT] = rewrite::ltId;
-    d_postRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_EQ)] =
+        rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_LEQ)] =
+        rewrite::leqId;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_LT)] =
+        rewrite::ltId;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_GEQ)] =
+        rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_GT)] =
+        rewrite::identity;
 
     /******** Classifications ********/
-    d_postRewriteTable[kind::FLOATINGPOINT_IS_NORMAL] =
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_NORMAL)] =
         rewrite::removeSignOperations;
-    d_postRewriteTable[kind::FLOATINGPOINT_IS_SUBNORMAL] =
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_IS_SUBNORMAL)] = rewrite::removeSignOperations;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_ZERO)] =
         rewrite::removeSignOperations;
-    d_postRewriteTable[kind::FLOATINGPOINT_IS_ZERO] =
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_INF)] =
         rewrite::removeSignOperations;
-    d_postRewriteTable[kind::FLOATINGPOINT_IS_INF] =
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_NAN)] =
         rewrite::removeSignOperations;
-    d_postRewriteTable[kind::FLOATINGPOINT_IS_NAN] =
-        rewrite::removeSignOperations;
-    d_postRewriteTable[kind::FLOATINGPOINT_IS_NEG] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_IS_POS] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_NEG)] =
+        rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_POS)] =
+        rewrite::identity;
 
     /******** Conversions ********/
-    d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV] =
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_FP)] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_REAL)] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_SBV)] = rewrite::toFPSignedBV;
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_UBV)] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_TO_UBV)] =
         rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_FP] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_REAL] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_SBV] =
-        rewrite::toFPSignedBV;
-    d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_UBV] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_TO_SBV)] =
+        rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_TO_REAL)] =
+        rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_UBV_TOTAL)] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_SBV_TOTAL)] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_REAL_TOTAL)] = rewrite::identity;
 
     // ishii
-    d_postRewriteTable[kind::RFP_TO_FP] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::RFP_TO_FP)] = 
+        rewrite::identity;
 
     /******** Variables ********/
-    d_postRewriteTable[kind::VARIABLE] = rewrite::variable;
-    d_postRewriteTable[kind::BOUND_VARIABLE] = rewrite::variable;
-    d_postRewriteTable[kind::SKOLEM] = rewrite::variable;
-    d_postRewriteTable[kind::INST_CONSTANT] = rewrite::variable;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::VARIABLE)] =
+        rewrite::variable;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::BOUND_VARIABLE)] =
+        rewrite::variable;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::SKOLEM)] = rewrite::variable;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::INST_CONSTANT)] =
+        rewrite::variable;
 
-    d_postRewriteTable[kind::EQUAL] = rewrite::equal;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::EQUAL)] = rewrite::equal;
 
     /******** Components for bit-blasting ********/
-    d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_NAN] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_INF] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] =
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_NAN)] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_INF)] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_ZERO)] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_SIGN)] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_EXPONENT)] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND)] = rewrite::identity;
+    d_postRewriteTable[static_cast<uint32_t>(Kind::ROUNDINGMODE_BITBLAST)] =
         rewrite::identity;
-    d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] =
-        rewrite::identity;
-    d_postRewriteTable[kind::ROUNDINGMODE_BITBLAST] = rewrite::identity;
 
     /* Set up the post-rewrite constant fold table */
-    for (uint32_t i = 0; i < kind::LAST_KIND; ++i)
+    for (uint32_t i = 0; i < static_cast<uint32_t>(Kind::LAST_KIND); ++i)
     {
       // Note that this is identity, not notFP
       // Constant folding is called after post-rewrite
@@ -1293,91 +1385,123 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
     /******** Constants ********/
     /* Already folded! */
-    d_constantFoldTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
-    d_constantFoldTable[kind::CONST_ROUNDINGMODE] = rewrite::identity;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::CONST_FLOATINGPOINT)] =
+        rewrite::identity;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::CONST_ROUNDINGMODE)] =
+        rewrite::identity;
 
     /******** Sorts(?) ********/
     /* These kinds should only appear in types */
-    d_constantFoldTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_TYPE)] =
+        rewrite::type;
 
     /******** Operations ********/
-    d_constantFoldTable[kind::FLOATINGPOINT_FP] = constantFold::fpLiteral;
-    d_constantFoldTable[kind::FLOATINGPOINT_ABS] = constantFold::abs;
-    d_constantFoldTable[kind::FLOATINGPOINT_NEG] = constantFold::neg;
-    d_constantFoldTable[kind::FLOATINGPOINT_ADD] = constantFold::add;
-    d_constantFoldTable[kind::FLOATINGPOINT_MULT] = constantFold::mult;
-    d_constantFoldTable[kind::FLOATINGPOINT_DIV] = constantFold::div;
-    d_constantFoldTable[kind::FLOATINGPOINT_FMA] = constantFold::fma;
-    d_constantFoldTable[kind::FLOATINGPOINT_SQRT] = constantFold::sqrt;
-    d_constantFoldTable[kind::FLOATINGPOINT_REM] = constantFold::rem;
-    d_constantFoldTable[kind::FLOATINGPOINT_RTI] = constantFold::rti;
-    d_constantFoldTable[kind::FLOATINGPOINT_MIN] = constantFold::min;
-    d_constantFoldTable[kind::FLOATINGPOINT_MAX] = constantFold::max;
-    d_constantFoldTable[kind::FLOATINGPOINT_MIN_TOTAL] = constantFold::minTotal;
-    d_constantFoldTable[kind::FLOATINGPOINT_MAX_TOTAL] = constantFold::maxTotal;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_FP)] =
+        constantFold::fpLiteral;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_ABS)] =
+        constantFold::abs;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_NEG)] =
+        constantFold::neg;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_ADD)] =
+        constantFold::add;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MULT)] =
+        constantFold::mult;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_DIV)] =
+        constantFold::div;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_FMA)] =
+        constantFold::fma;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_SQRT)] =
+        constantFold::sqrt;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_REM)] =
+        constantFold::rem;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_RTI)] =
+        constantFold::rti;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MIN)] =
+        constantFold::min;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MAX)] =
+        constantFold::max;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MIN_TOTAL)] =
+        constantFold::minTotal;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_MAX_TOTAL)] =
+        constantFold::maxTotal;
 
     /******** Comparisons ********/
-    d_constantFoldTable[kind::FLOATINGPOINT_LEQ] = constantFold::leq;
-    d_constantFoldTable[kind::FLOATINGPOINT_LT] = constantFold::lt;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_LEQ)] =
+        constantFold::leq;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_LT)] =
+        constantFold::lt;
 
     /******** Classifications ********/
-    d_constantFoldTable[kind::FLOATINGPOINT_IS_NORMAL] = constantFold::isNormal;
-    d_constantFoldTable[kind::FLOATINGPOINT_IS_SUBNORMAL] =
-        constantFold::isSubnormal;
-    d_constantFoldTable[kind::FLOATINGPOINT_IS_ZERO] = constantFold::isZero;
-    d_constantFoldTable[kind::FLOATINGPOINT_IS_INF] = constantFold::isInfinite;
-    d_constantFoldTable[kind::FLOATINGPOINT_IS_NAN] = constantFold::isNaN;
-    d_constantFoldTable[kind::FLOATINGPOINT_IS_NEG] = constantFold::isNegative;
-    d_constantFoldTable[kind::FLOATINGPOINT_IS_POS] = constantFold::isPositive;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_NORMAL)] =
+        constantFold::isNormal;
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_IS_SUBNORMAL)] = constantFold::isSubnormal;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_ZERO)] =
+        constantFold::isZero;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_INF)] =
+        constantFold::isInfinite;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_NAN)] =
+        constantFold::isNaN;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_NEG)] =
+        constantFold::isNegative;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_IS_POS)] =
+        constantFold::isPositive;
 
     /******** Conversions ********/
-    d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV] =
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)] =
         constantFold::convertFromIEEEBitVectorLiteral;
-    d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_FP] =
-        constantFold::constantConvert;
-    d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_REAL] =
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_FP)] = constantFold::constantConvert;
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_REAL)] =
         constantFold::convertFromRealLiteral;
-    d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_SBV] =
-        constantFold::convertFromSBV;
-    d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_UBV] =
-        constantFold::convertFromUBV;
-    d_constantFoldTable[kind::FLOATINGPOINT_TO_UBV] =
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_SBV)] = constantFold::convertFromSBV;
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_FP_FROM_UBV)] = constantFold::convertFromUBV;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_TO_UBV)] =
         constantFold::convertToUBV;
-    d_constantFoldTable[kind::FLOATINGPOINT_TO_SBV] =
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_TO_SBV)] =
         constantFold::convertToSBV;
-    d_constantFoldTable[kind::FLOATINGPOINT_TO_REAL] =
+    d_constantFoldTable[static_cast<uint32_t>(Kind::FLOATINGPOINT_TO_REAL)] =
         constantFold::convertToReal;
-    d_constantFoldTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] =
-        constantFold::convertToUBVTotal;
-    d_constantFoldTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] =
-        constantFold::convertToSBVTotal;
-    d_constantFoldTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] =
-        constantFold::convertToRealTotal;
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_UBV_TOTAL)] = constantFold::convertToUBVTotal;
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_SBV_TOTAL)] = constantFold::convertToSBVTotal;
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_TO_REAL_TOTAL)] = constantFold::convertToRealTotal;
 
     // ishii
-    d_constantFoldTable[kind::RFP_TO_FP] =
+    d_constantFoldTable[static_cast<uint32_t>(Kind::RFP_TO_FP)] =
         constantFold::convertFromRealFP;
 
     /******** Variables ********/
-    d_constantFoldTable[kind::VARIABLE] = rewrite::variable;
-    d_constantFoldTable[kind::BOUND_VARIABLE] = rewrite::variable;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::VARIABLE)] =
+        rewrite::variable;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::BOUND_VARIABLE)] =
+        rewrite::variable;
 
-    d_constantFoldTable[kind::EQUAL] = constantFold::equal;
+    d_constantFoldTable[static_cast<uint32_t>(Kind::EQUAL)] =
+        constantFold::equal;
 
     /******** Components for bit-blasting ********/
-    d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_NAN] =
-        constantFold::componentFlag;
-    d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_INF] =
-        constantFold::componentFlag;
-    d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_ZERO] =
-        constantFold::componentFlag;
-    d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_SIGN] =
-        constantFold::componentFlag;
-    d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] =
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_NAN)] = constantFold::componentFlag;
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_INF)] = constantFold::componentFlag;
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_ZERO)] = constantFold::componentFlag;
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_SIGN)] = constantFold::componentFlag;
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_EXPONENT)] =
         constantFold::componentExponent;
-    d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] =
+    d_constantFoldTable[static_cast<uint32_t>(
+        Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND)] =
         constantFold::componentSignificand;
-    d_constantFoldTable[kind::ROUNDINGMODE_BITBLAST] =
+    d_constantFoldTable[static_cast<uint32_t>(Kind::ROUNDINGMODE_BITBLAST)] =
         constantFold::roundingModeBitBlast;
 }
 
@@ -1393,7 +1517,8 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse TheoryFpRewriter::preRewrite(TNode node) {
     Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): " << node << std::endl;
-    RewriteResponse res = d_preRewriteTable[node.getKind()](node, true);
+    RewriteResponse res =
+        d_preRewriteTable[static_cast<uint32_t>(node.getKind())](node, true);
     if (res.d_node != node)
     {
       Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): before " << node << std::endl;
@@ -1428,7 +1553,8 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse TheoryFpRewriter::postRewrite(TNode node) {
     Trace("fp-rewrite") << "TheoryFpRewriter::postRewrite(): " << node << std::endl;
-    RewriteResponse res = d_postRewriteTable[node.getKind()](node, false);
+    RewriteResponse res =
+        d_postRewriteTable[static_cast<uint32_t>(node.getKind())](node, false);
     if (res.d_node != node)
     {
       Trace("fp-rewrite") << "TheoryFpRewriter::postRewrite(): before " << node << std::endl;
@@ -1448,12 +1574,12 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 	  if ((*i).getType().isRoundingMode() && !apartFromRoundingMode) {
 	    apartFromRoundingMode = true;
           }
-          else if ((res.d_node.getKind() == kind::FLOATINGPOINT_MIN_TOTAL
-                    || res.d_node.getKind() == kind::FLOATINGPOINT_MAX_TOTAL
-                    || res.d_node.getKind() == kind::FLOATINGPOINT_TO_UBV_TOTAL
-                    || res.d_node.getKind() == kind::FLOATINGPOINT_TO_SBV_TOTAL
+          else if ((res.d_node.getKind() == Kind::FLOATINGPOINT_MIN_TOTAL
+                    || res.d_node.getKind() == Kind::FLOATINGPOINT_MAX_TOTAL
+                    || res.d_node.getKind() == Kind::FLOATINGPOINT_TO_UBV_TOTAL
+                    || res.d_node.getKind() == Kind::FLOATINGPOINT_TO_SBV_TOTAL
                     || res.d_node.getKind()
-                           == kind::FLOATINGPOINT_TO_REAL_TOTAL)
+                           == Kind::FLOATINGPOINT_TO_REAL_TOTAL)
                    && ((*i).getType().isBitVector() || (*i).getType().isReal())
                    && !apartFromPartiallyDefinedArgument)
           {
@@ -1474,9 +1600,9 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
         if (apartFromRoundingMode)
         {
-          if (!(res.d_node.getKind() == kind::EQUAL)
+          if (!(res.d_node.getKind() == Kind::EQUAL)
               &&  // Avoid infinite recursion...
-              !(res.d_node.getKind() == kind::ROUNDINGMODE_BITBLAST))
+              !(res.d_node.getKind() == Kind::ROUNDINGMODE_BITBLAST))
           {
             // Don't eliminate the bit-blast
             // We are close to being able to constant fold this
@@ -1501,18 +1627,18 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
             rs = REWRITE_AGAIN_FULL;
             rn = nm->mkNode(
-                kind::ITE,
-                nm->mkNode(kind::EQUAL, rm, rne),
+                Kind::ITE,
+                nm->mkNode(Kind::EQUAL, rm, rne),
                 w_rne,
                 nm->mkNode(
-                    kind::ITE,
-                    nm->mkNode(kind::EQUAL, rm, rna),
+                    Kind::ITE,
+                    nm->mkNode(Kind::EQUAL, rm, rna),
                     w_rna,
-                    nm->mkNode(kind::ITE,
-                               nm->mkNode(kind::EQUAL, rm, rtz),
+                    nm->mkNode(Kind::ITE,
+                               nm->mkNode(Kind::EQUAL, rm, rtz),
                                w_rtz,
-                               nm->mkNode(kind::ITE,
-                                          nm->mkNode(kind::EQUAL, rm, rtn),
+                               nm->mkNode(Kind::ITE,
+                                          nm->mkNode(Kind::EQUAL, rm, rtn),
                                           w_rtn,
                                           w_rtp))));
           }
@@ -1520,7 +1646,8 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
         else
         {
           RewriteResponse tmp =
-              d_constantFoldTable[res.d_node.getKind()](res.d_node, false);
+              d_constantFoldTable[static_cast<uint32_t>(res.d_node.getKind())](
+                  res.d_node, false);
           rs = tmp.d_status;
           rn = tmp.d_node;
         }
