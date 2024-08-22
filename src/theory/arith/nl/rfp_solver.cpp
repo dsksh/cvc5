@@ -351,14 +351,14 @@ void RfpSolver::checkInitialRefineAdd(Node node) {
 
   {
     // add_finite
-    Node aX = mkIsNormal(eb,sb, node[1])
-      .orNode(mkIsSubnormal(eb,sb, node[1]));
-    Node aY = mkIsNormal(eb,sb, node[2])
-      .orNode(mkIsSubnormal(eb,sb, node[2]));
-    //Node aX = mkIsFinite(eb,sb, node[1])
-    //  .andNode(mkIsZero(eb,sb, node[1]).notNode());
-    //Node aY = mkIsFinite(eb,sb, node[2])
-    //  .andNode(mkIsZero(eb,sb, node[2]).notNode());
+    //Node aX = mkIsNormal(eb,sb, node[1])
+    //  .orNode(mkIsSubnormal(eb,sb, node[1]));
+    //Node aY = mkIsNormal(eb,sb, node[2])
+    //  .orNode(mkIsSubnormal(eb,sb, node[2]));
+    Node aX = mkIsFinite(eb,sb, node[1])
+      .andNode(mkIsZero(eb,sb, node[1]).notNode());
+    Node aY = mkIsFinite(eb,sb, node[2])
+      .andNode(mkIsZero(eb,sb, node[2]).notNode());
     Node addXY = nm->mkNode(Kind::ADD, node[1], node[2]);
     Node noOverflow = mkNoOverflow(eb,sb, node[0], addXY);
     noOverflow = rewrite(noOverflow);
@@ -414,22 +414,22 @@ void RfpSolver::checkInitialRefineAdd(Node node) {
                            << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
   }
-  {
-    // add_finite_rev_n
-    Node isTN = mkIsToNearest(node[0]);
-    Node assumption = mkIsFinite(eb,sb, node).andNode(isTN);
-    Node addXY = nm->mkNode(Kind::ADD, node[1], node[2]);
-    Node noOverflow = mkNoOverflow(eb,sb, node[0], addXY);
-    noOverflow = rewrite(noOverflow);
-    Node op = nm->mkConst(RfpRound(eb, sb));
-    Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], addXY);
-    Node conclusion = noOverflow.andNode(node.eqNode(rounded));
-    Node lem = assumption.impNode(conclusion);
-    Trace("rfp-add-lemma") << "RfpSolver::Lemma: " << lem
-                           << " ; add_finite_rev_n ; INIT_REFINE"
-                           << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
-  }
+  //{
+  //  // add_finite_rev_n
+  //  Node isTN = mkIsToNearest(node[0]);
+  //  Node assumption = mkIsFinite(eb,sb, node).andNode(isTN);
+  //  Node addXY = nm->mkNode(Kind::ADD, node[1], node[2]);
+  //  Node noOverflow = mkNoOverflow(eb,sb, node[0], addXY);
+  //  noOverflow = rewrite(noOverflow);
+  //  Node op = nm->mkConst(RfpRound(eb, sb));
+  //  Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], addXY);
+  //  Node conclusion = noOverflow.andNode(node.eqNode(rounded));
+  //  Node lem = assumption.impNode(conclusion);
+  //  Trace("rfp-add-lemma") << "RfpSolver::Lemma: " << lem
+  //                         << " ; add_finite_rev_n ; INIT_REFINE"
+  //                         << std::endl;
+  //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
+  //}
   {
     // add_special
     std::vector<Node> conj;
@@ -497,7 +497,7 @@ void RfpSolver::checkFullRefineAdd(Node node)
   Trace("rfp-add") << "RFP_ADD term: " << node << std::endl;
   Assert(node.getKind() == Kind::RFP_ADD);
   Assert(node.getNumChildren() == 3);
-  //NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   FloatingPointSize sz = node.getOperator().getConst<RfpAdd>().getSize();
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
@@ -722,6 +722,10 @@ void RfpSolver::checkFullRefineAdd(Node node)
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
   //}
 
+  Node addXY = nm->mkNode(Kind::ADD, nm->mkConstReal(x), nm->mkConstReal(y));
+  addXY = rewrite(addXY);
+  Trace("rfp-add-debug") << "addXY: " << addXY << ", " << RFP::isFinite(eb,sb, addXY.getConst<Rational>()) << std::endl;
+
   if ((RFP::isZero(eb,sb, x) || RFP::isInfinite(eb,sb, x) || RFP::isNan(eb,sb, x)) &&
       (RFP::isZero(eb,sb, y) || RFP::isInfinite(eb,sb, y) || RFP::isNan(eb,sb, y)))
   {
@@ -878,10 +882,14 @@ void RfpSolver::checkInitialRefineSub(Node node) {
 
   {
     // sub_finite
-    Node aX = mkIsNormal(eb,sb, node[1])
-      .orNode(mkIsSubnormal(eb,sb, node[1]));
-    Node aY = mkIsNormal(eb,sb, node[2])
-      .orNode(mkIsSubnormal(eb,sb, node[2]));
+    //Node aX = mkIsNormal(eb,sb, node[1])
+    //  .orNode(mkIsSubnormal(eb,sb, node[1]));
+    //Node aY = mkIsNormal(eb,sb, node[2])
+    //  .orNode(mkIsSubnormal(eb,sb, node[2]));
+    Node aX = mkIsFinite(eb,sb, node[1])
+      .andNode(mkIsZero(eb,sb, node[1]).notNode());
+    Node aY = mkIsFinite(eb,sb, node[2])
+      .andNode(mkIsZero(eb,sb, node[2]).notNode());
     Node subXY = nm->mkNode(Kind::SUB, node[1], node[2]);
     Node noOverflow = rewrite(mkNoOverflow(eb,sb, node[0], subXY));
     Node assumption = aX.andNode(aY).andNode(noOverflow);
@@ -1262,10 +1270,14 @@ void RfpSolver::checkFullRefineMult(Node node)
            )
   {
     // mul_finite
-    Node aX = mkIsNormal(eb,sb, node[1])
-      .orNode(mkIsSubnormal(eb,sb, node[1]));
-    Node aY = mkIsNormal(eb,sb, node[2])
-      .orNode(mkIsSubnormal(eb,sb, node[2]));
+    //Node aX = mkIsNormal(eb,sb, node[1])
+    //  .orNode(mkIsSubnormal(eb,sb, node[1]));
+    //Node aY = mkIsNormal(eb,sb, node[2])
+    //  .orNode(mkIsSubnormal(eb,sb, node[2]));
+    Node aX = mkIsFinite(eb,sb, node[1])
+      .andNode(mkIsZero(eb,sb, node[1]).notNode());
+    Node aY = mkIsFinite(eb,sb, node[2])
+      .andNode(mkIsZero(eb,sb, node[2]).notNode());
     Node multXY = nm->mkNode(Kind::MULT, node[1], node[2]);
     multXY = rewrite(multXY);
     Node noOverflow = mkNoOverflow(eb,sb, node[0], multXY);
@@ -1438,10 +1450,14 @@ void RfpSolver::checkInitialRefineDiv(Node node) {
 
   {
     // div_finite
-    Node aX = mkIsNormal(eb,sb, node[1])
-      .orNode(mkIsSubnormal(eb,sb, node[1]));
-    Node aY = mkIsNormal(eb,sb, node[2])
-      .orNode(mkIsSubnormal(eb,sb, node[2]));
+    //Node aX = mkIsNormal(eb,sb, node[1])
+    //  .orNode(mkIsSubnormal(eb,sb, node[1]));
+    //Node aY = mkIsNormal(eb,sb, node[2])
+    //  .orNode(mkIsSubnormal(eb,sb, node[2]));
+    Node aX = mkIsFinite(eb,sb, node[1])
+      .andNode(mkIsZero(eb,sb, node[1]).notNode());
+    Node aY = mkIsFinite(eb,sb, node[2])
+      .andNode(mkIsZero(eb,sb, node[2]).notNode());
     Node divXY = nm->mkNode(Kind::DIVISION, node[1], node[2]);
     Node noOverflow = mkNoOverflow(eb,sb, node[0], divXY);
     noOverflow = rewrite(noOverflow);

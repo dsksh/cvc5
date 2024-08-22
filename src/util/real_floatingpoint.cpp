@@ -180,7 +180,7 @@ bool isInfinite(uint32_t eb, uint32_t sb, const Rational& arg)
  */
 bool isInfiniteWeak(uint32_t eb, uint32_t sb, const Rational& arg)
 {
-  return (arg < Rational(maxValue(eb,sb)) || Rational(maxValue(eb,sb)) < arg)
+  return (arg < Rational(-maxValue(eb,sb)) || Rational(maxValue(eb,sb)) < arg)
     && arg != notANumber(eb,sb);
 }
 
@@ -423,8 +423,15 @@ std::ostream& operator<<(std::ostream& os, const AbstractRFP& v)
       return os << "L";
     else if (v.abs() == RFP::maxValue(v.d_eb, v.d_sb))
       return os << "M";
+    else if (v.abs() > RFP::maxValue(v.d_eb, v.d_sb))
+      return os << "MW";
     else if (RFP::isZero(v.d_eb, v.d_sb, v))
       return os << "0";
+    else if (RFP::isSubnormal(v.d_eb, v.d_sb, v))
+      return os << "SN";
+    else if (-RFP::minSubnormal(v.d_eb,v.d_sb) < v && 
+             v < RFP::minSubnormal(v.d_eb,v.d_sb))
+      return os << "SNW";
     else if (RFP::isSubnormal(v.d_eb, v.d_sb, v))
       return os << "SN";
     else // isNormal
