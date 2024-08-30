@@ -526,7 +526,20 @@ name   = "SMT Layer"
 [[option]]
   name       = "fpToReal"
   category   = "expert"
-  long       = "fp-to-real"
-  type       = "bool"
-  default    = "false"
+  long       = "fp-to-real=MODE"
+  type       = "FpToRealMode"
+  default    = "NONE"
   help       = "translate floating-point to real arithmetic"
+  help_mode  = "Modes for the lemma instantiation"
+[[option.mode.NONE]]
+  name = "none"
+  help = "Disable the fp-to-real extension"
+[[option.mode.LIGHT]]
+  name = "light"
+  help = "Don't generate minor lemmas"
+[[option.mode.MID]]
+  name = "mid"
+  help = "Generate lemmas moderately"
+[[option.mode.FULL]]
+  name = "full"
+  help = "Instantiate all lemma schemes in every occasions"

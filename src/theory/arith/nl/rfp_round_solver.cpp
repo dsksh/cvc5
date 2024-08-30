@@ -481,10 +481,6 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
     //Node isNan = nm->mkNode(Kind::EQUAL, node[1], nan);
     //Node isNotNan = isNan.notNode();
 
-    Trace("rfp-round-debug2") << "a: " << arg << std::endl;
-    Trace("rfp-round-debug2") << "r: " << round << std::endl;
-    Trace("rfp-round-debug2") << "c: " << (round <= arg) << std::endl;
-
     Rational argDn = RFP::round(eb,sb, IRM::TN, arg);
     Rational argUp = RFP::round(eb,sb, IRM::TP, arg);
 
