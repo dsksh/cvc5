@@ -117,13 +117,13 @@ Node mkIsNormal(uint32_t eb, uint32_t sb, TNode x)
 Node mkIsSubnormal(uint32_t eb, uint32_t sb, TNode x)
 {
   NodeManager* nm = NodeManager::currentNM();
-    Node minSubnormalN = nm->mkConstReal(-RFP::minSubnormal(eb,sb));
+  Node minSubnormalN = nm->mkConstReal(-RFP::minSubnormal(eb,sb));
   Node minSubnormalP = nm->mkConstReal(RFP::minSubnormal(eb,sb));
   Node minSNB = nm->mkNode(Kind::LEQ, x, minSubnormalN);
   Node minSPB = nm->mkNode(Kind::LEQ, minSubnormalP, x);
   Node minSB = minSNB.orNode(minSPB);
 
-    Node minNormalN = nm->mkConstReal(-RFP::minNormal(eb,sb));
+  Node minNormalN = nm->mkConstReal(-RFP::minNormal(eb,sb));
   Node minNormalP = nm->mkConstReal(RFP::minNormal(eb,sb));
   Node minNNB = nm->mkNode(Kind::LT, minNormalN, x);
   Node minNPB = nm->mkNode(Kind::LT, x, minNormalP);
@@ -312,7 +312,6 @@ Node mkIsRounded(uint32_t eb, uint32_t sb, TNode node)
   Node rm1 = nm->mkConstInt(IRM::NE);
   Node rd1 = nm->mkNode(Kind::RFP_ROUND, op, rm1, node);
   return node.eqNode(rd1);
-  //return nm->mkConst(true);
 }
 
 /** Relation between node1 and node2, where node2 = round(node1).

@@ -414,22 +414,22 @@ void RfpSolver::checkInitialRefineAdd(Node node) {
                            << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
   }
-  //{
-  //  // add_finite_rev_n
-  //  Node isTN = mkIsToNearest(node[0]);
-  //  Node assumption = mkIsFinite(eb,sb, node).andNode(isTN);
-  //  Node addXY = nm->mkNode(Kind::ADD, node[1], node[2]);
-  //  Node noOverflow = mkNoOverflow(eb,sb, node[0], addXY);
-  //  noOverflow = rewrite(noOverflow);
-  //  Node op = nm->mkConst(RfpRound(eb, sb));
-  //  Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], addXY);
-  //  Node conclusion = noOverflow.andNode(node.eqNode(rounded));
-  //  Node lem = assumption.impNode(conclusion);
-  //  Trace("rfp-add-lemma") << "RfpSolver::Lemma: " << lem
-  //                         << " ; add_finite_rev_n ; INIT_REFINE"
-  //                         << std::endl;
-  //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
-  //}
+  {
+    // add_finite_rev_n
+    Node isTN = mkIsToNearest(node[0]);
+    Node assumption = mkIsFinite(eb,sb, node).andNode(isTN);
+    Node addXY = nm->mkNode(Kind::ADD, node[1], node[2]);
+    Node noOverflow = mkNoOverflow(eb,sb, node[0], addXY);
+    noOverflow = rewrite(noOverflow);
+    Node op = nm->mkConst(RfpRound(eb, sb));
+    Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], addXY);
+    Node conclusion = noOverflow.andNode(node.eqNode(rounded));
+    Node lem = assumption.impNode(conclusion);
+    Trace("rfp-add-lemma") << "RfpSolver::Lemma: " << lem
+                           << " ; add_finite_rev_n ; INIT_REFINE"
+                           << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
+  }
   {
     // add_special
     std::vector<Node> conj;
@@ -1180,7 +1180,7 @@ void RfpSolver::checkFullRefineMult(Node node)
   Node valX = d_model.computeConcreteModelValue(node[1]);
   Node valY = d_model.computeConcreteModelValue(node[2]);
 
-  uint8_t rm = valRm.getConst<Rational>().getNumerator().getUnsignedInt();
+  Integer rm = valRm.getConst<Rational>().getNumerator();
   Rational x = valX.getConst<Rational>();
   Rational y = valY.getConst<Rational>();
   Rational mult = valMult.getConst<Rational>();
@@ -1265,7 +1265,7 @@ void RfpSolver::checkFullRefineMult(Node node)
   }
   else if ((RFP::isNormal(eb,sb, x) || RFP::isSubnormal(eb,sb, x)) &&
            (RFP::isNormal(eb,sb, y) || RFP::isSubnormal(eb,sb, y)) &&
-           RFP::noOverflow(eb,sb, rm, x*y) 
+           RFP::noOverflow(eb,sb, rm.getUnsignedInt(), x*y) 
            //&& mult != RFP::round(eb,sb, rm, x*y)
            )
   {
@@ -1293,8 +1293,9 @@ void RfpSolver::checkFullRefineMult(Node node)
     Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem 
                             << " ; mul_finite ; AUX_REFINE"
                             << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE,
-                         nullptr, true);
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
+    //d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE,
+    //                     nullptr, true);
   }
   
   //if (RFP::isFinite(eb,sb, mult) && 
@@ -1427,8 +1428,8 @@ void RfpSolver::checkFullRefineMult(Node node)
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE, nullptr, true);
   //}
 
-  //if ((RFP::isZero(eb,sb, x) || RFP::isInfinite(eb,sb, x) || RFP::isNan(eb,sb, x)) &&
-  //    (RFP::isZero(eb,sb, y) || RFP::isInfinite(eb,sb, y) || RFP::isNan(eb,sb, y)))
+  if ((RFP::isZero(eb,sb, x) || RFP::isInfinite(eb,sb, x) || RFP::isNan(eb,sb, x)) &&
+      (RFP::isZero(eb,sb, y) || RFP::isInfinite(eb,sb, y) || RFP::isNan(eb,sb, y)))
   {
     // this is the most naive model-based schema based on model values
     Node lem = opValueBasedLemma(node);
@@ -1642,34 +1643,34 @@ Node mkGtSpecial(uint32_t eb, uint32_t sb, TNode node)
 void RfpSolver::checkInitialRefineGt(Node node) 
 {
   Trace("rfp-gt") << "RFP_GT term (init): " << node << std::endl;
-  //NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   FloatingPointSize sz = node.getOperator().getConst<RfpGt>().getSize();
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
 
-  //{
-  //  // gt_finite
-  //  Node isFiniteX = mkIsFinite(eb,sb, node[0]);
-  //  Node isFiniteY = mkIsFinite(eb,sb, node[1]);
-  //  Node isNotZeroX = mkIsZero(eb,sb, node[0]).notNode();
-  //  Node isNotZeroY = mkIsZero(eb,sb, node[1]).notNode();
-  //  Node assumption = isFiniteX.andNode(isFiniteY)
-  //    .andNode( isNotZeroX.orNode(isNotZeroY) );
+  {
+    // gt_finite
+    Node isFiniteX = mkIsFinite(eb,sb, node[0]);
+    Node isFiniteY = mkIsFinite(eb,sb, node[1]);
+    Node isNotZeroX = mkIsZero(eb,sb, node[0]).notNode();
+    Node isNotZeroY = mkIsZero(eb,sb, node[1]).notNode();
+    Node assumption = isFiniteX.andNode(isFiniteY)
+      .andNode( isNotZeroX.orNode(isNotZeroY) );
 
-  //  //Node gtTrue = mkTrue(node);
-  //  //Node gtXY = nm->mkNode(Kind::GT, node[0], node[1]);
-  //  //Node conclusion = gtTrue.eqNode(gtXY);
-  //  Node gtTrue = mkIsOne(node);
-  //  Node gtFalse = mkFalse(node);
-  //  Node gtXY = nm->mkNode(Kind::GT, node[0], node[1]);
-  //  Node conclusion = gtXY.iteNode(gtTrue, gtFalse);
+    //Node gtTrue = mkTrue(node);
+    //Node gtXY = nm->mkNode(Kind::GT, node[0], node[1]);
+    //Node conclusion = gtTrue.eqNode(gtXY);
+    Node gtTrue = mkIsOne(node);
+    Node gtFalse = mkFalse(node);
+    Node gtXY = nm->mkNode(Kind::GT, node[0], node[1]);
+    Node conclusion = gtXY.iteNode(gtTrue, gtFalse);
 
-  //  Node lem = assumption.impNode(conclusion);
-  //  Trace("rfp-gt-lemma") << "RfpSolver::Lemma: " << lem 
-  //                        << " ; gt_finite ; INIT_REFINE"
-  //                        << std::endl;
-  //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
-  //}
+    Node lem = assumption.impNode(conclusion);
+    Trace("rfp-gt-lemma") << "RfpSolver::Lemma: " << lem 
+                          << " ; gt_finite ; INIT_REFINE"
+                          << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
+  }
   //{
   //  Node isPinfX = mkIsPosInf(eb,sb, node[0]);
   //  Node isNotNanY = mkIsNan(eb,sb, node[1]).notNode();
@@ -1818,37 +1819,37 @@ void RfpSolver::checkFullRefineGt(Node node)
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_COMP);
   //}
 
-  if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) &&
-      //!RFP::isNan(eb,sb, x) && !RFP::isNan(eb,sb, y) &&
-      (!RFP::isZero(eb,sb, x) || !RFP::isZero(eb,sb, y)) &&
-      (t != 0) != (x > y))
-  {
-    // gt_finite
-    Node isFiniteX = mkIsFinite(eb,sb, node[0]);
-    Node isFiniteY = mkIsFinite(eb,sb, node[1]);
-    //Node isFiniteX = mkIsNan(eb,sb, node[0]).notNode();
-    //Node isFiniteY = mkIsNan(eb,sb, node[1]).notNode();
-    Node isNotZeroX = mkIsZero(eb,sb, node[0]).notNode();
-    Node isNotZeroY = mkIsZero(eb,sb, node[1]).notNode();
-    Node assumption = isFiniteX.andNode(isNotZeroX)
-      .andNode(isFiniteY).andNode(isNotZeroY);
+  //if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) &&
+  //    //!RFP::isNan(eb,sb, x) && !RFP::isNan(eb,sb, y) &&
+  //    (!RFP::isZero(eb,sb, x) || !RFP::isZero(eb,sb, y)) &&
+  //    (t != 0) != (x > y))
+  //{
+  //  // gt_finite
+  //  Node isFiniteX = mkIsFinite(eb,sb, node[0]);
+  //  Node isFiniteY = mkIsFinite(eb,sb, node[1]);
+  //  //Node isFiniteX = mkIsNan(eb,sb, node[0]).notNode();
+  //  //Node isFiniteY = mkIsNan(eb,sb, node[1]).notNode();
+  //  Node isNotZeroX = mkIsZero(eb,sb, node[0]).notNode();
+  //  Node isNotZeroY = mkIsZero(eb,sb, node[1]).notNode();
+  //  Node assumption = isFiniteX.andNode(isNotZeroX)
+  //    .andNode(isFiniteY).andNode(isNotZeroY);
 
-    //Node gtTrue = mkTrue(node);
-    //Node gtXY = nm->mkNode(Kind::GT, node[0], node[1]);
-    ////gtXY = rewrite(gtXY);
-    //Node conclusion = gtTrue.eqNode(gtXY);
-    Node gtTrue = mkIsOne(node);
-    Node gtFalse = mkFalse(node);
-    Node gtXY = nm->mkNode(Kind::GT, node[0], node[1]);
-    gtXY = rewrite(gtXY);
-    Node conclusion = gtXY.iteNode(gtTrue, gtFalse);
+  //  //Node gtTrue = mkTrue(node);
+  //  //Node gtXY = nm->mkNode(Kind::GT, node[0], node[1]);
+  //  ////gtXY = rewrite(gtXY);
+  //  //Node conclusion = gtTrue.eqNode(gtXY);
+  //  Node gtTrue = mkIsOne(node);
+  //  Node gtFalse = mkFalse(node);
+  //  Node gtXY = nm->mkNode(Kind::GT, node[0], node[1]);
+  //  gtXY = rewrite(gtXY);
+  //  Node conclusion = gtXY.iteNode(gtTrue, gtFalse);
 
-    Node lem = assumption.impNode(conclusion);
-    Trace("rfp-gt-lemma") << "RfpSolver::Lemma: " << lem 
-                          << " ; gt_finite ; COMP"
-                          << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_COMP);
-  }
+  //  Node lem = assumption.impNode(conclusion);
+  //  Trace("rfp-gt-lemma") << "RfpSolver::Lemma: " << lem 
+  //                        << " ; gt_finite ; COMP"
+  //                        << std::endl;
+  //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_COMP);
+  //}
 
   if (x == RFP::plusInfinity(eb,sb) &&
       !RFP::isNan(eb,sb, y) && y != RFP::plusInfinity(eb,sb) &&
@@ -1967,8 +1968,8 @@ void RfpSolver::checkFullRefineGt(Node node)
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
   //}
   //else
-  //if ((RFP::isZero(eb,sb, x) || RFP::isInfinite(eb,sb, x) || RFP::isNan(eb,sb, x)) &&
-  //    (RFP::isZero(eb,sb, y) || RFP::isInfinite(eb,sb, y) || RFP::isNan(eb,sb, y)))
+  if ((RFP::isZero(eb,sb, x) || RFP::isInfinite(eb,sb, x) || RFP::isNan(eb,sb, x)) &&
+      (RFP::isZero(eb,sb, y) || RFP::isInfinite(eb,sb, y) || RFP::isNan(eb,sb, y)))
   {
     // this is the most naive model-based schema based on model values
     Node lem = relValueBasedLemma(node);
@@ -2008,26 +2009,26 @@ void RfpSolver::checkInitialRefineGeq(Node node)
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
 
-  //{
-  //  // ge_finite
-  //  Node isFiniteX = mkIsFinite(eb,sb, node[0]);
-  //  Node isFiniteY = mkIsFinite(eb,sb, node[1]);
-  //  Node isNotZeroX = mkIsZero(eb,sb, node[0]).notNode();
-  //  Node isNotZeroY = mkIsZero(eb,sb, node[1]).notNode();
-  //  Node assumption = isFiniteX.andNode(isNotZeroX)
-  //    .andNode(isFiniteY).andNode(isNotZeroY);
+  {
+    // ge_finite
+    Node isFiniteX = mkIsFinite(eb,sb, node[0]);
+    Node isFiniteY = mkIsFinite(eb,sb, node[1]);
+    Node isNotZeroX = mkIsZero(eb,sb, node[0]).notNode();
+    Node isNotZeroY = mkIsZero(eb,sb, node[1]).notNode();
+    Node assumption = isFiniteX.andNode(isNotZeroX)
+      .andNode(isFiniteY).andNode(isNotZeroY);
 
-  //  Node geqTrue = mkIsOne(node);
-  //  Node geqFalse = mkFalse(node);
-  //  Node geqXY = nm->mkNode(Kind::GEQ, node[0], node[1]);
-  //  Node conclusion = geqXY.iteNode(geqTrue, geqFalse);
+    Node geqTrue = mkIsOne(node);
+    Node geqFalse = mkFalse(node);
+    Node geqXY = nm->mkNode(Kind::GEQ, node[0], node[1]);
+    Node conclusion = geqXY.iteNode(geqTrue, geqFalse);
 
-  //  Node lem = assumption.impNode(conclusion);
-  //  Trace("rfp-geq-lemma") << "RfpSolver::Lemma: " << lem 
-  //                         << " ; ge_finite ; INIT_REFINE"
-    //                         << std::endl;
-  //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
-  //}
+    Node lem = assumption.impNode(conclusion);
+    Trace("rfp-geq-lemma") << "RfpSolver::Lemma: " << lem 
+                           << " ; ge_finite ; INIT_REFINE"
+  //                         << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
+  }
   {
     // ge_special
     Node lem = mkGeqSpecial(eb,sb, node);
@@ -2094,33 +2095,33 @@ void RfpSolver::checkFullRefineGeq(Node node)
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
   //}
 
-  if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
-      //!RFP::isNan(eb,sb, x) && !RFP::isNan(eb,sb, y) && 
-      !RFP::isZero(eb,sb, x) && !RFP::isZero(eb,sb, y) &&
-      (t != 0) != (x >= y))
-  {
-    // ge_finite
-    Node isFiniteX = mkIsFinite(eb,sb, node[0]);
-    Node isFiniteY = mkIsFinite(eb,sb, node[1]);
-    //Node isFiniteX = mkIsNan(eb,sb, node[0]).notNode();
-    //Node isFiniteY = mkIsNan(eb,sb, node[1]).notNode();
-    Node isNotZeroX = mkIsZero(eb,sb, node[0]).notNode();
-    Node isNotZeroY = mkIsZero(eb,sb, node[1]).notNode();
-    Node assumption = isFiniteX.andNode(isNotZeroX)
-      .andNode(isFiniteY).andNode(isNotZeroY);
+  //if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
+  //    //!RFP::isNan(eb,sb, x) && !RFP::isNan(eb,sb, y) && 
+  //    !RFP::isZero(eb,sb, x) && !RFP::isZero(eb,sb, y) &&
+  //    (t != 0) != (x >= y))
+  //{
+  //  // ge_finite
+  //  Node isFiniteX = mkIsFinite(eb,sb, node[0]);
+  //  Node isFiniteY = mkIsFinite(eb,sb, node[1]);
+  //  //Node isFiniteX = mkIsNan(eb,sb, node[0]).notNode();
+  //  //Node isFiniteY = mkIsNan(eb,sb, node[1]).notNode();
+  //  Node isNotZeroX = mkIsZero(eb,sb, node[0]).notNode();
+  //  Node isNotZeroY = mkIsZero(eb,sb, node[1]).notNode();
+  //  Node assumption = isFiniteX.andNode(isNotZeroX)
+  //    .andNode(isFiniteY).andNode(isNotZeroY);
 
-    Node geqTrue = mkIsOne(node);
-    Node geqFalse = mkFalse(node);
-    Node geqXY = nm->mkNode(Kind::GEQ, node[0], node[1]);
-    geqXY = rewrite(geqXY);
-    Node conclusion = geqXY.iteNode(geqTrue, geqFalse);
+  //  Node geqTrue = mkIsOne(node);
+  //  Node geqFalse = mkFalse(node);
+  //  Node geqXY = nm->mkNode(Kind::GEQ, node[0], node[1]);
+  //  geqXY = rewrite(geqXY);
+  //  Node conclusion = geqXY.iteNode(geqTrue, geqFalse);
 
-    Node lem = assumption.impNode(conclusion);
-    Trace("rfp-geq-lemma") << "RfpSolver::Lemma: " << lem 
-                           << " ; ge_finite ; COMP"
-                           << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_COMP);
-  }
+  //  Node lem = assumption.impNode(conclusion);
+  //  Trace("rfp-geq-lemma") << "RfpSolver::Lemma: " << lem 
+  //                         << " ; ge_finite ; COMP"
+  //                         << std::endl;
+  //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_COMP);
+  //}
 
   if (x == RFP::plusInfinity(eb,sb) && !RFP::isNan(eb,sb, y) &&
       t == 0)

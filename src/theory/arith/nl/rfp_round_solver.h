@@ -118,7 +118,7 @@ class RfpRoundSolver : protected EnvObj
   /**
    * 
    */
-  void checkRoundError(Rational err0, bool isNearest, 
+  void checkRoundError(Rational err0,
                        Integer rm, Rational arg, Rational round, 
                        Node node, Node aRange,
                        bool isRelational = false);

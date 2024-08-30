@@ -99,12 +99,8 @@ Rational minSubnormal(uint32_t eb, uint32_t sb)
  */
 Rational minusZero(uint32_t eb, uint32_t sb)
 {
-  // compute approximately minus the half of the smallest 
-  // subnormal positive number (and then make it negative).
-  // TODO: should not be the result of normal FPA operation.
-  //return -minSubnormal(eb,sb) / 2;
   Rational v = minSubnormal(eb,sb);
-  return Rational(-v.getNumerator(), v.getDenominator() * 2 + 1);
+  return Rational(-v.getNumerator(), v.getDenominator() + 1);
 }
 
 /** Get the possitive zero.
@@ -118,8 +114,6 @@ Rational plusZero(uint32_t eb, uint32_t sb)
  */
 Rational minusInfinity(uint32_t eb, uint32_t sb)
 {
-  // TODO: should not be the result of normal FPA operation.
-  //return -maxValue(eb,sb) - 2;
   Rational v = maxValue(eb,sb);
   return Rational(-v.getNumerator() * 3 - 1, 3);
 }
@@ -128,8 +122,6 @@ Rational minusInfinity(uint32_t eb, uint32_t sb)
  */
 Rational plusInfinity(uint32_t eb, uint32_t sb)
 {
-  // TODO: should not be the result of normal FPA operation.
-  //return maxValue(eb,sb) + 1;
   Rational v = maxValue(eb,sb);
   return Rational(v.getNumerator() * 3 + 1, 3);
 }
@@ -138,8 +130,6 @@ Rational plusInfinity(uint32_t eb, uint32_t sb)
  */
 Rational notANumber(uint32_t eb, uint32_t sb)
 {
-  // TODO: should not be the result of normal FPA operation.
-  //return -maxValue(eb,sb) - 1;
   Rational v = maxValue(eb,sb);
   return Rational(-v.getNumerator() * 3 - 2, 3);
 }
