@@ -199,7 +199,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     applyPass("foreign-theory-rewrite", ap);
   }
 
-  if (options().smt.fpToReal != options::FpToRealMode::NONE)
+  if (options().smt.fpToReal)
   {
     applyPass("fp-to-real", ap);
   }

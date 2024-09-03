@@ -526,20 +526,40 @@ name   = "SMT Layer"
 [[option]]
   name       = "fpToReal"
   category   = "expert"
-  long       = "fp-to-real=MODE"
-  type       = "FpToRealMode"
-  default    = "NONE"
+  long       = "fp-to-real"
+  type       = "bool"
+  default    = "false"
   help       = "translate floating-point to real arithmetic"
-  help_mode  = "Modes for the lemma instantiation"
-[[option.mode.NONE]]
-  name = "none"
-  help = "Disable the fp-to-real extension"
-[[option.mode.LIGHT]]
-  name = "light"
-  help = "Don't generate minor lemmas"
+
+[[option]]
+  name       = "rfpLazyLearn"
+  category   = "expert"
+  long       = "fp2r-ll=MODE"
+  type       = "rfpLLMode"
+  default    = "WEAK"
+  help       = "set the degree of lazy lemma learning"
+  help_mode  = "Degree of lazy learning"
+[[option.mode.WEAK]]
+  name = "weak"
+  help = "Generate lemmas more eagerly"
+[[option.mode.STRONG]]
+  name = "strong"
+  help = "Generate lemmas more lazily"
+
+[[option]]
+  name       = "rfpValueRefine"
+  category   = "expert"
+  long       = "fp2r-vr=MODE"
+  type       = "rfpVRMode"
+  default    = "MID"
+  help       = "set the degree of value refinement"
+  help_mode  = "Degree of value refinement"
+[[option.mode.LIMITED]]
+  name = "limited"
+  help = "Generate lemmas less frequently"
 [[option.mode.MID]]
   name = "mid"
-  help = "Generate lemmas moderately"
-[[option.mode.FULL]]
-  name = "full"
-  help = "Instantiate all lemma schemes in every occasions"
+  help = "Generate VR lemmas moderately"
+[[option.mode.ALL]]
+  name = "all"
+  help = "Instantiate VR lemmas in every occasions"

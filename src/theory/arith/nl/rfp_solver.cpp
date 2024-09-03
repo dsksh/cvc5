@@ -16,7 +16,6 @@
 #include "theory/arith/nl/rfp_solver.h"
 
 #include "options/base_options.h"
-//#include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/inference_manager.h"
@@ -727,7 +726,7 @@ void RfpSolver::checkFullRefineAdd(Node node)
   addXY = rewrite(addXY);
   Trace("rfp-add-debug") << "addXY: " << addXY << ", " << RFP::isFinite(eb,sb, addXY.getConst<Rational>()) << std::endl;
 
-  if (options().smt.fpToReal == options::FpToRealMode::FULL ||
+  if (options().smt.rfpValueRefine == options::rfpVRMode::ALL ||
       ( (RFP::isZero(eb,sb, x) || RFP::isInfinite(eb,sb, x) || RFP::isNan(eb,sb, x)) &&
         (RFP::isZero(eb,sb, y) || RFP::isInfinite(eb,sb, y) || RFP::isNan(eb,sb, y)) ))
   {
@@ -859,7 +858,7 @@ void RfpSolver::checkFullRefineNeg(Node node)
     return;
   }
 
-  if (options().smt.fpToReal == options::FpToRealMode::FULL ||
+  if (options().smt.rfpValueRefine == options::rfpVRMode::ALL ||
       ( (RFP::isZero(eb,sb, x) || RFP::isInfinite(eb,sb, x) || RFP::isNan(eb,sb, x)) ))
   {
     // this is the most naive model-based schema based on model values
@@ -1023,7 +1022,7 @@ void RfpSolver::checkFullRefineSub(Node node)
     return;
   }
 
-  if (options().smt.fpToReal == options::FpToRealMode::FULL ||
+  if (options().smt.rfpValueRefine == options::rfpVRMode::ALL ||
       ( (RFP::isZero(eb,sb, x) || RFP::isInfinite(eb,sb, x) || RFP::isNan(eb,sb, x)) &&
         (RFP::isZero(eb,sb, y) || RFP::isInfinite(eb,sb, y) || RFP::isNan(eb,sb, y)) ))
   {
@@ -1096,7 +1095,7 @@ void RfpSolver::checkInitialRefineMult(Node node)
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
   //}
 
-  if (options().smt.fpToReal != options::FpToRealMode::LIGHT)
+  if (options().smt.rfpLazyLearn != options::rfpLLMode::WEAK)
   {
     // mul_zero
     Node isFiniteX = mkIsFinite(eb,sb, node[1]);
@@ -1432,8 +1431,8 @@ void RfpSolver::checkFullRefineMult(Node node)
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE, nullptr, true);
   //}
 
-  if (options().smt.fpToReal == options::FpToRealMode::FULL ||
-      options().smt.fpToReal == options::FpToRealMode::MID ||
+  if (options().smt.rfpValueRefine == options::rfpVRMode::ALL ||
+      options().smt.rfpValueRefine == options::rfpVRMode::MID ||
       ( (RFP::isZero(eb,sb, x) || RFP::isInfinite(eb,sb, x) || RFP::isNan(eb,sb, x)) &&
         (RFP::isZero(eb,sb, y) || RFP::isInfinite(eb,sb, y) || RFP::isNan(eb,sb, y)) ))
   {
@@ -1603,7 +1602,7 @@ void RfpSolver::checkFullRefineDiv(Node node)
     return;
   }
 
-  if (options().smt.fpToReal == options::FpToRealMode::FULL ||
+  if (options().smt.rfpValueRefine == options::rfpVRMode::ALL ||
       ( (RFP::isZero(eb,sb, x) || RFP::isInfinite(eb,sb, x) || RFP::isNan(eb,sb, x)) &&
         (RFP::isZero(eb,sb, y) || RFP::isInfinite(eb,sb, y) || RFP::isNan(eb,sb, y)) ))
   {
@@ -1655,7 +1654,7 @@ void RfpSolver::checkInitialRefineGt(Node node)
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
 
-  if (options().smt.fpToReal != options::FpToRealMode::LIGHT)
+  if (options().smt.rfpLazyLearn != options::rfpLLMode::WEAK)
   {
     // gt_finite
     Node isFiniteX = mkIsFinite(eb,sb, node[0]);
@@ -1827,7 +1826,7 @@ void RfpSolver::checkFullRefineGt(Node node)
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_COMP);
   //}
 
-  if (options().smt.fpToReal == options::FpToRealMode::LIGHT &&
+  if (options().smt.rfpLazyLearn == options::rfpLLMode::WEAK &&
       RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) &&
       //!RFP::isNan(eb,sb, x) && !RFP::isNan(eb,sb, y) &&
       (!RFP::isZero(eb,sb, x) || !RFP::isZero(eb,sb, y)) &&
@@ -1977,7 +1976,7 @@ void RfpSolver::checkFullRefineGt(Node node)
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
   //}
   //else
-  if (options().smt.fpToReal == options::FpToRealMode::FULL ||
+  if (options().smt.rfpValueRefine == options::rfpVRMode::ALL ||
       ( (RFP::isZero(eb,sb, x) || RFP::isInfinite(eb,sb, x) || RFP::isNan(eb,sb, x)) &&
         (RFP::isZero(eb,sb, y) || RFP::isInfinite(eb,sb, y) || RFP::isNan(eb,sb, y)) ))
   {
@@ -2019,7 +2018,7 @@ void RfpSolver::checkInitialRefineGeq(Node node)
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
 
-  if (options().smt.fpToReal != options::FpToRealMode::LIGHT)
+  if (options().smt.rfpLazyLearn != options::rfpLLMode::WEAK)
   {
     // ge_finite
     Node isFiniteX = mkIsFinite(eb,sb, node[0]);
@@ -2106,7 +2105,7 @@ void RfpSolver::checkFullRefineGeq(Node node)
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
   //}
 
-  if (options().smt.fpToReal == options::FpToRealMode::LIGHT &&
+  if (options().smt.rfpLazyLearn == options::rfpLLMode::WEAK &&
       RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
       //!RFP::isNan(eb,sb, x) && !RFP::isNan(eb,sb, y) && 
       !RFP::isZero(eb,sb, x) && !RFP::isZero(eb,sb, y) &&
@@ -2238,7 +2237,7 @@ Node lem = assumption.impNode(mkIsOne(node));
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
   //}
   //else
-  if (options().smt.fpToReal == options::FpToRealMode::FULL ||
+  if (options().smt.rfpValueRefine == options::rfpVRMode::ALL ||
       ( (RFP::isZero(eb,sb, x) || RFP::isInfinite(eb,sb, x) || RFP::isNan(eb,sb, x)) &&
         (RFP::isZero(eb,sb, y) || RFP::isInfinite(eb,sb, y) || RFP::isNan(eb,sb, y)) ))
   {

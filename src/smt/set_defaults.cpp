@@ -399,7 +399,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     }
   }
 
-  if (opts.smt.fpToReal != options::FpToRealMode::NONE)
+  if (opts.smt.fpToReal)
   {
     if (logic.isTheoryEnabled(THEORY_FP))
     {
