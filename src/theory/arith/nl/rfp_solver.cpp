@@ -1095,7 +1095,7 @@ void RfpSolver::checkInitialRefineMult(Node node)
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
   //}
 
-  if (options().smt.rfpLazyLearn != options::rfpLLMode::WEAK)
+  if (options().smt.rfpLazyLearn == options::rfpLLMode::WEAK)
   {
     // mul_zero
     Node isFiniteX = mkIsFinite(eb,sb, node[1]);
@@ -1337,24 +1337,25 @@ void RfpSolver::checkFullRefineMult(Node node)
                          nullptr, true);
   }
 
-  //if (RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) &&
-  //    (RFP::isZero(eb,sb, x) || RFP::isZero(eb,sb, y)) && 
-  //    !RFP::isZero(eb,sb, mult)
-  //    )
-  //{
-  //  // mul_zero
-  //  Node isFiniteX = mkIsFinite(eb,sb, node[1]);
-  //  Node isFiniteY = mkIsFinite(eb,sb, node[2]);
-  //  Node isZeroX = mkIsZero(eb,sb, node[1]);
-  //  Node isZeroY = mkIsZero(eb,sb, node[2]);
-  //  Node assumption = isFiniteX.andNode(isFiniteY)
-  //    .andNode( isZeroX.orNode(isZeroY) );
-  //  Node conclusion = mkIsZero(eb,sb, node);
-  //  Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
-  //  Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem << " ; AUX_REFINE"
-  //                         << std::endl;
-  //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
-  //}
+  if (options().smt.rfpLazyLearn != options::rfpLLMode::WEAK &&
+      RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) &&
+      (RFP::isZero(eb,sb, x) || RFP::isZero(eb,sb, y)) && 
+      !RFP::isZero(eb,sb, mult)
+      )
+  {
+    // mul_zero
+    Node isFiniteX = mkIsFinite(eb,sb, node[1]);
+    Node isFiniteY = mkIsFinite(eb,sb, node[2]);
+    Node isZeroX = mkIsZero(eb,sb, node[1]);
+    Node isZeroY = mkIsZero(eb,sb, node[2]);
+    Node assumption = isFiniteX.andNode(isFiniteY)
+      .andNode( isZeroX.orNode(isZeroY) );
+    Node conclusion = mkIsZero(eb,sb, node);
+    Node lem = assumption.impNode(conclusion);
+    Trace("rfp-mult-lemma") << "RfpSolver::Lemma: " << lem << " ; AUX_REFINE"
+                           << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
+  }
 
 
   //// mul_special 1-2,4,6: delegate to VALUE_REFINE. 
@@ -1654,7 +1655,7 @@ void RfpSolver::checkInitialRefineGt(Node node)
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
 
-  if (options().smt.rfpLazyLearn != options::rfpLLMode::WEAK)
+  if (options().smt.rfpLazyLearn == options::rfpLLMode::WEAK)
   {
     // gt_finite
     Node isFiniteX = mkIsFinite(eb,sb, node[0]);
@@ -1826,7 +1827,7 @@ void RfpSolver::checkFullRefineGt(Node node)
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_COMP);
   //}
 
-  if (options().smt.rfpLazyLearn == options::rfpLLMode::WEAK &&
+  if (options().smt.rfpLazyLearn != options::rfpLLMode::WEAK &&
       RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) &&
       //!RFP::isNan(eb,sb, x) && !RFP::isNan(eb,sb, y) &&
       (!RFP::isZero(eb,sb, x) || !RFP::isZero(eb,sb, y)) &&
@@ -2018,7 +2019,7 @@ void RfpSolver::checkInitialRefineGeq(Node node)
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
 
-  if (options().smt.rfpLazyLearn != options::rfpLLMode::WEAK)
+  if (options().smt.rfpLazyLearn == options::rfpLLMode::WEAK)
   {
     // ge_finite
     Node isFiniteX = mkIsFinite(eb,sb, node[0]);
@@ -2105,7 +2106,7 @@ void RfpSolver::checkFullRefineGeq(Node node)
   //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
   //}
 
-  if (options().smt.rfpLazyLearn == options::rfpLLMode::WEAK &&
+  if (options().smt.rfpLazyLearn != options::rfpLLMode::WEAK &&
       RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y) && 
       //!RFP::isNan(eb,sb, x) && !RFP::isNan(eb,sb, y) && 
       !RFP::isZero(eb,sb, x) && !RFP::isZero(eb,sb, y) &&
