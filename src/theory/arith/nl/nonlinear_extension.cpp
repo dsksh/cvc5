@@ -61,7 +61,8 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
       d_pow2Slv(env, d_im, d_model),
       //d_ilog2Slv(env, d_im, d_model),
       d_rfpRoundSlv(env, d_im, d_model, &d_extState),
-      d_rfpSlv(env, d_im, d_model)
+      d_rfpSlv(env, d_im, d_model),
+      d_rfpToRealSlv(env, d_im, d_model)
 {
   d_extTheory.addFunctionKind(Kind::NONLINEAR_MULT);
   d_extTheory.addFunctionKind(Kind::EXPONENTIAL);
@@ -522,6 +523,15 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         break;
       case InferStep::RFP_FULL: 
         d_rfpSlv.checkFullRefine(); 
+        break;
+      case InferStep::RFP_TO_REAL_INIT:
+        d_rfpToRealSlv.initLastCall(xts);
+        break;
+      case InferStep::RFP_TO_REAL_INITIAL:
+        d_rfpToRealSlv.checkInitialRefine();
+        break;
+      case InferStep::RFP_TO_REAL_FULL: 
+        d_rfpToRealSlv.checkFullRefine(); 
         break;
       case InferStep::ICP:
         d_icpSlv.reset(assertions);

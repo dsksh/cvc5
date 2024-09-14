@@ -202,6 +202,12 @@ enum class InferenceId
   ARITH_NL_RFP_AUX_REFINE,
   // value refinements (RfpSolver::checkFullRefine)
   ARITH_NL_RFP_VALUE_REFINE,
+  //-------------------- rfp.round solver
+  // initial refinements (RfpToRealSolver::checkInitialRefine)
+  ARITH_NL_RFP_TR_INIT_REFINE,
+  // value refinements (RfpRoundSolver::checkFullRefine)
+  ARITH_NL_RFP_TR_VALUE_REFINE,
+  // bound refinements (RfpRoundSolver::checkFullRefine)
   //-------------------- rfp.add solver
   // initial refinements (RfpAddSolver::checkInitialRefine)
   ARITH_NL_RFP_ADD_INIT_REFINE,

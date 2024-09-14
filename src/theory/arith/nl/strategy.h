@@ -74,6 +74,10 @@ enum class InferStep
   RFP_FULL,
   RFP_INITIAL,
 
+  RFP_TO_REAL_INIT,
+  RFP_TO_REAL_FULL,
+  RFP_TO_REAL_INITIAL,
+
   /** An ICP check */
 
   ICP,

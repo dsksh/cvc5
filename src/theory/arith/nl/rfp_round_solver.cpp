@@ -312,9 +312,9 @@ void RfpRoundSolver::checkInitRefineRound(TNode node)
       Node l2 = assumption.impNode(lbN.andNode(ubN));
     
       Node lem = mkIsToNearest(node[0]).iteNode(l2, l1);
-      Trace("rfp-round-lemma") << "RfpRoundSolver::Lemma: " << lem
-                               << " ; round_diff_sn ; INIT_REFINE"
-                               << std::endl;
+      Trace("rfp-round-lemma-bnd") << "RfpRoundSolver::Lemma: " << lem
+                                   << " ; round_diff_sn ; INIT_REFINE"
+                                   << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
     }
     {
@@ -337,8 +337,8 @@ void RfpRoundSolver::checkInitRefineRound(TNode node)
 
       Node lem = assumption.impNode( mkIsToNearest(node[0]).iteNode(l2, l1) );
       Trace("rfp-round-lemma-bnd") << "RfpRoundSolver::Lemma: " << lem
-                               << " ; round_diff_n ; INIT_REFINE"
-                               << std::endl;
+                                   << " ; round_diff_n ; INIT_REFINE"
+                                   << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
     }
   }

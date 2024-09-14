@@ -96,15 +96,15 @@ RewriteResponse ArithRewriter::postRewriteRfpToReal(TNode t)
     // rfp.to_real is only supported for floating-point numbers
     Assert(t[0].getType().isReal());
     Rational v = t[0].getConst<Rational>();
+    Trace("rfp-to-real-debug") << "toReal of: " << v << std::endl;
     //Rational rv = RFP::round(eb,sb, v);
-    if (!RFP::isZero(eb,sb, v))
+    if (RFP::isZero(eb,sb, v))
     {
       Node ret = nm->mkConstReal(0);
       return RewriteResponse(REWRITE_DONE, ret);
     }
     // TODO
-    else if (!RFP::isNan(eb,sb, v) && 
-             !RFP::isInfinite(eb,sb, v))
+    //else if (RFP::isFinite(eb,sb, v))
     {
       Node ret = nm->mkConstReal(v);
       return RewriteResponse(REWRITE_DONE, ret);

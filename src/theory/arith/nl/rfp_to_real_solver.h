@@ -10,11 +10,11 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Basic solver class for rfp operators.
+ * Solver class for the rfp.to_real operator.
  */
 
-#ifndef CVC5__THEORY__ARITH__NL__RFP_SOLVER_H
-#define CVC5__THEORY__ARITH__NL__RFP_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__NL__RFP_TO_REAL_SOLVER_H
+#define CVC5__THEORY__ARITH__NL__RFP_TO_REAL_SOLVER_H
 
 #include <map>
 #include <vector>
@@ -34,15 +34,15 @@ namespace nl {
 
 class NlModel;
 
-/** Basic RFP solver class
+/** RFP solver class for rfp.to_real
  */
-class RfpSolver : protected EnvObj
+class RfpToRealSolver : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  RfpSolver(Env& env, InferenceManager& im, NlModel& model);
-  virtual ~RfpSolver();
+  RfpToRealSolver(Env& env, InferenceManager& im, NlModel& model);
+  virtual ~RfpToRealSolver();
 
   /** init last call
    *
@@ -52,9 +52,7 @@ class RfpSolver : protected EnvObj
    * model, and xts is the set of extended function terms that are active in
    * the current context.
    */
-  virtual void initLastCall(const std::vector<Node>& assertions,
-                            const std::vector<Node>& false_asserts,
-                            const std::vector<Node>& xts);
+  virtual void initLastCall(const std::vector<Node>& xts);
   //-------------------------------------------- lemma schemas
   /** check initial refine
    *
@@ -75,60 +73,20 @@ class RfpSolver : protected EnvObj
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
-  /** commonly used terms */
-  Node d_false;
-  Node d_true;
-  Node d_zero;
-  Node d_one;
 
   /** Terms that have been given initial refinement lemmas */
   NodeSet d_initRefine;
   /** Term data */
-  std::map<Kind, std::map<unsigned, std::vector<Node> > > d_terms;
+  std::map<unsigned, std::vector<Node> > d_terms;
 
-  //template<Kind K>
-  //void checkFullRefineBody(Node n);
+  void checkInitialRefineToReal(Node n);
+  void checkFullRefineToReal(Node n);
 
-  ///** RFP kind */
-  //virtual kind::Kind_t kind() = 0;
-  ///** Size of the FP data. */
-  //virtual FloatingPointSize getSize(TNode n) = 0;
-
-  /** Value-based refinement lemma for the arithmetic operators.
-   */
-  Node opValueBasedLemma(TNode i);
-  /** Value-based refinement lemma for the relational operators.
-   */
-  Node relValueBasedLemma(TNode i);
-
-  void checkFullRefineValue(Node n);
-
-  //void checkInitialRefineToReal(Node n);
-  //void checkFullRefineToReal(Node n);
-  void checkInitialRefineAdd(Node n);
-  void checkFullRefineAdd(Node n);
-  void checkInitialRefineNeg(Node n);
-  void checkFullRefineNeg(Node n);
-  void checkInitialRefineSub(Node n);
-  void checkFullRefineSub(Node n);
-  void checkInitialRefineMult(Node n);
-  void checkFullRefineMult(Node n);
-  void checkInitialRefineDiv(Node n);
-  void checkFullRefineDiv(Node n);
-  //void checkInitialRefineLt(Node n);
-  //void checkFullRefineLt(Node n);
-  //void checkInitialRefineLeq(Node n);
-  //void checkFullRefineLeq(Node n);
-  void checkInitialRefineGt(Node n);
-  void checkFullRefineGt(Node n);
-  void checkInitialRefineGeq(Node n);
-  void checkFullRefineGeq(Node n);
-
-}; /* class RfpSolver */
+}; /* class RfpToRealSolver */
 
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__ARITH__RFP_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__RFP_TO_REAL_SOLVER_H */

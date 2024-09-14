@@ -67,7 +67,7 @@ void RfpSolver::initLastCall(const std::vector<Node>& assertions,
     u_int32_t hash;
     switch (n.getKind())
     {
-      case Kind::RFP_TO_REAL: hash = n.getOperator().getConst<RfpToReal>(); break;
+      //case Kind::RFP_TO_REAL: hash = n.getOperator().getConst<RfpToReal>(); break;
       case Kind::RFP_ADD: hash = n.getOperator().getConst<RfpAdd>(); break;
       case Kind::RFP_NEG: hash = n.getOperator().getConst<RfpNeg>(); break;
       case Kind::RFP_SUB: hash = n.getOperator().getConst<RfpSub>(); break;
@@ -103,7 +103,7 @@ void RfpSolver::checkInitialRefine()
         d_initRefine.insert(node);
         switch(term.first)
         {
-          case Kind::RFP_TO_REAL: checkInitialRefineToReal(node); break;
+          //case Kind::RFP_TO_REAL: checkInitialRefineToReal(node); break;
           case Kind::RFP_ADD: checkInitialRefineAdd(node); break;
           case Kind::RFP_NEG: checkInitialRefineNeg(node); break;
           case Kind::RFP_SUB: checkInitialRefineSub(node); break;
@@ -134,7 +134,7 @@ void RfpSolver::checkFullRefine()
         Trace("rfp-solver") << term.first << ", " << node << std::endl;
         switch (term.first)
         {
-          case Kind::RFP_TO_REAL: checkFullRefineToReal(node); break;
+          //case Kind::RFP_TO_REAL: checkFullRefineToReal(node); break;
           case Kind::RFP_ADD: checkFullRefineAdd(node); break;
           case Kind::RFP_NEG: checkFullRefineNeg(node); break;
           case Kind::RFP_SUB: checkFullRefineSub(node); break;
@@ -245,99 +245,93 @@ Node RfpSolver::relValueBasedLemma(TNode n)
 
 // RfpToReal
 
-void RfpSolver::checkInitialRefineToReal(Node node) 
-{
-  Trace("rfp-to-real") << "RFP_TO_REAL term (init): " << node << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-  FloatingPointSize sz = node.getOperator().getConst<RfpToReal>().getSize();
-  uint32_t eb = sz.exponentWidth();
-  uint32_t sb = sz.significandWidth();
+//void RfpSolver::checkInitialRefineToReal(Node node) 
+//{
+//  Trace("rfp-to-real") << "RFP_TO_REAL term (init): " << node << std::endl;
+//  NodeManager* nm = NodeManager::currentNM();
+//  FloatingPointSize sz = node.getOperator().getConst<RfpToReal>().getSize();
+//  uint32_t eb = sz.exponentWidth();
+//  uint32_t sb = sz.significandWidth();
+//
+//  {
+//    Node a1 = mkIsFinite(eb,sb, node[0]);
+//    //Node a2 = mkIsFinite(eb,sb, node);
+//    //Node assumption = a1.orNode(a2);
+//    Node assumption = a1;
+//    Node isZeroX = mkIsZero(eb,sb, node[0]);
+//    Node isZero = node.eqNode(nm->mkConstReal(0)); 
+//    Node eqX = node.eqNode(node[0]);
+//    Node conclusion = isZeroX.iteNode(isZero, eqX);
+//    Node lem = assumption.impNode(conclusion);
+//    Trace("rfp-to-real-lemma")
+//        << "RfpSolver::Lemma: " << lem << " ; INIT_REFINE" << std::endl;
+//    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
+//  }
+//  {
+//    Node isNormal = mkIsNormal(eb,sb, node);
+//    Node isSubnormal = mkIsSubnormal(eb,sb, node);
+//    Node isZero = mkIsZero(eb,sb, node);
+//    Node isInf = mkIsInf(eb,sb, node);
+//    Node isNan = mkIsNan(eb,sb, node);
+//    Node lem = isNormal.orNode(isSubnormal).orNode(isZero).orNode(isInf).orNode(isNan);
+//    Trace("rfp-to-real-lemma") << "RfpSolver::Lemma: " << lem
+//                               << " ; round_cases ; INIT_REFINE"
+//                               << std::endl;
+//    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
+//  }
+//}
 
-  {
-    Node isNotNan = mkIsNan(eb,sb, node[0]).notNode();
-    Node isNotInf = mkIsInfWeak(eb,sb, node[0]).notNode();
-    Node assumption = isNotNan.andNode(isNotInf);
-    Node c1 = mkIsZero(eb,sb, node[0]);
-    Node c2 = node.eqNode(nm->mkConstReal(0));
-    Node c3 = node.eqNode(node[0]);
-    Node conclusion = c1.iteNode(c2, c3);
-    Node lem = assumption.impNode(conclusion);
-    Trace("rfp-to-real-lemma")
-        << "RfpSolver::Lemma: " << lem << " ; INIT_REFINE" << std::endl;
-    // send the value lemma
-    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
-  }
-}
-
-void RfpSolver::checkFullRefineToReal(Node node) 
-{
-  Trace("rfp-to-real") << "RFP_TO_REAL term: " << node << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-  FloatingPointSize sz = node.getOperator().getConst<RfpToReal>().getSize();
-  uint32_t eb = sz.exponentWidth();
-  uint32_t sb = sz.significandWidth();
-
-  Node valTerm = d_model.computeAbstractModelValue(node);
-  Node valTermC = d_model.computeConcreteModelValue(node);
-
-  Node valXA = d_model.computeAbstractModelValue(node[0]);
-  Node valX = d_model.computeConcreteModelValue(node[0]);
-
-  Rational x = valX.getConst<Rational>();
-  Rational t = valTerm.getConst<Rational>();
-
-  if (TraceIsOn("rfp-to-real"))
-  {
-    Trace("rfp-to-real") << "* " << node 
-                     << std::endl;
-    Trace("rfp-to-real") << "  value  (" << valXA << ") = " 
-                         << valTerm
-                         << std::endl;
-    Trace("rfp-to-real") << "  actual (" << x << ") = " 
-                         << valTermC << std::endl;
-
-    Rational tC = valTermC.getConst<Rational>();
-    Trace("rfp-to-real") << "         ("
-                         << ARFP(eb,sb, x) << ") = " 
-                         << ARFP(eb,sb, tC) << std::endl;
-  }
-  if (valTerm == valTermC)
-  {
-    Trace("rfp-to-real") << "...already correct" << std::endl;
-    return;
-  }
-
-  if (!RFP::isNan(eb,sb, x) && !RFP::isInfiniteWeak(eb,sb, x))
-  {
-    Node assumption = node[0].eqNode(valX);
-    //Node valC = nm->mkNode(Kind::RFP_TO_REAL, node.getOperator(), valX);
-    //valC = rewrite(valC);
-    Node conclusion;
-    if (RFP::isZero(eb,sb, x)){
-      conclusion = node.eqNode(nm->mkConstReal(0)); 
-    }else{
-      conclusion = node.eqNode(valX); 
-    }
-    Node lem = assumption.impNode(conclusion);
-    Trace("rfp-to-real-lemma")
-        << "RfpSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
-    // send the value lemma
-    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_VALUE_REFINE,
-                         nullptr, true);
-  }
-  //if (RFP::isNan(eb,sb, x) || RFP::isInfiniteWeak(eb,sb, x))
-  //{
-  //  Node assumption = node.eqNode(valTerm);
-  //  Node c1 = node[0].eqNode(valTerm);
-  //  Node c2 = mkIsNan(eb,sb, node[0]).orNode(mkIsInf(eb,sb, node[0]));
-  //  Node conclusion = c1.orNode(c2);
-  //  Node lem = assumption.impNode(conclusion);
-  //  Trace("rfp-to-real-lemma")
-  //      << "RfpSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
-  //  // send the value lemma
-  //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_VALUE_REFINE);
-  //}
-}
+//void RfpSolver::checkFullRefineToReal(Node node) 
+//{
+//  Trace("rfp-to-real") << "RFP_TO_REAL term: " << node << std::endl;
+//  NodeManager* nm = NodeManager::currentNM();
+//  FloatingPointSize sz = node.getOperator().getConst<RfpToReal>().getSize();
+//  uint32_t eb = sz.exponentWidth();
+//  uint32_t sb = sz.significandWidth();
+//
+//  Node valTerm = d_model.computeAbstractModelValue(node);
+//  Node valTermC = d_model.computeConcreteModelValue(node);
+//
+//  Node valXA = d_model.computeAbstractModelValue(node[0]);
+//  Node valX = d_model.computeConcreteModelValue(node[0]);
+//
+//  Rational x = valX.getConst<Rational>();
+//  Rational t = valTerm.getConst<Rational>();
+//
+//  if (TraceIsOn("rfp-to-real"))
+//  {
+//    Trace("rfp-to-real") << "* " << node 
+//                     << std::endl;
+//    Trace("rfp-to-real") << "  value  (" << valXA << ") = " 
+//                         << valTerm
+//                         << std::endl;
+//    Trace("rfp-to-real") << "  actual (" << x << ") = " 
+//                         << valTermC << std::endl;
+//
+//    //Rational tC = valTermC.getConst<Rational>();
+//    //Trace("rfp-to-real") << "         ("
+//    //                     << ARFP(eb,sb, x) << ") = " 
+//    //                     << ARFP(eb,sb, tC) << std::endl;
+//  }
+//  if (valTerm == valTermC)
+//  {
+//    Trace("rfp-to-real") << "...already correct" << std::endl;
+//    return;
+//  }
+//
+//  if (RFP::isNan(eb,sb, x) || RFP::isInfiniteWeak(eb,sb, x))
+//  {
+//    Node assumption = node.eqNode(nm->mkConstReal(t));
+//    Node c1 = node[0].eqNode(nm->mkConstReal(t));
+//    Node c2 = mkIsNan(eb,sb, node[0]).orNode(mkIsInf(eb,sb, node[0]));
+//    Node conclusion = c1.orNode(c2);
+//    Node lem = assumption.impNode(conclusion);
+//    Trace("rfp-to-real-lemma")
+//        << "RfpSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
+//    // send the value lemma
+//    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_VALUE_REFINE);
+//  }
+//}
 
 // RfpAdd
 
@@ -2005,7 +1999,7 @@ Node mkGeqSpecial(uint32_t eb, uint32_t sb, TNode node)
   Node isNotNanY = mkIsNan(eb,sb, node[1]).notNode();
   Node c2 = isPinfX.andNode(isNotNanY);
   Node isNotNanX = mkIsNan(eb,sb, node[0]).notNode();
-  Node isNinfY = mkIsPosInf(eb,sb, node[1]);
+  Node isNinfY = mkIsNegInf(eb,sb, node[1]);
   Node c3 = isNotNanX.andNode(isNinfY);
   Node conclusion = c1.orNode(c2).orNode(c3);
   return assumption.impNode(conclusion);
@@ -2050,10 +2044,10 @@ void RfpSolver::checkInitialRefineGeq(Node node)
   }
   {
     Node lem = mkBoolIntConstraint(node);
-  Trace("rfp-geq-lemma") << "RfpSolver::Lemma: " << lem 
-  << " ; geq_range ; INIT_REFINE"
-  << std::endl;
-  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
+    Trace("rfp-geq-lemma") << "RfpSolver::Lemma: " << lem 
+                           << " ; geq_range ; INIT_REFINE"
+                           << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
   }
 }
 
@@ -2156,7 +2150,7 @@ void RfpSolver::checkFullRefineGeq(Node node)
     Node isNotNanX = mkIsNan(eb,sb, node[0]).notNode();
     Node isNinfY = mkIsNegInf(eb,sb, node[1]);
     Node assumption = isNotNanX.andNode(isNinfY);
-Node lem = assumption.impNode(mkIsOne(node));
+    Node lem = assumption.impNode(mkIsOne(node));
     Trace("rfp-geq-lemma") << "RfpSolver::Lemma: " << lem 
                            << " ; ge_ninf ; COMP"
                            << std::endl;

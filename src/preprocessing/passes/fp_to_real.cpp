@@ -316,7 +316,20 @@ Node FPToReal::translateWithChildren(
       uint32_t eb = original[0].getType().getFloatingPointExponentSize();
       uint32_t sb = original[0].getType().getFloatingPointSignificandSize();
       Node op = d_nm->mkConst(RfpToReal(eb, sb));
-      returnNode = d_nm->mkNode(Kind::RFP_TO_REAL, op, translated_children[0]);
+      //returnNode = d_nm->mkNode(Kind::RFP_TO_REAL, op, translated_children[0]);
+
+      // TODO
+      Node n = d_nm->mkNode(Kind::RFP_TO_REAL, op, translated_children[0]);
+      Node isFinite = mkIsFinite(eb,sb, translated_children[0]);
+
+      std::stringstream ss;
+      ss << original;
+      Node v = d_nm->getSkolemManager()->mkDummySkolem(ss.str() + "_v",
+                                                       d_nm->realType(),
+                                                       "Variable introduced for rfp.to_real");
+
+      returnNode = isFinite.iteNode(n, v);
+
       break;
     }
     case Kind::RFP_TO_RFP_FROM_RFP:

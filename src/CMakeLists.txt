@@ -524,6 +524,8 @@ libcvc5_add_sources(
   theory/arith/nl/rfp_solver.h
   theory/arith/nl/rfp_round_solver.cpp
   theory/arith/nl/rfp_round_solver.h
+  theory/arith/nl/rfp_to_real_solver.cpp
+  theory/arith/nl/rfp_to_real_solver.h
   theory/arith/nl/stats.cpp
   theory/arith/nl/stats.h
   theory/arith/nl/strategy.cpp
