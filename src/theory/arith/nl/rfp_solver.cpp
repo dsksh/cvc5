@@ -1494,7 +1494,10 @@ void RfpSolver::checkInitialRefineDiv(Node node) {
   {
     // div_finite_rev_n
     Node isTN = mkIsToNearest(node[0]);
-    Node assumption = mkIsFinite(eb,sb, node).andNode(isTN);
+    Node isFiniteNZ= mkIsNormal(eb,sb, node)
+      .orNode(mkIsSubnormal(eb,sb, node));
+    Node isFiniteY = mkIsFinite(eb,sb, node[2]);
+    Node assumption = isTN.andNode(isFiniteNZ).andNode(isFiniteY);
     Node divXY = nm->mkNode(Kind::DIVISION, node[1], node[2]);
     Node noOverflow = mkNoOverflow(eb,sb, node[0], divXY);
     noOverflow = rewrite(noOverflow);
@@ -1598,6 +1601,7 @@ void RfpSolver::checkFullRefineDiv(Node node)
   }
 
   if (options().smt.rfpValueRefine == options::rfpVRMode::ALL ||
+      options().smt.rfpValueRefine == options::rfpVRMode::MID ||
       ( (RFP::isZero(eb,sb, x) || RFP::isInfinite(eb,sb, x) || RFP::isNan(eb,sb, x)) &&
         (RFP::isZero(eb,sb, y) || RFP::isInfinite(eb,sb, y) || RFP::isNan(eb,sb, y)) ))
   {
