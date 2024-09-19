@@ -292,7 +292,7 @@ void RfpRoundSolver::checkInitRefineRound(TNode node)
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
 
-  if (options().smt.rfpLazyLearn == options::rfpLLMode::WEAK)
+  if (options().smt.rfpLazyLearn != options::rfpLLMode::STRONG)
   {
     NodeManager* nm = NodeManager::currentNM();
     Node sub = nm->mkNode(Kind::SUB, node, node[1]);
@@ -379,7 +379,7 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
   Node isNan = node.eqNode(nan);
   Node isNotNan = isNan.notNode();
 
-  if (options().smt.rfpLazyLearn != options::rfpLLMode::WEAK)
+  if (options().smt.rfpLazyLearn == options::rfpLLMode::STRONG)
   {
     if (RFP::isSubnormal(eb,sb, arg) || RFP::isSubnormal(eb,sb, round))
     {
