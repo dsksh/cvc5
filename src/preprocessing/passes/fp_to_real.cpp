@@ -168,6 +168,21 @@ PreprocessingPassResult FPToReal::applyInternal(
     Trace("fp-to-real") << "rw node: " << rwNode << std::endl;
     assertionsToPreprocess->replace(i, rwNode);
   }
+
+  for (auto it1 = d_toRealCache.begin(); it1 != d_toRealCache.end(); it1++) 
+  {
+    for (auto it2 = it1; it2 != d_toRealCache.end(); it2++) 
+    {
+      if (it1 != it2){
+        Node assumption = it1->first.eqNode(it2->first);
+        Node conclusion = it1->second.eqNode(it2->second);
+        Node lemma = assumption.impNode(conclusion);
+        additionalConstraints.push_back(lemma);
+      }
+    }
+  }
+  d_toRealCache.clear();
+
   addFinalizeAssertions(assertionsToPreprocess, additionalConstraints);
   addSkolemDefinitions(skolems);
   return PreprocessingPassResult::NO_CONFLICT;
@@ -310,7 +325,7 @@ Node FPToReal::translateWithChildren(
       break;
     }
     case Kind::FLOATINGPOINT_TO_REAL:
-    case Kind::FLOATINGPOINT_TO_REAL_TOTAL:
+    //case Kind::FLOATINGPOINT_TO_REAL_TOTAL:
     {
       Assert(original.getNumChildren() == 1);
       uint32_t eb = original[0].getType().getFloatingPointExponentSize();
@@ -327,6 +342,7 @@ Node FPToReal::translateWithChildren(
       Node v = d_nm->getSkolemManager()->mkDummySkolem(ss.str() + "_v",
                                                        d_nm->realType(),
                                                        "Variable introduced for rfp.to_real");
+      d_toRealCache.push_back(std::pair(translated_children[0], v));
 
       returnNode = isFinite.iteNode(n, v);
 
@@ -426,12 +442,17 @@ Node FPToReal::translateWithChildren(
       returnNode = d_nm->mkNode(Kind::EQUAL, translated_children);
       break;
     }
+    case Kind::ITE:
+    {
+      returnNode = d_nm->mkNode(Kind::ITE, translated_children);
+      break;
+    }
     default:
     {
       Trace("fp-to-real") << "Unsupported kind: " << newKind << endl;
 
       // first, verify that we haven't missed
-      // any bv operator
+      // any fp operator
       Assert(theory::kindToTheoryId(newKind) != THEORY_FP);
 
       // In the default case, we have reached an operator that we do not
@@ -670,10 +691,20 @@ Node FPToReal::createPropertyNode(Kind pKind, uint32_t eb, uint32_t sb, TNode no
       return mkIsInf(eb,sb, node);
     case Kind::FLOATINGPOINT_IS_NAN:
       return mkIsNan(eb,sb, node);
-    case Kind::FLOATINGPOINT_IS_NEG:
-      return mkIsNeg(eb,sb, node);
+    case Kind::FLOATINGPOINT_IS_NEG: 
+    {
+      Node isNotNan = mkIsNan(eb,sb, node).notNode();
+      Node isNeg = d_nm->mkNode(Kind::LT, node, d_nm->mkConstReal(Rational(0)));
+      return isNotNan.andNode(isNeg);
+      //return mkIsNeg(eb,sb, node);
+    }
     case Kind::FLOATINGPOINT_IS_POS:
-      return mkIsPos(eb,sb, node);
+    {
+      Node isNotNan = mkIsNan(eb,sb, node).notNode();
+      Node isPos = d_nm->mkNode(Kind::GEQ, node, d_nm->mkConstReal(Rational(0)));
+      return isNotNan.andNode(isPos);
+      //return mkIsPos(eb,sb, node);
+    }
     default:
       Assert(false) << "unreachable";
   }

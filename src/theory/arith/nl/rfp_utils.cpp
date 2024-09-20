@@ -107,7 +107,7 @@ Node mkIsNormal(uint32_t eb, uint32_t sb, TNode x)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node isFinite = mkIsFinite(eb,sb, x);
-    Node minNormalN = nm->mkConstReal(-RFP::minNormal(eb,sb));
+  Node minNormalN = nm->mkConstReal(-RFP::minNormal(eb,sb));
   Node minNormalP = nm->mkConstReal(RFP::minNormal(eb,sb));
   Node minNNB = nm->mkNode(Kind::LEQ, x, minNormalN);
   Node minNPB = nm->mkNode(Kind::LEQ, minNormalP, x);
@@ -118,24 +118,24 @@ Node mkIsSubnormal(uint32_t eb, uint32_t sb, TNode x)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node minSubnormalN = nm->mkConstReal(-RFP::minSubnormal(eb,sb));
-  Node minSubnormalP = nm->mkConstReal(RFP::minSubnormal(eb,sb));
-  Node minSNB = nm->mkNode(Kind::LEQ, x, minSubnormalN);
-  Node minSPB = nm->mkNode(Kind::LEQ, minSubnormalP, x);
-  Node minSB = minSNB.orNode(minSPB);
-
   Node minNormalN = nm->mkConstReal(-RFP::minNormal(eb,sb));
-  Node minNormalP = nm->mkConstReal(RFP::minNormal(eb,sb));
+  Node minSNB = nm->mkNode(Kind::LEQ, x, minSubnormalN);
   Node minNNB = nm->mkNode(Kind::LT, minNormalN, x);
-  Node minNPB = nm->mkNode(Kind::LT, x, minNormalP);
-  Node minNP = minNNB.orNode(minNPB);
+  Node nB = minSNB.andNode(minNNB);
 
-  return minSB.andNode(minNP);
+  Node minSubnormalP = nm->mkConstReal(RFP::minSubnormal(eb,sb));
+  Node minNormalP = nm->mkConstReal(RFP::minNormal(eb,sb));
+  Node minSPB = nm->mkNode(Kind::LEQ, minSubnormalP, x);
+  Node minNPB = nm->mkNode(Kind::LT, x, minNormalP);
+  Node pB = minSPB.andNode(minNPB);
+
+  return nB.orNode(pB);
 }
 
 Node mkIsSubnormalWeak(uint32_t eb, uint32_t sb, TNode x)
 {
   NodeManager* nm = NodeManager::currentNM();
-    Node minNormalN = nm->mkConstReal(-RFP::minNormal(eb,sb));
+  Node minNormalN = nm->mkConstReal(-RFP::minNormal(eb,sb));
   Node minNormalP = nm->mkConstReal(RFP::minNormal(eb,sb));
   Node minNNB = nm->mkNode(Kind::LT, minNormalN, x);
   Node minNPB = nm->mkNode(Kind::LT, x, minNormalP);
@@ -187,7 +187,7 @@ Node mkIsInfWeak(uint32_t eb, uint32_t sb, TNode x)
 Node mkIsNan(uint32_t eb, uint32_t sb, TNode x)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return  nm->mkNode(Kind::EQUAL, x, nm->mkConstReal(RFP::notANumber(eb,sb)));
+  return  x.eqNode(nm->mkConstReal(RFP::notANumber(eb,sb)));
 }
 
 Node mkIsNeg(uint32_t eb, uint32_t sb, TNode x)

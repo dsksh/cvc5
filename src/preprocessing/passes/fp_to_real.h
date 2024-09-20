@@ -16,6 +16,7 @@
 #ifndef __CVC5__PREPROCESSING__PASSES__FP_TO_REAL_H
 #define __CVC5__PREPROCESSING__PASSES__FP_TO_REAL_H
 
+#include <list>
 #include "cvc5_private.h"
 
 #include "context/cdhashmap.h"
@@ -118,6 +119,9 @@ class FPToReal : public PreprocessingPass
   CDNodeMap d_realblastCache;
 
   context::CDHashSet<Node> d_rangeAssertions;
+
+  /** Cache for the fp.to_real terms */
+  std::list< std::pair<Node, Node> > d_toRealCache;
 
   /** Useful constants */
   Node d_zero;

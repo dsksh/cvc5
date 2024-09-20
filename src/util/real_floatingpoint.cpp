@@ -286,7 +286,19 @@ Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const R
 
   Rational r = value;
   Trace("rfp-round-eval") << "r0: " << r << std::endl;
-  Rational ee = r.pow2Lower();
+
+  //Rational ee = r.pow2Lower();
+
+  int l2r = r.ilog2();
+  Rational ee;
+  if (l2r >= 0){
+    ee = Integer::pow2(l2r);
+  }else{
+    ee = Rational(1, Integer::pow2(-l2r));
+  }
+
+  Trace("rfp-round-eval") << "ee: " << ee << std::endl;
+
   if (!toInt){
     if (ee < eeMin) ee = eeMin;
     r /= ee;
@@ -310,11 +322,13 @@ Rational roundInternal(bool toInt, uint32_t eb, uint32_t sb, uint8_t rm, const R
     else
       r = i2;
   }else if (rm == IRM::NA){
-    r += Rational(1,2);
-    if (r.sgn() >= 0)
+    if (r.sgn() >= 0){
+      r += Rational(1,2);
       r = r.floor();
-    else
-      r = -((-r).floor());
+    }else{
+      r -= Rational(1,2);
+      r = r.ceiling();
+    }
   }
 
   if (!toInt){
