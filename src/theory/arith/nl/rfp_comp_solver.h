@@ -10,11 +10,11 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Solver class for the rfp.to_real operator.
+ * Basic solver class for rfp comparison operators.
  */
 
-#ifndef CVC5__THEORY__ARITH__NL__RFP_TO_REAL_SOLVER_H
-#define CVC5__THEORY__ARITH__NL__RFP_TO_REAL_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__NL__RFP_COMP_SOLVER_H
+#define CVC5__THEORY__ARITH__NL__RFP_COMP_SOLVER_H
 
 #include <map>
 #include <vector>
@@ -35,13 +35,15 @@ namespace nl {
 
 class NlModel;
 
-/** RFP solver class for rfp.to_real
+/** Basic RFP solver class for comparison operators
  */
-class RfpToRealSolver : public RfpSolver 
+class RfpCompSolver : public RfpSolver
 {
+  //typedef context::CDHashSet<Node> NodeSet;
+
  public:
-  RfpToRealSolver(Env& env, InferenceManager& im, NlModel& model);
-  virtual ~RfpToRealSolver();
+  RfpCompSolver(Env& env, InferenceManager& im, NlModel& model);
+  virtual ~RfpCompSolver() override;
 
   /** is target ?
    * 
@@ -50,14 +52,21 @@ class RfpToRealSolver : public RfpSolver
   bool isTarget(const Node& node) override;
 
  protected:
-  void checkInitialRefineToReal(Node n) override;
-  void checkAuxRefineToReal(Node n) override;
+  void checkInitialRefineGt(Node n) override;
+  void checkAuxRefineGt(Node n) override;
+  void checkInitialRefineGeq(Node n) override;
+  void checkAuxRefineGeq(Node n) override;
+  void checkFullRefineRelOp(const FloatingPointSize& sz, Node node) override;
 
-}; /* class RfpToRealSolver */
+  /** Value-based refinement lemma for the comparison operators.
+   */
+  //Node relValueBasedLemma(TNode i);
+
+}; /* class RfpCompSolver */
 
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__ARITH__RFP_TO_REAL_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__RFP_COMP_SOLVER_H */

@@ -178,6 +178,21 @@ enum class InferenceId
   //ARITH_NL_ILOG2_VALUE_REFINE,
   //// monotonicity refinements (Ilog2Solver::checkFullRefine)
   //ARITH_NL_ILOG2_MONOTONE_REFINE,
+  //-------------------- rfp solver
+  // initial refinements (RfpSolver::checkInitialRefine)
+  ARITH_NL_RFP_INIT_REFINE,
+  ARITH_NL_RFP_MULT_I,
+  ARITH_NL_RFP_COMP_I,
+  // lemmas for comparison operators (RfpSolver::checkFullRefine)
+  //ARITH_NL_RFP_COMP,
+  // additional refinements (RfpSolver::checkFullRefine)
+  ARITH_NL_RFP_AUX_REFINE,
+  ARITH_NL_RFP_MULT_AUX,
+  ARITH_NL_RFP_COMP_AUX,
+  // value refinements (RfpSolver::checkFullRefine)
+  ARITH_NL_RFP_VALUE_REFINE,
+  ARITH_NL_RFP_MULT_V,
+  ARITH_NL_RFP_COMP_V,
   //-------------------- rfp.round solver
   // initial refinements (RfpRoundSolver::checkInitialRefine)
   ARITH_NL_RFP_ROUND_INIT_REFINE,
@@ -193,15 +208,6 @@ enum class InferenceId
   ARITH_NL_RFP_ROUND_INTERVAL_REFINE,
   // value refinements (RfpRoundSolver::checkFullRefine)
   ARITH_NL_RFP_ROUND_VALUE_REFINE,
-  //-------------------- rfp solver
-  // initial refinements (RfpSolver::checkInitialRefine)
-  ARITH_NL_RFP_INIT_REFINE,
-  // lemmas for comparison operators (RfpSolver::checkFullRefine)
-  ARITH_NL_RFP_COMP,
-  // additional refinements (RfpSolver::checkFullRefine)
-  ARITH_NL_RFP_AUX_REFINE,
-  // value refinements (RfpSolver::checkFullRefine)
-  ARITH_NL_RFP_VALUE_REFINE,
   //-------------------- rfp.round solver
   // initial refinements (RfpToRealSolver::checkInitialRefine)
   ARITH_NL_RFP_TR_INIT_REFINE,

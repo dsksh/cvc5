@@ -15,7 +15,6 @@
 
 #include "theory/arith/nl/rfp_utils.h"
 
-#include "theory/arith/nl/nl_model.h"
 #include "util/int_roundingmode.h"
 #include "util/real_floatingpoint.h"
 
@@ -66,7 +65,7 @@ Node mkBoolIntConstraint(TNode i)
 Node mkIsFinite(uint32_t eb, uint32_t sb, TNode x)
 {
   NodeManager* nm = NodeManager::currentNM();
-    Node maxN = nm->mkConstReal(-RFP::maxValue(eb,sb));
+  Node maxN = nm->mkConstReal(-RFP::maxValue(eb,sb));
   Node maxP = nm->mkConstReal(RFP::maxValue(eb,sb));
   Node maxNB = nm->mkNode(Kind::LEQ, maxN, x);
   Node maxPB = nm->mkNode(Kind::LEQ, x, maxP);
@@ -195,7 +194,8 @@ Node mkIsNeg(uint32_t eb, uint32_t sb, TNode x)
   NodeManager* nm = NodeManager::currentNM();
   Node isNotNan = mkIsNan(eb,sb, x).notNode();
   Node isNeg = nm->mkNode(Kind::LT, x, nm->mkConstReal(Rational(0)));
-  return isNotNan.impNode(isNeg);
+  //return isNotNan.impNode(isNeg);
+  return isNeg;
 }
 
 Node mkIsPos(uint32_t eb, uint32_t sb, TNode x)
@@ -203,7 +203,8 @@ Node mkIsPos(uint32_t eb, uint32_t sb, TNode x)
   NodeManager* nm = NodeManager::currentNM();
   Node isNotNan = mkIsNan(eb,sb, x).notNode();
   Node isPos = nm->mkNode(Kind::GEQ, x, nm->mkConstReal(Rational(0)));
-  return isNotNan.impNode(isPos);
+  //return isNotNan.impNode(isPos);
+  return isPos;
 }
 
 Node mkIsNegInf(uint32_t eb, uint32_t sb, TNode x)

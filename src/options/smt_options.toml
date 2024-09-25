@@ -536,12 +536,15 @@ name   = "SMT Layer"
   category   = "expert"
   long       = "fp2r-ll=MODE"
   type       = "rfpLLMode"
-  default    = "STRONG"
+  default    = "MID"
   help       = "set the degree of lazy lemma learning"
   help_mode  = "Degree of lazy learning"
 [[option.mode.WEAK]]
   name = "weak"
   help = "Generate lemmas more eagerly"
+[[option.mode.MID]]
+  name = "mid"
+  help = "Generate lemmas moderately"
 [[option.mode.STRONG]]
   name = "strong"
   help = "Generate lemmas more lazily"

@@ -42,58 +42,18 @@ namespace nl {
 RfpToRealSolver::RfpToRealSolver(Env& env,
                                  InferenceManager& im,
                                  NlModel& model)
-    : EnvObj(env),
-      d_im(im),
-      d_model(model),
-      d_initRefine(userContext())
-{
-}
+    : RfpSolver(env, im, model)
+{}
 
 RfpToRealSolver::~RfpToRealSolver() {}
 
-void RfpToRealSolver::initLastCall(const std::vector<Node>& xts)
+bool RfpToRealSolver::isTarget(const Node& n)
 {
-  d_terms.clear();
-  Trace("rfp-to-real-solver") << "initLastCall" << std::endl;
-  for (const Node& n : xts)
-  {
-    if (n.getKind() != Kind::RFP_TO_REAL) continue;
-    u_int32_t hash = n.getOperator().getConst<RfpToReal>();
-    d_terms[hash].push_back(n);
-    Trace("rfp-to-real-solver") << "- " << n << std::endl;
-  }
+  Kind k = n.getKind();
+  return k == Kind::RFP_TO_REAL;
 }
 
-void RfpToRealSolver::checkInitialRefine()
-{
-  Trace("rfp-solver") << "RfpToRealSolver::checkInitialRefine" << std::endl;
-  for (const std::pair<const unsigned, std::vector<Node> >& hNodes : d_terms)
-  {
-    for (const Node& node : hNodes.second)
-    {
-      if (d_initRefine.find(node) != d_initRefine.end())
-      {
-        // already sent initial axioms for i in this user context
-        continue;
-      }
-      d_initRefine.insert(node);
-      checkInitialRefineToReal(node);
-    }
-  }
-}
-
-void RfpToRealSolver::checkFullRefine()
-{
-  Trace("rfp-to-real-solver") << "RfpToRealSolver::checkFullRefine" << std::endl;
-  for (const std::pair<const unsigned, std::vector<Node> >& hNodes : d_terms)
-  {
-    for (const Node& node : hNodes.second)
-    {
-      Trace("rfp-to-real-solver") << node << std::endl;
-      checkFullRefineToReal(node);
-    }
-  }
-}
+//
 
 void RfpToRealSolver::checkInitialRefineToReal(Node node) 
 {
@@ -132,7 +92,7 @@ void RfpToRealSolver::checkInitialRefineToReal(Node node)
   //}
 }
 
-void RfpToRealSolver::checkFullRefineToReal(Node node) 
+void RfpToRealSolver::checkAuxRefineToReal(Node node) 
 {
   Trace("rfp-to-real") << "RFP_TO_REAL term: " << node << std::endl;
   NodeManager* nm = NodeManager::currentNM();

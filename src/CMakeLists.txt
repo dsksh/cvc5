@@ -522,6 +522,10 @@ libcvc5_add_sources(
   theory/arith/nl/rfp_utils.h
   theory/arith/nl/rfp_solver.cpp
   theory/arith/nl/rfp_solver.h
+  theory/arith/nl/rfp_mult_solver.cpp
+  theory/arith/nl/rfp_mult_solver.h
+  theory/arith/nl/rfp_comp_solver.cpp
+  theory/arith/nl/rfp_comp_solver.h
   theory/arith/nl/rfp_round_solver.cpp
   theory/arith/nl/rfp_round_solver.h
   theory/arith/nl/rfp_to_real_solver.cpp

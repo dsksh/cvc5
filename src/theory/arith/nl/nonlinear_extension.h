@@ -37,6 +37,8 @@
 //#include "theory/arith/nl/ilog2_solver.h"
 #include "theory/arith/nl/rfp_round_solver.h"
 #include "theory/arith/nl/rfp_solver.h"
+#include "theory/arith/nl/rfp_mult_solver.h"
+#include "theory/arith/nl/rfp_comp_solver.h"
 #include "theory/arith/nl/rfp_to_real_solver.h"
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/strategy.h"
@@ -277,6 +279,14 @@ class NonlinearExtension : EnvObj
   /** The solver for RFP operators
    */
   RfpSolver d_rfpSlv;
+
+  /** The solver for RFP mul and div operators
+   */
+  RfpMultSolver d_rfpMultSlv;
+
+  /** The solver for RFP comparison operators
+   */
+  RfpCompSolver d_rfpCompSlv;
 
   /** The rfp.to_real solver
    */

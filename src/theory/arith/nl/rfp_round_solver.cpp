@@ -10,18 +10,17 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of RFP_ROUND solver.
+ * Implementation of the RFP solver for rfp.round and rfp.to_fp.
  */
 
 #include "theory/arith/nl/rfp_round_solver.h"
 
-#include "options/arith_options.h"
+#include "options/base_options.h"
 #include "options/smt_options.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/ext/ext_state.h"
 #include "theory/rewriter.h"
 #include "util/int_roundingmode.h"
 #include "util/real_floatingpoint.h"
@@ -45,256 +44,30 @@ RfpRoundSolver::RfpRoundSolver(Env& env,
                                InferenceManager& im,
                                NlModel& model,
                                ExtState* data)
-    : EnvObj(env),
-      d_im(im),
-      d_model(model),
-      d_data(data),
-      d_initRefine(userContext())
-{
-  NodeManager* nm = NodeManager::currentNM();
-  d_false = nm->mkConst(false);
-  d_true = nm->mkConst(true);
-  d_zero = nm->mkConstReal(Rational(0));
-  d_one = nm->mkConstReal(Rational(1));
-}
+    : RfpSolver(env, im, model),
+      d_data(data)
+{}
 
 RfpRoundSolver::~RfpRoundSolver() {}
 
-void RfpRoundSolver::initLastCall(const std::vector<Node>& assertions,
-                                  const std::vector<Node>& false_asserts,
-                                  const std::vector<Node>& xts)
+bool RfpRoundSolver::isTarget(const Node& n)
 {
-  d_rounds.clear();
-  d_toRfps.clear();
-
-  //d_data->d_rounds.clear();
-  //d_data->d_ms_prune_vs.clear();
-  //Trace("rfp-round-prune") << "clear d_rounds" << std::endl;
-
-  Trace("rfp-round-mv") << "RFP_TO_FP terms : " << std::endl;
-  for (const Node& a : xts)
-  {
-    Kind ak = a.getKind();
-    if (ak == Kind::RFP_ROUND)
-    {
-      u_int32_t hash = a.getOperator().getConst<RfpRound>();
-      d_rounds[hash].push_back(a);
-      Trace("rfp-round-mv") << "- " << a << std::endl;
-    }
-    else if(ak == Kind::RFP_TO_RFP_FROM_RFP)
-    {
-      u_int32_t hash = a.getOperator().getConst<RfpToRfpFromRfp>();
-      d_toRfps[hash].push_back(a);
-      Trace("rfp-round-mv") << "- " << a << std::endl;
-    }
-    else
-    {
-      // don't care about other terms
-      continue;
-    }
-  }
+  Kind k = n.getKind();
+  return k == Kind::RFP_ROUND || k == Kind::RFP_TO_RFP_FROM_RFP;
 }
 
-void RfpRoundSolver::checkInitialRefine()
+//
+
+void RfpRoundSolver::checkInitialRefineRound(Node node) 
 {
-  Trace("rfp-round-check") << "RfpRoundSolver::checkInitialRefine" << std::endl;
+  Trace("rfp-round-solver") << "RFP_ROUND term (init): " << node << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  for (const std::pair<const unsigned, std::vector<Node> >& is : d_rounds)
-  {
-    // the reference bitwidth
-    //unsigned k = is.first;
-    for (const Node& node : is.second)
-    {
-      if (d_initRefine.find(node) != d_initRefine.end())
-      {
-        // already sent initial axioms for i in this user context
-        continue;
-      }
-      d_initRefine.insert(node);
-
-      checkInitRefineRound(node);
-    }
-  }
-
-  for (const std::pair<const unsigned, std::vector<Node> >& is : d_toRfps)
-  {
-    for (const Node& node : is.second)
-    {
-      if (d_initRefine.find(node) != d_initRefine.end())
-      {
-        // already sent initial axioms for i in this user context
-        continue;
-      }
-      d_initRefine.insert(node);
-
-      FloatingPointSize srcSz = node.getOperator().getConst<RfpToRfpFromRfp>().getSrcSize();
-      FloatingPointSize sz = node.getOperator().getConst<RfpToRfpFromRfp>().getSize();
-      uint32_t eb0 = srcSz.exponentWidth();
-      uint32_t sb0 = srcSz.significandWidth();
-      uint32_t eb = sz.exponentWidth();
-      uint32_t sb = sz.significandWidth();
-
-      {
-        // finite case
-        Node isFinite = mkIsFinite(eb0,sb0, node[1]);
-        Node isNotZero = mkIsZero(eb0,sb0, node[1]).notNode();
-        Node assumption = isFinite.andNode(isNotZero);
-        Node op = nm->mkConst(RfpRound(eb,sb));
-        Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], node[1]);
-        Node conclusion = node.eqNode(rounded);
-        Node lem = assumption.impNode(conclusion);
-        Trace("rfp-to-rfp-lemma") << "RfpRoundSolver::Lemma: " << lem
-                                  << " ; to_rfp_finite ; INIT_REFINE"
-                                  << std::endl;
-        d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
-      }
-      {
-        Node lem = mkRoundCases(eb0,sb0, node[1], eb,sb, node);
-        Trace("rfp-to-rfp-lemma") << "RfpRoundSolver::Lemma: " << lem
-                                  << " ; to_rfp_cases ; INIT_REFINE"
-                                  << std::endl;
-        d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
-      }
-      {
-        // to_rfp_rounded
-        Node lem = mkIsRounded(eb,sb, node);
-        Trace("rfp-to-rfp-lemma") << "RfpSolver::Lemma: " << lem
-                                  << " ; to_rfp_rounded ; INIT_REFINE"
-                                  << std::endl;
-        d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
-      }
-    }
-  }
-}
-
-void RfpRoundSolver::checkFullRefine()
-{
-  Trace("rfp-round-check") << "RfpRoundSolver::checkFullRefine" << std::endl;
-  Trace("rfp-round-check") << "RFP_ROUND terms: " << std::endl;
-  //NodeManager* nm = NodeManager::currentNM();
-  for (const std::pair<const unsigned, std::vector<Node> >& ts : d_rounds)
-  {
-    // the reference bitwidth
-    //unsigned k = ts.first;
-    //for (const Node& t : ts.second)
-    for (std::vector<Node>::const_iterator it = ts.second.begin(); 
-         it != ts.second.end(); ++it)
-    {
-      const Node& node = *it;
-      FloatingPointSize sz = node.getOperator().getConst<RfpRound>().getSize();
-      uint32_t eb = sz.exponentWidth();
-      uint32_t sb = sz.significandWidth();
-
-      Node valRound = d_model.computeAbstractModelValue(node);
-      Node valRoundC = d_model.computeConcreteModelValue(node);
-
-      Node valRmA = d_model.computeAbstractModelValue(node[0]);
-      Node valArgA = d_model.computeAbstractModelValue(node[1]);
-      Node valRm = d_model.computeConcreteModelValue(node[0]);
-      Node valArg = d_model.computeConcreteModelValue(node[1]);
-
-      Integer rm = valRm.getConst<Rational>().getNumerator();
-      Rational arg = valArg.getConst<Rational>();
-      Rational round = valRound.getConst<Rational>();
-      Rational roundC = valRoundC.getConst<Rational>();
-
-      if (TraceIsOn("rfp-round-check"))
-      {
-        Trace("rfp-round-check") << "* " << node 
-                                 //<< ", value = " << valRound 
-                                 << std::endl;
-        Trace("rfp-round-check") << "  value  (" << valRmA << ", " 
-                                 << valArgA << ") = " << valRound
-                                 << std::endl;
-        Trace("rfp-round-check") << "  actual (" << rm << ", " 
-                                 << arg << ") = " << valRoundC 
-                                 << std::endl;
-
-        Rational tC = valRoundC.getConst<Rational>();
-        Trace("rfp-round-check") << "         (" << rm << ", "
-                         << ARFP(eb,sb, arg)
-                         << ") = " << ARFP(eb,sb, tC) << std::endl;
-      }
-      if (valRound == valRoundC)
-      {
-        Trace("rfp-round-check") << "...already correct" << std::endl;
-        continue;
-      }
-
-      checkFullRefineRound(node, rm, arg, round, roundC);
-
-      //for (uint64_t j = i + 1; j < size; j++)
-      for (std::vector<Node>::const_iterator it1 = it + 1; 
-           it1 != ts.second.end(); ++it1)
-      {
-        const Node& node1 = *it1;
-        Node valRound1 = d_model.computeAbstractModelValue(node1);
-
-        Node valRm1 = d_model.computeConcreteModelValue(node1[0]);
-        Node valArg1 = d_model.computeConcreteModelValue(node1[1]);
-
-        Integer rm1 = valRm1.getConst<Rational>().getNumerator();
-        Rational arg1 = valArg1.getConst<Rational>();
-        Rational round1 = valRound1.getConst<Rational>();
-
-        // TODO
-        //checkFullRefineRoundPair(node, rm, arg, round, node1, rm1, arg1, round1);
-      }
-    }
-  }
-
-  for (const std::pair<const unsigned, std::vector<Node> >& ts : d_toRfps)
-  {
-    for (std::vector<Node>::const_iterator it = ts.second.begin(); 
-         it != ts.second.end(); ++it)
-    {
-      const Node& node = *it;
-
-      Node valConv = d_model.computeAbstractModelValue(node);
-      Node valConvC = d_model.computeConcreteModelValue(node);
-
-      Node valRm = d_model.computeConcreteModelValue(node[0]);
-      Node valArg = d_model.computeConcreteModelValue(node[1]);
-
-      Integer rm = valRm.getConst<Rational>().getNumerator();
-      Rational arg = valArg.getConst<Rational>();
-      Rational conv = valConv.getConst<Rational>();
-
-      if (TraceIsOn("rfp-to-rfp-check"))
-      {
-        Trace("rfp-to-rfp-check") << "* " << node << ", value = " << valConv
-                                  << std::endl;
-        Trace("rfp-to-rfp-check") << "  actual (" << rm << ", " << arg
-                                  << ") = " << valConvC << std::endl;
-      }
-      if (valConv == valConvC)
-      {
-        Trace("rfp-to-rfp-check") << "...already correct" << std::endl;
-        continue;
-      }
-
-      // this is the most naive model-based schema based on model values
-      Node lem = valueBasedLemma(node);
-      Trace("rfp-to-rfp-lemma")
-          << "RfpRoundSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
-      // send the value lemma
-      d_im.addPendingLemma(lem,
-                           InferenceId::ARITH_NL_RFP_ROUND_VALUE_REFINE,
-                           nullptr,
-                           true);
-    }
-  }
-}
-
-void RfpRoundSolver::checkInitRefineRound(TNode node)
-{
   FloatingPointSize sz = node.getOperator().getConst<RfpRound>().getSize();
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
 
-  if (options().smt.rfpLazyLearn != options::rfpLLMode::STRONG)
+  if (options().smt.rfpLazyLearn == options::rfpLLMode::WEAK)
   {
-    NodeManager* nm = NodeManager::currentNM();
     Node sub = nm->mkNode(Kind::SUB, node, node[1]);
     {
       // Bound for subnormal numbers.
@@ -363,14 +136,48 @@ void RfpRoundSolver::checkInitRefineRound(TNode node)
   }
 }
 
-void RfpRoundSolver::checkFullRefineRound(TNode node, 
-  const Integer& rm, const Rational& arg, 
-  const Rational& round, const Rational& roundC)
+void RfpRoundSolver::checkAuxRefineRound(Node node) 
 {
+  Trace("rfp-round") << "RFP_ROUND term: " << node << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   FloatingPointSize sz = node.getOperator().getConst<RfpRound>().getSize();
   uint32_t eb = sz.exponentWidth();
   uint32_t sb = sz.significandWidth();
-  NodeManager* nm = NodeManager::currentNM();
+
+  Node valRound = d_model.computeAbstractModelValue(node);
+  Node valRoundC = d_model.computeConcreteModelValue(node);
+
+  Node valRmA = d_model.computeAbstractModelValue(node[0]);
+  Node valArgA = d_model.computeAbstractModelValue(node[1]);
+  Node valRm = d_model.computeConcreteModelValue(node[0]);
+  Node valArg = d_model.computeConcreteModelValue(node[1]);
+
+  Integer rm = valRm.getConst<Rational>().getNumerator();
+  Rational arg = valArg.getConst<Rational>();
+  Rational round = valRound.getConst<Rational>();
+  Rational roundC = valRoundC.getConst<Rational>();
+
+  if (TraceIsOn("rfp-round"))
+  {
+    Trace("rfp-round") << "* " << node 
+                       << std::endl;
+    Trace("rfp-round") << "  value  (" << valRmA << ", " 
+                       << valArgA << ") = " << valRound
+                       << std::endl;
+    Trace("rfp-round") << "  actual (" << rm << ", " 
+                       << arg << ") = " << valRoundC 
+                       << std::endl;
+
+    Rational tC = valRoundC.getConst<Rational>();
+    Trace("rfp-round") << "         (" << rm << ", "
+                       << ARFP(eb,sb, arg)
+                       << ") = " << ARFP(eb,sb, tC) << std::endl;
+  }
+  if (valRound == valRoundC)
+  {
+    Trace("rfp-round") << "...already correct" << std::endl;
+    return;
+  }
 
   // TODO
   d_data->registerRfpRound(node[1], node);
@@ -379,7 +186,7 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
   Node isNan = node.eqNode(nan);
   Node isNotNan = isNan.notNode();
 
-  if (options().smt.rfpLazyLearn == options::rfpLLMode::STRONG)
+  if (options().smt.rfpLazyLearn != options::rfpLLMode::WEAK)
   {
     if (RFP::isSubnormal(eb,sb, arg) || RFP::isSubnormal(eb,sb, round))
     {
@@ -649,78 +456,17 @@ void RfpRoundSolver::checkFullRefineRound(TNode node,
     }
   }
 
-  // TODO: condition can be weakened?
-  if ((RFP::isZero(eb,sb, arg) || RFP::isInfinite(eb,sb, arg) || RFP::isNan(eb,sb, arg))) 
-  {
-    // this is the most naive model-based schema based on model values
-    Node lem = valueBasedLemma(node);
-    Trace("rfp-round-lemma")
-        << "RfpRoundSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
-    // send the value lemma
-    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_VALUE_REFINE,
-      nullptr, true);
-  }
-}
-
-void RfpRoundSolver::checkFullRefineRoundPair(TNode node1, 
-  const Integer& rm1, const Rational& arg1, const Rational& round1,
-  TNode node2,
-  const Integer& rm2, const Rational& arg2, const Rational& round2)
-{
-  FloatingPointSize sz1 = node1.getOperator().getConst<RfpRound>().getSize();
-  FloatingPointSize sz2 = node2.getOperator().getConst<RfpRound>().getSize();
-  uint32_t eb = sz1.exponentWidth();
-  uint32_t sb = sz1.significandWidth();
-  NodeManager* nm = NodeManager::currentNM();
-
-  // monotone lemmas
-  if (rm1 == rm2 && sz1 == sz2)
-  {
-    if (arg1 <= arg2 && round1 > round2){
-      // L2-5
-      Node a1 = node1[0].eqNode(node2[0]);
-      Node isFinite1 = mkIsFinite(eb,sb, node1[1]);
-      Node isFinite2 = mkIsFinite(eb,sb, node2[1]);
-      Node a2 = isFinite1.andNode(isFinite2).andNode(
-        nm->mkNode(Kind::LEQ, node1[1], node2[1]));
-      Node assumption = a1.andNode(a2);
-      Node op = nm->mkConst(RfpLeq(eb,sb));
-      Node conclusion = mkTrue(nm->mkNode(Kind::RFP_LEQ, op, node1, node2));
-      Node lem = assumption.impNode(conclusion);
-      Trace("rfp-round-lemma")
-          << "RfpRoundSolver::Lemma: " << lem << " ; MONOTONE_REFINE" << std::endl;
-      d_im.addPendingLemma(
-          lem, InferenceId::ARITH_NL_RFP_ROUND_MONOTONE_REFINE, nullptr, true);
-    }
-    if (round1 < round2 && arg1 >= round2){
-      // L2-6
-      Node a1 = node1[0].eqNode(node2[0]);
-      Node op = nm->mkConst(RfpLt(eb,sb));
-      Node a2 = mkTrue(nm->mkNode(Kind::RFP_LT, op, node1, node2));
-      Node assumption = a1.andNode(a2);
-      Node conclusion = mkTrue(nm->mkNode(Kind::RFP_LT, op, node1[1], node2));
-      Node lem = assumption.impNode(conclusion);
-      Trace("rfp-round-lemma")
-          << "RfpRoundSolver::Lemma: " << lem << " ; MONOTONE_REFINE" << std::endl;
-      d_im.addPendingLemma(
-          lem, InferenceId::ARITH_NL_RFP_ROUND_MONOTONE_REFINE, nullptr, true);
-    }
-    if (round1 < round2 && round1 >= arg2){
-      // L2-7
-      Node a1 = node1[0].eqNode(node2[0]);
-      Node op = nm->mkConst(RfpLt(eb,sb));
-      Node a2 = mkTrue(nm->mkNode(Kind::RFP_LT, op, node1, node2));
-      Node assumption = a1.andNode(a2);
-      Node conclusion = mkTrue(nm->mkNode(Kind::RFP_LT, op, node1, node2[1]));
-      Node lem = assumption.impNode(conclusion);
-      Trace("rfp-round-lemma")
-          << "RfpRoundSolver::Lemma: " << lem << " ; MONOTONE_REFINE" << std::endl;
-      d_im.addPendingLemma(
-          lem, InferenceId::ARITH_NL_RFP_ROUND_MONOTONE_REFINE, nullptr, true);
-    }
-
-    // TODO: L2-10, L2-11, L2-12
-  }
+  //// TODO: condition can be weakened?
+  //if ((RFP::isZero(eb,sb, arg) || RFP::isInfinite(eb,sb, arg) || RFP::isNan(eb,sb, arg))) 
+  //{
+  //  // this is the most naive model-based schema based on model values
+  //  Node lem = valueBasedLemma(node);
+  //  Trace("rfp-round-lemma")
+  //      << "RfpRoundSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
+  //  // send the value lemma
+  //  d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_VALUE_REFINE,
+  //    nullptr, true);
+  //}
 }
 
 void RfpRoundSolver::checkRoundError(Rational err0,
@@ -772,22 +518,104 @@ void RfpRoundSolver::checkRoundError(Rational err0,
   d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_BOUND);
 }
 
-Node RfpRoundSolver::valueBasedLemma(Node node)
+//
+
+void RfpRoundSolver::checkInitialRefineToRfp(Node node) 
 {
-  Assert(node.getKind() == Kind::RFP_ROUND || 
-         node.getKind() == Kind::RFP_TO_RFP_FROM_RFP);
-  Node rm = node[0];
-  Node arg = node[1];
-
-  Node valRm = d_model.computeConcreteModelValue(rm);
-  Node valArg = d_model.computeConcreteModelValue(arg);
-
+  Trace("rfp-to-rfp") << "RFP_TO_RFP_FROM_RFP term (init): " << node << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  Node valC = nm->mkNode(Kind::RFP_ROUND, node.getOperator(), valRm, valArg);
-  valC = rewrite(valC);
+  FloatingPointSize srcSz = node.getOperator().getConst<RfpToRfpFromRfp>().getSrcSize();
+  FloatingPointSize sz = node.getOperator().getConst<RfpToRfpFromRfp>().getSize();
+  uint32_t eb0 = srcSz.exponentWidth();
+  uint32_t sb0 = srcSz.significandWidth();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
 
-  Node assumption = ( rm.eqNode(valRm) ).andNode( arg.eqNode(valArg) );
-  return assumption.impNode(node.eqNode(valC));
+  {
+    // finite case
+    Node isFinite = mkIsFinite(eb0,sb0, node[1]);
+    Node isNotZero = mkIsZero(eb0,sb0, node[1]).notNode();
+    Node assumption = isFinite.andNode(isNotZero);
+    Node op = nm->mkConst(RfpRound(eb,sb));
+    Node rounded = nm->mkNode(Kind::RFP_ROUND, op, node[0], node[1]);
+    Node conclusion = node.eqNode(rounded);
+    Node lem = assumption.impNode(conclusion);
+    Trace("rfp-to-rfp-lemma") << "RfpRoundSolver::Lemma: " << lem
+                              << " ; to_rfp_finite ; INIT_REFINE"
+                              << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
+  }
+  {
+    Node lem = mkRoundCases(eb0,sb0, node[1], eb,sb, node);
+    Trace("rfp-to-rfp-lemma") << "RfpRoundSolver::Lemma: " << lem
+                              << " ; to_rfp_cases ; INIT_REFINE"
+                              << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_INIT_REFINE);
+  }
+  {
+    // to_rfp_rounded
+    Node lem = mkIsRounded(eb,sb, node);
+    Trace("rfp-to-rfp-lemma") << "RfpSolver::Lemma: " << lem
+                              << " ; to_rfp_rounded ; INIT_REFINE"
+                              << std::endl;
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_INIT_REFINE);
+  }
+}
+
+void RfpRoundSolver::checkAuxRefineToRfp(Node node) {}
+
+//
+
+void RfpRoundSolver::checkFullRefineRound(const FloatingPointSize& sz, Node node) 
+{
+  Trace("rfp-round-solver") << "term: " << node << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  uint32_t eb = sz.exponentWidth();
+  uint32_t sb = sz.significandWidth();
+
+  Node valTerm = d_model.computeAbstractModelValue(node);
+  Node valTermC = d_model.computeConcreteModelValue(node);
+
+  Node valRm = d_model.computeConcreteModelValue(node[0]);
+  Node valX = d_model.computeConcreteModelValue(node[1]);
+
+  Integer rm = valRm.getConst<Rational>().getNumerator();
+  Rational x = valX.getConst<Rational>();
+  Rational t = valTerm.getConst<Rational>();
+
+  if (TraceIsOn("rfp-round-solver"))
+  {
+    Trace("rfp-round-solver") << "* " << node << ", value = " << valTerm
+                              << std::endl;
+    Trace("rfp-round-solver") << "  actual (" << rm << ", " << x 
+                              << ") = " << valTermC << std::endl;
+
+    Rational tC = valTermC.getConst<Rational>();
+    Trace("rfp-round-solver") << "         (" << rm << ", "
+                              << ARFP(eb,sb, x)
+                              << ") = " << ARFP(eb,sb, tC) << std::endl;
+  }
+  if (valTerm == valTermC)
+  {
+    Trace("rfp-round-solver") << "...already correct" << std::endl;
+    return;
+  }
+
+  if (options().smt.rfpValueRefine == options::rfpVRMode::ALL ||
+      (RFP::isZero(eb,sb, x) || RFP::isInfinite(eb,sb, x) || RFP::isNan(eb,sb, x)))
+  {
+    // this is the most naive model-based schema based on model values
+    Node valC = nm->mkNode(node.getKind(), node.getOperator(), valRm, valX);
+    valC = rewrite(valC);
+
+    Node assumption = node[0].eqNode(valRm).andNode(node[1].eqNode(valX));
+    Node lem = assumption.impNode(node.eqNode(valC));
+    Trace("rfp-round-lemma")
+        << "RfpRoundSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
+    // send the value lemma
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_ROUND_VALUE_REFINE,
+                         nullptr, true);
+  }
 }
 
 }  // namespace nl

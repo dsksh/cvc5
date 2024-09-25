@@ -65,18 +65,32 @@ enum class InferStep
 
   /** Initialize the RFP_ROUND solver */
   RFP_ROUND_INIT,
-  /** A full RFP_ROUND check */
-  RFP_ROUND_FULL,
   /** An initial RFP_ROUND check */
   RFP_ROUND_INITIAL,
+  /** An auxiliary RFP_ROUND check */
+  RFP_ROUND_AUX,
+  /** A full RFP_ROUND check */
+  RFP_ROUND_FULL,
 
   RFP_INIT,
-  RFP_FULL,
   RFP_INITIAL,
+  RFP_AUX,
+  RFP_FULL,
+
+  RFP_MULT_INIT,
+  RFP_MULT_INITIAL,
+  RFP_MULT_AUX,
+  RFP_MULT_FULL,
+
+  RFP_COMP_INIT,
+  RFP_COMP_INITIAL,
+  RFP_COMP_AUX,
+  RFP_COMP_FULL,
 
   RFP_TO_REAL_INIT,
-  RFP_TO_REAL_FULL,
   RFP_TO_REAL_INITIAL,
+  RFP_TO_REAL_AUX,
+  RFP_TO_REAL_FULL,
 
   /** An ICP check */
 

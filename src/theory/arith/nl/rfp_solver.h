@@ -40,9 +40,17 @@ class RfpSolver : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
 
+  enum InferKind { INITIAL, AUX, FULL };
+
  public:
   RfpSolver(Env& env, InferenceManager& im, NlModel& model);
   virtual ~RfpSolver();
+
+  /** is target ?
+   * 
+   * Return if the node is a target of the solver.
+   */
+  virtual bool isTarget(const Node& node);
 
   /** init last call
    *
@@ -61,13 +69,16 @@ class RfpSolver : protected EnvObj
    * This should be a heuristic incomplete check that only introduces a
    * small number of new terms in the lemmas it returns.
    */
-  void checkInitialRefine();
+  virtual void checkInitialRefine();
+  /** check aux refine
+   */
+  virtual void checkAuxRefine();
   /** check full refine
    *
    * This should be a complete check that returns at least one lemma to
    * rule out the current model.
    */
-  void checkFullRefine();
+  virtual void checkFullRefine();
 
   //-------------------------------------------- end lemma schemas
  protected:
@@ -75,11 +86,6 @@ class RfpSolver : protected EnvObj
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
-  /** commonly used terms */
-  Node d_false;
-  Node d_true;
-  Node d_zero;
-  Node d_one;
 
   /** Terms that have been given initial refinement lemmas */
   NodeSet d_initRefine;
@@ -89,40 +95,55 @@ class RfpSolver : protected EnvObj
   //template<Kind K>
   //void checkFullRefineBody(Node n);
 
-  ///** RFP kind */
-  //virtual kind::Kind_t kind() = 0;
-  ///** Size of the FP data. */
-  //virtual FloatingPointSize getSize(TNode n) = 0;
-
-  /** Value-based refinement lemma for the arithmetic operators.
+  /** process terms
+   * 
+   * Main loop of the checking process.
    */
-  Node opValueBasedLemma(TNode i);
-  /** Value-based refinement lemma for the relational operators.
-   */
-  Node relValueBasedLemma(TNode i);
+  void processTerms(InferKind iKind);
+  void checkInitialRefineBody(Node node);
+  void checkAuxRefineBody(Node node);
+  void checkFullRefineBody(Node node);
 
-  void checkFullRefineValue(Node n);
+  virtual void checkInitialRefineAdd(Node n);
+  virtual void checkAuxRefineAdd(Node n);
+  virtual void checkInitialRefineNeg(Node n);
+  virtual void checkAuxRefineNeg(Node n);
+  virtual void checkInitialRefineSub(Node n);
+  virtual void checkAuxRefineSub(Node n);
+  virtual void checkInitialRefineMult(Node n);
+  virtual void checkAuxRefineMult(Node n);
+  virtual void checkValueRefineMult(Node n) {}
+  virtual void checkInitialRefineDiv(Node n);
+  virtual void checkAuxRefineDiv(Node n);
+  virtual void checkInitialRefineGt(Node n);
+  virtual void checkAuxRefineGt(Node n);
+  virtual void checkInitialRefineGeq(Node n);
+  virtual void checkAuxRefineGeq(Node n);
+  virtual void checkInitialRefineRound(Node n);
+  virtual void checkAuxRefineRound(Node n);
+  virtual void checkInitialRefineToReal(Node n);
+  virtual void checkAuxRefineToReal(Node n);
+  virtual void checkInitialRefineToRfp(Node n);
+  virtual void checkAuxRefineToRfp(Node n);
 
-  //void checkInitialRefineToReal(Node n);
-  //void checkFullRefineToReal(Node n);
-  void checkInitialRefineAdd(Node n);
-  void checkFullRefineAdd(Node n);
-  void checkInitialRefineNeg(Node n);
-  void checkFullRefineNeg(Node n);
-  void checkInitialRefineSub(Node n);
-  void checkFullRefineSub(Node n);
-  void checkInitialRefineMult(Node n);
-  void checkFullRefineMult(Node n);
-  void checkInitialRefineDiv(Node n);
-  void checkFullRefineDiv(Node n);
-  //void checkInitialRefineLt(Node n);
-  //void checkFullRefineLt(Node n);
-  //void checkInitialRefineLeq(Node n);
-  //void checkFullRefineLeq(Node n);
-  void checkInitialRefineGt(Node n);
-  void checkFullRefineGt(Node n);
-  void checkInitialRefineGeq(Node n);
-  void checkFullRefineGeq(Node n);
+  virtual void checkFullRefineUnOp(const FloatingPointSize& sz, Node n);
+  virtual void checkFullRefineBinOp(const FloatingPointSize& sz, Node n);
+  virtual void checkFullRefineRound(const FloatingPointSize& sz, Node n);
+  virtual void checkFullRefineRelOp(const FloatingPointSize& sz, Node n);
+  virtual bool optionalValueRefineCond(const Node& n);
+
+  ///** Value-based refinement lemma for the arithmetic operators.
+  // */
+  //Node opValueBasedLemma(TNode i);
+  ///** Value-based refinement lemma for the relational operators.
+  // */
+  //virtual Node relValueBasedLemma(TNode i);
+
+  template<class K>
+  FloatingPointSize getSize(const Node& n)
+  {
+    return n.getOperator().getConst<K>().getSize();
+  }
 
 }; /* class RfpSolver */
 
