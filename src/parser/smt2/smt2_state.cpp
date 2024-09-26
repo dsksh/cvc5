@@ -848,11 +848,11 @@ void Smt2State::setLogic(std::string name)
       addOperator(Kind::POW2, "int.pow2");
 
       // rounding modes
-      defineVar("irm.ne", d_solver->mkInteger(internal::IntRoundingMode::NE));
-      defineVar("irm.na", d_solver->mkInteger(internal::IntRoundingMode::NA));
-      defineVar("irm.tp", d_solver->mkInteger(internal::IntRoundingMode::TP));
-      defineVar("irm.tn", d_solver->mkInteger(internal::IntRoundingMode::TN));
-      defineVar("irm.tz", d_solver->mkInteger(internal::IntRoundingMode::TZ));
+      defineVar("irm.ne", d_tm.mkInteger(internal::IntRoundingMode::NE));
+      defineVar("irm.na", d_tm.mkInteger(internal::IntRoundingMode::NA));
+      defineVar("irm.tp", d_tm.mkInteger(internal::IntRoundingMode::TP));
+      defineVar("irm.tn", d_tm.mkInteger(internal::IntRoundingMode::TN));
+      defineVar("irm.tz", d_tm.mkInteger(internal::IntRoundingMode::TZ));
 
       addOperator(Kind::IRM_TO_INT, "irm.to_int");
       addOperator(Kind::IRM_TO_RM, "irm.to_rm");

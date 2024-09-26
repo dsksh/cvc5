@@ -127,6 +127,12 @@ class Integer
   /** Return this*(2^pow). */
   Integer multiplyByPow2(uint32_t pow) const;
 
+  static Integer pow2(uint32_t pow)
+  {
+    // TODO
+    return Integer(0);
+  }
+
   /** Return true if bit at index 'i' is 1, and false otherwise. */
   bool isBitSet(uint32_t i) const;
 

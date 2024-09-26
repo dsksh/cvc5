@@ -706,7 +706,7 @@ Node FPToReal::createPropertyNode(Kind pKind, uint32_t eb, uint32_t sb, TNode no
       //return mkIsPos(eb,sb, node);
     }
     default:
-      Assert(false) << "unreachable";
+      Unreachable();
   }
 }
 
@@ -753,7 +753,7 @@ Node FPToReal::createFPOperator(Kind rfpKind, uint32_t eb, uint32_t sb)
     case Kind::RFP_GEQ:
       return d_nm->mkConst(RfpGeq(eb, sb));
     default:
-      Assert(false) << "unreachable";
+      Unreachable();
   }
 }
 

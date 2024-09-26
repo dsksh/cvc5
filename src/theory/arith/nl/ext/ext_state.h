@@ -89,13 +89,13 @@ class ExtState : protected EnvObj
   std::map<Node, bool> d_ms_round_lits;
   std::map<std::pair<Node, Node>, bool> d_ms_prune_vs;
 
-  std::map<Node, std::pair<Node,uint> > d_rounds;
+  std::map<Node, std::pair<Node,uint32_t> > d_rounds;
   void registerRfpRound(Node arg, Node round){
     if (d_rounds.find(arg) == d_rounds.end())
-      d_rounds[arg] = std::pair<Node,uint>(round, 0);
+      d_rounds[arg] = std::pair<Node,uint32_t>(round, 0);
   }
 
-  static const uint RFP_ROUND_CMAX = 10;
+  static const uint32_t RFP_ROUND_CMAX = 10;
 };
 
 }  // namespace nl

@@ -48,7 +48,8 @@ struct IntRoundingMode
       return 3;
     else if (rm == RoundingMode::ROUND_TOWARD_ZERO)
       return 4;
-    Assert(false);
+
+    Unreachable();
   }
 };
 

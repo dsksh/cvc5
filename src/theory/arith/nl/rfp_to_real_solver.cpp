@@ -27,7 +27,7 @@
 
 using namespace cvc5::internal::kind;
 
-using IRM = typename cvc5::internal::IntRoundingMode;
+typedef cvc5::internal::IntRoundingMode IRM;
 namespace RFP = cvc5::internal::RealFloatingPoint;
 using namespace cvc5::internal::theory::arith::nl::RfpUtils;
 
@@ -95,10 +95,10 @@ void RfpToRealSolver::checkInitialRefineToReal(Node node)
 void RfpToRealSolver::checkAuxRefineToReal(Node node) 
 {
   Trace("rfp-to-real") << "RFP_TO_REAL term: " << node << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-  FloatingPointSize sz = node.getOperator().getConst<RfpToReal>().getSize();
-  uint32_t eb = sz.exponentWidth();
-  uint32_t sb = sz.significandWidth();
+  //NodeManager* nm = NodeManager::currentNM();
+  //FloatingPointSize sz = node.getOperator().getConst<RfpToReal>().getSize();
+  //uint32_t eb = sz.exponentWidth();
+  //uint32_t sb = sz.significandWidth();
 
   Node valTerm = d_model.computeAbstractModelValue(node);
   Node valTermC = d_model.computeConcreteModelValue(node);

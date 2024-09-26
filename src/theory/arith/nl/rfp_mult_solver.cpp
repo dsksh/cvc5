@@ -27,7 +27,7 @@
 
 using namespace cvc5::internal::kind;
 
-using IRM = typename cvc5::internal::IntRoundingMode;
+typedef cvc5::internal::IntRoundingMode IRM;
 namespace RFP = cvc5::internal::RealFloatingPoint;
 using namespace cvc5::internal::theory::arith::nl::RfpUtils;
 
@@ -267,8 +267,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
     return;
   }
 
-  bool f = false;
-  
   if (options().smt.rfpLazyLearn == options::rfpLLMode::STRONG
       || options().smt.rfpLazyLearn == options::rfpLLMode::MID
       //|| options().smt.rfpLazyLearn == options::rfpLLMode::WEAK
@@ -287,7 +285,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
                               << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX,
                            nullptr, true);
-      f = true;
     }
     else if (x == Rational(-1) && !RFP::isNan(eb,sb, y) &&
              mult != -y)
@@ -304,7 +301,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
                               << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX,
                            nullptr, true);
-      f = true;
     }
     else if (!RFP::isNan(eb,sb, x) && y == Rational(1) &&
              mult != x)
@@ -319,7 +315,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
                               << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX,
                            nullptr, true);
-      f = true;
     }
     else if (!RFP::isNan(eb,sb, x) && y == Rational(-1) &&
              mult != -x)
@@ -336,7 +331,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
                               << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX,
                            nullptr, true);
-      f = true;
     }
   }
   if (options().smt.rfpLazyLearn == options::rfpLLMode::STRONG
@@ -379,7 +373,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX);
       //d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX,
       //                     nullptr, true);
-      //f = true;
     }
   }
   if (options().smt.rfpLazyLearn == options::rfpLLMode::STRONG
@@ -410,7 +403,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
                               << " ; mul_finite ; AUX_REFINE"
                               << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX);
-      f = true;
     }
   }
   
@@ -456,7 +448,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
                             << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX,
                          nullptr, true);
-    f = true;
   }
 
   if (options().smt.rfpLazyLearn == options::rfpLLMode::STRONG
@@ -474,7 +465,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
                               << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX,
                            nullptr, true);
-      f = true;
     }
     else if (RFP::isZero(eb,sb, x) && RFP::isInfiniteWeak(eb,sb, y))
     {
@@ -487,7 +477,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
                               << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX,
                            nullptr, true);
-      f = true;
     }
     else if (RFP::isFinite(eb,sb, x) && RFP::isInfiniteWeak(eb,sb, y))
     {
@@ -500,7 +489,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
                               << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX,
                            nullptr, true);
-      f = true;
     }
     else if (RFP::isInfiniteWeak(eb,sb, x) && RFP::isZero(eb,sb, y))
     {
@@ -513,7 +501,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
                               << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX,
                            nullptr, true);
-      f = true;
     }
     else if (RFP::isInfiniteWeak(eb,sb, x) && RFP::isFinite(eb,sb, y))
     {
@@ -526,7 +513,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
                               << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX,
                            nullptr, true);
-      f = true;
     }
     else if (RFP::isInfiniteWeak(eb,sb, x) && RFP::isInfiniteWeak(eb,sb, y))
     {
@@ -539,7 +525,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
                               << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX,
                            nullptr, true);
-      f = true;
     }
   }
 
@@ -563,7 +548,6 @@ void RfpMultSolver::checkAuxRefineMult(Node node)
     Trace("rfp-mult-lemma") << "RfpMultSolver::Lemma: " << lem << " ; AUX_REFINE"
                            << std::endl;
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_MULT_AUX);
-    f = true;
   }
 
   //if (options().smt.rfpValueRefine == options::rfpVRMode::ALL ||

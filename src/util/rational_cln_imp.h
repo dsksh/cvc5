@@ -282,6 +282,13 @@ class Rational
   /** Equivalent to calling (this->abs()).cmp(b.abs()) */
   int absCmp(const Rational& q) const;
 
+  /** Logarithm with base 2. */
+  int ilog2() const
+  {
+    // TODO
+    return 0;
+  }
+
  private:
   /**
    * Stores the value of the rational in a C++ CLN rational class.

@@ -20,7 +20,7 @@
 
 using namespace cvc5::internal::kind;
 
-using IRM = typename cvc5::internal::IntRoundingMode;
+typedef cvc5::internal::IntRoundingMode IRM;
 namespace RFP = cvc5::internal::RealFloatingPoint;
 
 namespace cvc5::internal {

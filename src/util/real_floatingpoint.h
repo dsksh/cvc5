@@ -136,7 +136,7 @@ class RfpOperation
   virtual ~RfpOperation() {}
 
   /** Operator overload for comparison of conversion sorts. */
-  virtual bool operator==(const RfpOperation& t) const
+  bool operator==(const RfpOperation& t) const
   {
     return getSize() == t.getSize();
   }
@@ -172,7 +172,7 @@ class RfpToRfpFromRfp : public RfpOperation
  public:
   RfpToRfpFromRfp(uint32_t _e0, uint32_t _s0, uint32_t _e, uint32_t _s) 
   : RfpOperation(_e, _s), d_srcFpSize(_e0, _s0) {}
-  virtual ~RfpToRfpFromRfp() {}
+  virtual ~RfpToRfpFromRfp() override {}
 
   /** Operator overload for comparison of conversion sorts. */
   bool operator==(const RfpToRfpFromRfp& t) const

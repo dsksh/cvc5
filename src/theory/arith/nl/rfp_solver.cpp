@@ -27,7 +27,7 @@
 
 using namespace cvc5::internal::kind;
 
-using IRM = typename cvc5::internal::IntRoundingMode;
+typedef cvc5::internal::IntRoundingMode IRM;
 namespace RFP = cvc5::internal::RealFloatingPoint;
 using namespace cvc5::internal::theory::arith::nl::RfpUtils;
 
@@ -66,7 +66,7 @@ void RfpSolver::initLastCall(const std::vector<Node>& assertions,
   {
     if (!isTarget(n)) continue;
 
-    u_int32_t hash;
+    uint32_t hash;
     switch (n.getKind())
     {
       case Kind::RFP_ADD: hash = n.getOperator().getConst<RfpAdd>(); break;
@@ -686,7 +686,7 @@ void RfpSolver::checkAuxRefineAdd(Node node)
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
     }
     else if (RFP::isInfiniteWeak(eb,sb, x) && RFP::isInfiniteWeak(eb,sb, y) &&
-             x < 0 == y < 0)
+             (x < 0) == (y < 0))
     {
       Node isInfX = mkIsInfWeak(eb,sb, node[1]);
       Node isInfY = mkIsInfWeak(eb,sb, node[2]);
@@ -702,7 +702,7 @@ void RfpSolver::checkAuxRefineAdd(Node node)
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_RFP_AUX_REFINE);
     }
     else if (RFP::isInfiniteWeak(eb,sb, x) && RFP::isInfiniteWeak(eb,sb, y) &&
-             x < 0 != y < 0)
+             (x < 0) != (y < 0))
     {
       Node isInfX = mkIsInfWeak(eb,sb, node[1]);
       Node isInfY = mkIsInfWeak(eb,sb, node[2]);
@@ -717,7 +717,7 @@ void RfpSolver::checkAuxRefineAdd(Node node)
     }
   }
 
-  //if ((x >= 0 == y >= 0) && (add >= 0 != x >= 0)
+  //if ((x >= 0) == (y >= 0) && (add >= 0) != (x >= 0)
   //  && RFP::isFinite(eb,sb, x) && RFP::isFinite(eb,sb, y))
   //{
   //  // add_special 7 weakened

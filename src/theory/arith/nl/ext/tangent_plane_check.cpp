@@ -31,7 +31,7 @@ using namespace cvc5::internal::kind;
 #include "util/int_roundingmode.h"
 #include "util/real_floatingpoint.h"
 #include "theory/arith/nl/rfp_utils.h"
-using IRM = typename cvc5::internal::IntRoundingMode;
+//typedef cvc5::internal::IntRoundingMode IRM;
 namespace RFP = cvc5::internal::RealFloatingPoint;
 using namespace cvc5::internal::theory::arith::nl::RfpUtils;
 

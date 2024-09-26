@@ -29,7 +29,7 @@ namespace cvc5::internal {
 
 namespace RealFloatingPoint {
 
-using IRM = typename cvc5::internal::IntRoundingMode;
+typedef cvc5::internal::IntRoundingMode IRM;
 
 /* -------------------------------------------------------------------------- */
 
@@ -210,7 +210,7 @@ bool noOverflow(uint32_t eb, uint32_t sb, uint8_t rm, const Rational& arg)
   } else if (rm == IRM::TZ){
     return true;
   }
-  Assert(false) << "unreachable branch";
+  Unreachable();
 }
 
 //
